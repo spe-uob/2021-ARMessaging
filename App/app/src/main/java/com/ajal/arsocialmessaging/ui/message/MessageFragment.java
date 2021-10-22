@@ -1,4 +1,4 @@
-package com.ajal.arsocialmessaging.ui.dashboard;
+package com.ajal.arsocialmessaging.ui.message;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,24 +12,23 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.ajal.arsocialmessaging.R;
-import com.ajal.arsocialmessaging.databinding.FragmentDashboardBinding;
+import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 
-public class DashboardFragment extends Fragment {
+public class MessageFragment extends Fragment {
 
-    private DashboardViewModel dashboardViewModel;
-    private FragmentDashboardBinding binding;
+    private MessageViewModel messageViewModel;
+    private FragmentMessageBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        dashboardViewModel =
-                new ViewModelProvider(this).get(DashboardViewModel.class);
+        messageViewModel =
+                new ViewModelProvider(this).get(MessageViewModel.class);
 
-        binding = FragmentDashboardBinding.inflate(inflater, container, false);
+        binding = FragmentMessageBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        final TextView textView = binding.textDashboard;
-        dashboardViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
+        final TextView textView = binding.textMessage;
+        messageViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
                 textView.setText(s);
