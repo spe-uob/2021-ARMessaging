@@ -31,29 +31,6 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
 
-    // Stores the message that the user has clicked on in memory
-//    public void onMessageSelected(View view) {
-//        boolean checked = ((RadioButton) view).isChecked();
-//        // Check which radio button was clicked
-//        switch(view.getId()) {
-//            case R.id.msg1:
-//                if (checked)
-//                    Log.d("Radio clicked", "Hello World!");
-//                break;
-//            case R.id.msg2:
-//                if (checked)
-//                    Log.d("Radio clicked", "Happy Birthday!");
-//                break;
-//            case R.id.msg3:
-//                if (checked)
-//                    Log.d("Radio clicked", "Merry Christmas!");
-//                break;
-//        }
-//    }
-
-    List<String> messages = new ArrayList<>();
-    ListView listView;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

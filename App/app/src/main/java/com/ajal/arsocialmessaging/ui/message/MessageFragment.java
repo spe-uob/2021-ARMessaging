@@ -1,5 +1,6 @@
 package com.ajal.arsocialmessaging.ui.message;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -8,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.RadioButton;
@@ -33,6 +35,9 @@ public class MessageFragment extends Fragment {
     private MessageViewModel messageViewModel;
     private FragmentMessageBinding binding;
 
+    private String messageSelected;
+    private String postCode;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         messageViewModel =
@@ -49,20 +54,32 @@ public class MessageFragment extends Fragment {
             }
         });
 
+        /** ListView code */
+        // Fills the ListView with messages
         List<String> messages = Arrays.asList(getResources().getStringArray(R.array.messages));
-        ListView listView = (ListView) root.findViewById(R.id.list_view);
+        ListView listView = root.findViewById(R.id.list_view);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, messages);
+        listView.setAdapter(adapter);
 
         // Sets a listener to figure out what item was clicked in list view
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String message = parent.getItemAtPosition(position).toString();
-                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show(); // used to debug
+                messageSelected = parent.getItemAtPosition(position).toString();
+                Toast.makeText(getContext(), messageSelected, Toast.LENGTH_SHORT).show(); // used to debug
             }
         });
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, messages);
-        listView.setAdapter(adapter);
+        /** Postcode button code */
+        TextView postCodeInput = root.findViewById(R.id.text_input_postcode);
+        Button sendBtn = root.findViewById(R.id.send_button);
+        sendBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                postCode = postCodeInput.getText().toString();
+                Toast.makeText(getContext(), postCode, Toast.LENGTH_SHORT).show();
+            }
+        });
 
         return root;
     }
