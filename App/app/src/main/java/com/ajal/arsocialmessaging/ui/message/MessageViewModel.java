@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+// Currently not used
 public class MessageViewModel extends ViewModel {
 
     private MutableLiveData<String> mText;
