@@ -1,12 +1,17 @@
 package com.ajal.arsocialmessaging.ui.notifications;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,8 +29,6 @@ public class NotificationsFragment extends Fragment {
 
     private NotificationsViewModel notificationsViewModel;
     private FragmentNotificationsBinding binding;
-    private List<String> notifications;
-    private ListView listView;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -34,11 +37,6 @@ public class NotificationsFragment extends Fragment {
 
         binding = FragmentNotificationsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
-
-        notifications = Arrays.asList(getResources().getStringArray(R.array.notifications));
-        listView = root.findViewById(R.id.notifications_list);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, notifications);
-        listView.setAdapter(adapter);
 
         /* Why does this section of code cause an error???
         final TextView textView = binding.textNotifications;
@@ -49,6 +47,7 @@ public class NotificationsFragment extends Fragment {
             }
         });
         */
+
         return root;
     }
 

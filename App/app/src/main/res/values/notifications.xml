@@ -1,6 +1,11 @@
 <resources>
     <!-- Notifications to be displayed -->
-    <string-array name="notifications">
-        <item>A Notification</item>
-    </string-array>
+    <notifications name="notifications">
+        <notification>
+            <title></title>
+            <text></text>
+            <time></time>
+            <priority></priority>
+        </notification>
+    </notifications>
 </resources>
