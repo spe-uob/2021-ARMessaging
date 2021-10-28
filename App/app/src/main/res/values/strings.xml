@@ -1,6 +1,21 @@
 <resources>
     <string name="app_name">ARSocialMessaging</string>
     <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
+    <string name="title_message">Message</string>
     <string name="title_notifications">Notifications</string>
+    <string name="title_settings">Settings</string>
+
+    <!-- Messages to be displayed -->
+    <string-array name="messages">
+        <item>Hello, World!</item>
+        <item>Happy Birthday!</item>
+        <item>Merry Christmas!</item>
+        <item>Happy New Year!</item>
+        <item>Congratulations!</item>
+        <item>Good Luck!</item>
+        <item>Hope you feel better soon</item>
+        <item>Thank you!</item>
+        <item>Happy Halloween!</item>
+        <item>Happy Easter!</item>
+    </string-array>
 </resources>
