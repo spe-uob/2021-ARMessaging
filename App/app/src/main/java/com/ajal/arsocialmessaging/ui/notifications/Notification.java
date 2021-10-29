@@ -3,9 +3,21 @@ package com.ajal.arsocialmessaging.ui.notifications;
 import java.util.Date;
 
 public class Notification {
-    public String title;
-    public String text;
-    public Date time;
-    public int priority;
-    public String channelId;
+    private String title;
+    private String text;
+    private Date time;
+    private int priority;
+    private String channelId;
+
+    public Notification() {
+
+    }
+
+    public void display() {
+
+    }
+
+    public void push() {
+
+    }
 }
