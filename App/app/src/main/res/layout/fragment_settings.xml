@@ -5,6 +5,7 @@
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
     android:visibility="visible"
+    android:padding="20dp"
     tools:context=".ui.settings.SettingsFragment"
     tools:visibility="visible">
 
@@ -55,7 +56,7 @@
 
         <Switch
             android:id="@+id/switch_DarkMode"
-            android:layout_width="400dp"
+            android:layout_width="350dp"
             android:layout_height="20dp"
             android:text="Dark Mode"
             android:textSize="18sp"
@@ -70,64 +71,54 @@
             android:layout_height="wrap_content"
             android:text="Notification"
             android:textSize="15sp"
-            app:layout_constraintBottom_toTopOf="@+id/switch_Notification"
+            app:layout_constraintTop_toBottomOf="@+id/switch_DarkMode"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomof="@+id/switch_DarkMode" />
-
+            />
 
         <Switch
-            android:id="@+id/switch_Notification"
-            android:layout_width="400dp"
+            android:id="@+id/switch1"
+            android:layout_width="350dp"
             android:layout_height="20dp"
-            android:text="Push Notifications"
+            android:text="Push Notification"
             android:textSize="18sp"
-            app:layout_constraintBottom_toTopOf="@+id/text_Privacy"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomof="@+id/text_NotificationSettings" />
-
+            app:layout_constraintTop_toBottomOf="@+id/text_NotificationSettings" />
 
         <TextView
-            android:id="@+id/text_Privacy"
-            android:layout_width="match_parent"
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Privacy"
             android:textSize="15sp"
-            app:layout_constraintBottom_toTopOf="@+id/text_RefreshLocation"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/switch_Notification" />
+            app:layout_constraintTop_toBottomOf="@+id/switch1" />
 
         <TextView
-            android:id="@+id/text_RefreshLocation"
-            android:layout_width="218dp"
-            android:layout_height="26dp"
-            android:text="Refresh Your Location"
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Update Your Location"
             android:textSize="18sp"
-            app:layout_constraintBottom_toTopOf="@+id/text_HelpnFeedback"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_Privacy" />
+            app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
         <SeekBar
-            android:id="@+id/seekBar_LocationRefresh"
+            android:id="@+id/seekBar2"
             style="@style/Widget.AppCompat.SeekBar.Discrete"
-            android:layout_width="289dp"
-            android:layout_height="24dp"
+            android:layout_width="356dp"
+            android:layout_height="28dp"
             android:max="5"
             android:progress="3"
-            app:layout_constraintBottom_toTopOf="@+id/text_HelpnFeedback"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.441"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_RefreshLocation" />
+            app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
         <TextView
-            android:id="@+id/text_HelpnFeedback"
-            android:layout_width="match_parent"
+            android:id="@+id/textView4"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Help and Feedback"
-            android:textSize="15sp"
-            app:layout_constraintTop_toBottomOf="@+id/seekBar_LocationRefresh" />
-
-
-
-
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/seekBar2" />
 </androidx.constraintlayout.widget.ConstraintLayout>
