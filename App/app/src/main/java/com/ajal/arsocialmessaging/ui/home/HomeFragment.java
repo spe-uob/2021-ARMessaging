@@ -138,7 +138,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     private boolean installRequested;
 
     private Session session;
-    private final SnackbarHelper messageSnackbarHelper = new SnackbarHelper();
+    private final SnackbarHelper messageSnackbarHelper = new SnackbarHelper();;
     private DisplayRotationHelper displayRotationHelper;
     private final TrackingStateHelper trackingStateHelper = new TrackingStateHelper(this.getActivity());
     private TapHelper tapHelper;
@@ -193,10 +193,13 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        HomeViewModel homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+
+        // Skywrite: add bottom navigation view to snackbar helper
+        View bottomNavigation = super.getActivity().findViewById(R.id.nav_view);
+        this.messageSnackbarHelper.setBottomNavigationView(bottomNavigation);
 
         super.onCreate(savedInstanceState);
         surfaceView = root.findViewById(R.id.surfaceview);
@@ -227,11 +230,17 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
 
         super.onDestroyView();
         binding = null;
+
+        this.messageSnackbarHelper.hide(this.getActivity()); // hides the activity
     }
 
     @Override
     public void onResume() {
         super.onResume();
+
+        // Skywrite: add bottom navigation view to snackbar helper
+        View bottomNavigation = super.getActivity().findViewById(R.id.nav_view);
+        this.messageSnackbarHelper.setBottomNavigationView(bottomNavigation);
 
         if (session == null) {
             Exception exception = null;
@@ -326,12 +335,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             // finish(); <- not too sure where this comes from
         }
     }
-
-//    @Override
-//    public void onWindowFocusChanged(boolean hasFocus) {
-//        super.onWindowFocusChanged(hasFocus);
-//        FullScreenHelper.setFullScreenOnWindowFocusChanged(this, hasFocus);
-//    }
 
     @Override
     public void onSurfaceCreated(SampleRender render) {
@@ -511,6 +514,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         } else if (hasTrackingPlane()) {
             if (anchors.isEmpty()) {
                 message = WAITING_FOR_TAP_MESSAGE;
+            } else { // Skywrite: display message when model is place
+                message = "Look up!";
             }
         } else {
             message = SEARCHING_PLANE_MESSAGE;
@@ -578,7 +583,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
 
             // Skywrite: translate the y position to make the object "float"
             // TODO: test to see if 30f is correct (1f = 1m; 30f = 30m which is approx 100ft)
-            anchor.getPose().makeTranslation(0, 1f, 0).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
+            // TODO: make it so that based on the user's distance from the ground, adjust the transformation to match 100ft
+            anchor.getPose().makeTranslation(0, 30f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
+
+            // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
+            Matrix.scaleM(modelMatrix, 0, 5f, 5f, 5f);
 
             // Calculate model/view/projection matrices
             Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
@@ -588,6 +597,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             virtualObjectShader.setMat4("u_ModelView", modelViewMatrix);
             virtualObjectShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
             render.draw(virtualObjectMesh, virtualObjectShader, virtualSceneFramebuffer);
+
         }
 
         // Compose the virtual scene with the background.
@@ -624,6 +634,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
 
                     // Skywrite: only wants 1 anchor for the text, > 0 because it hasn't been added yet
                     // TODO: randomly pick an anchor instead of relying on tap
+                    // TODO: hide surface once anchor is made, and thus must only have one anchor
                     if (anchors.size() > 0) {
                         anchors.get(0).detach();
                         anchors.remove(0);

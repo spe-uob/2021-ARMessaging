@@ -33,9 +33,15 @@ public final class SnackbarHelper {
   private int maxLines = 2;
   private String lastMessage = "";
   private View snackbarView;
+  private View bottomNavigationView; // Skywrite
 
   public boolean isShowing() {
     return messageSnackbar != null;
+  }
+
+  /** Set bottom navigation view so that snackbar will appear above it */
+  public void setBottomNavigationView(View bottomNavigationView) {
+      this.bottomNavigationView = bottomNavigationView;
   }
 
   /** Shows a snackbar with a given message. */
@@ -110,6 +116,7 @@ public final class SnackbarHelper {
                         : snackbarView,
                     message,
                     Snackbar.LENGTH_INDEFINITE);
+            messageSnackbar.setAnchorView(bottomNavigationView);
             messageSnackbar.getView().setBackgroundColor(BACKGROUND_COLOR);
             if (dismissBehavior != DismissBehavior.HIDE) {
               messageSnackbar.setAction(
