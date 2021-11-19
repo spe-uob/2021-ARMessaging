@@ -1,10 +1,12 @@
 package com.ajal.arsocialmessaging.ui.home;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -18,9 +20,11 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.opengl.GLES20;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -38,6 +42,7 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -93,8 +98,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -191,6 +201,12 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     private final float[] worldLightDirection = {0.0f, 0.0f, 0.0f, 0.0f};
     private final float[] viewLightDirection = new float[4]; // view x world light direction
 
+    // For taking pictures
+    private int mWidth;
+    private int mHeight;
+    private  boolean capturePicture = false;
+    private String outFile;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -213,6 +229,18 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         render = new SampleRender(surfaceView, this, this.getContext().getAssets());
 
         installRequested = false;
+
+        Activity activity = this.getActivity();
+        Context context = this.getContext();
+
+        // Skywrite: Set up button listener to take photo
+        Button snapBtn = (Button) root.findViewById(R.id.snap_button);
+        snapBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                capturePicture = true;
+            }
+        });
 
         return root;
     }
@@ -436,6 +464,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     public void onSurfaceChanged(SampleRender render, int width, int height) {
         displayRotationHelper.onSurfaceChanged(width, height);
         virtualSceneFramebuffer.resize(width, height);
+        mWidth = width;
+        mHeight = height;
     }
 
     @Override
@@ -518,9 +548,12 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             } else { // Skywrite: display message when model is place
                 message = "Look up!";
             }
+        } else if (capturePicture) { // Skywrite: save image
+            message = "Image saved: "+outFile;
         } else {
             message = SEARCHING_PLANE_MESSAGE;
         }
+
         if (message == null) {
             messageSnackbarHelper.hide(this.getActivity());
         } else {
@@ -567,8 +600,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                 camera.getDisplayOrientedPose(),
                 projectionMatrix);
 
-        // -- Draw occluded virtual objects
-
         // Update lighting parameters in the shader
         updateLightEstimation(frame.getLightEstimate(), viewMatrix);
 
@@ -588,7 +619,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             anchor.getPose().makeTranslation(0, 30f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
 
             // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
-            Matrix.scaleM(modelMatrix, 0, 5f, 5f, 5f);
+            Matrix.scaleM(modelMatrix, 0, 2f, 2f, 2f);
 
             // Calculate model/view/projection matrices
             Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
@@ -603,6 +634,71 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
 
         // Compose the virtual scene with the background.
         backgroundRenderer.drawVirtualScene(render, virtualSceneFramebuffer, Z_NEAR, Z_FAR);
+
+        // Skywrite: Save the picture if the button is pressed
+        if (capturePicture) {
+            capturePicture = false;
+            try {
+                SavePicture();
+            } catch (IOException e) {
+                messageSnackbarHelper.showError(this.getActivity(), "Exception saving image");
+                Log.e(TAG, "Exception saving image", e);
+            }
+        }
+    }
+
+    /**
+     * Call from the GLThread to save a picture of the current frame.
+     * Reference: https://stackoverflow.com/questions/48191513/how-to-take-picture-with-camera-using-arcore
+     */
+    // @RequiresApi(api = Build.VERSION_CODES.O)
+    public void SavePicture() throws IOException {
+        int pixelData[] = new int[mWidth * mHeight];
+
+        // Read the pixels from the current GL frame.
+        IntBuffer buf = IntBuffer.wrap(pixelData);
+        buf.position(0);
+        GLES20.glReadPixels(0, 0, mWidth, mHeight,
+                GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buf);
+
+        // Get time of photo taken to use to store file
+        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
+
+        // Create a file in Internal Storage/DCIM/SkyWrite
+        final File out = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM) + "/SkyWrite", "IMG_" +
+                date+ ".png");
+        outFile = out.getName();
+
+        // Make sure the directory exists, if not make it
+        if (!out.getParentFile().exists()) {
+            out.getParentFile().mkdirs();
+        }
+
+        // Convert the pixel data from RGBA to what Android wants, ARGB.
+        // TODO: look into converting RGBA into ARGB
+        int bitmapData[] = new int[pixelData.length];
+        Log.d(TAG, outFile+":"+mHeight+"x"+mWidth);
+        for (int i = 0; i < mHeight; i++) {
+            for (int j = 0; j < mWidth; j++) {
+                int p = pixelData[i * mWidth + j];
+                int b = (p & 0x00ff0000) >> 16;
+                int r = (p & 0x000000ff) << 16;
+                int ga = p & 0xff00ff00;
+                bitmapData[(mHeight - i - 1) * mWidth + j] = ga | r | b;
+            }
+        }
+
+        // Create a bitmap.
+        Bitmap bmp = Bitmap.createBitmap(bitmapData,
+                mWidth, mHeight, Bitmap.Config.ARGB_8888);
+
+        // Write it to disk.
+        FileOutputStream fos = new FileOutputStream(out);
+        bmp.compress(Bitmap.CompressFormat.PNG, 100, fos);
+        fos.flush();
+        fos.close();
+        Log.d(TAG, "Image saved");
 
     }
 
