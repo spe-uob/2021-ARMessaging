@@ -395,20 +395,21 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                     new Mesh(
                             render, Mesh.PrimitiveMode.POINTS, /*indexBuffer=*/ null, pointCloudVertexBuffers);
 
-            // Virtual object to render (ARCore pawn)
+            // TODO: create multiple textures for different words
+            // Virtual object to render (text)
             Texture virtualObjectAlbedoTexture =
                     Texture.createFromAsset(
                             render,
-                            "models/pawn_albedo.png",
+                            "models/black_texture.png",
                             Texture.WrapMode.CLAMP_TO_EDGE,
                             Texture.ColorFormat.SRGB);
             Texture virtualObjectPbrTexture =
                     Texture.createFromAsset(
                             render,
-                            "models/pawn_roughness_metallic_ao.png",
+                            "models/black_texture.png",
                             Texture.WrapMode.CLAMP_TO_EDGE,
                             Texture.ColorFormat.LINEAR);
-            virtualObjectMesh = Mesh.createFromAsset(render, "models/pawn.obj");
+            virtualObjectMesh = Mesh.createFromAsset(render, "models/happy-birthday.obj");
             virtualObjectShader =
                     Shader.createFromAssets(
                             render,
