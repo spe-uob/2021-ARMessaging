@@ -1,59 +1,32 @@
 package com.ajal.arsocialmessaging.ui.home;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.pm.PackageManager;
-import android.content.res.Resources;
+import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.ImageFormat;
-import android.graphics.SurfaceTexture;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CameraMetadata;
-import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.TotalCaptureResult;
-import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
-import android.media.ImageReader;
+import android.net.Uri;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.util.Size;
-import android.util.SparseIntArray;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.Surface;
-import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.PopupMenu;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
+
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.CameraPermissionHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DepthSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DisplayRotationHelper;
-import com.ajal.arsocialmessaging.ui.home.common.helpers.FullScreenHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.InstantPlacementSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.SnackbarHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.TapHelper;
@@ -96,14 +69,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -548,8 +517,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             } else { // Skywrite: display message when model is place
                 message = "Look up!";
             }
-        } else if (capturePicture) { // Skywrite: save image
-            message = "Image saved: "+outFile;
+//        } else if (capturePicture) { // Skywrite: save image // TODO:  figure out why this only sometimes works
+//            message = "Image saved: "+outFile;
         } else {
             message = SEARCHING_PLANE_MESSAGE;
         }
@@ -662,7 +631,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                 GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buf);
 
         // Get time of photo taken to use to store file
-        String date = new SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault()).format(new Date());
+        String date = new SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(new Date());
 
         // Create a file in Internal Storage/DCIM/SkyWrite
         final File out = new File(Environment.getExternalStoragePublicDirectory(
@@ -676,9 +645,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         }
 
         // Convert the pixel data from RGBA to what Android wants, ARGB.
-        // TODO: look into converting RGBA into ARGB
         int bitmapData[] = new int[pixelData.length];
-        Log.d(TAG, outFile+":"+mHeight+"x"+mWidth);
         for (int i = 0; i < mHeight; i++) {
             for (int j = 0; j < mWidth; j++) {
                 int p = pixelData[i * mWidth + j];
@@ -698,9 +665,24 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         bmp.compress(Bitmap.CompressFormat.PNG, 100, fos);
         fos.flush();
         fos.close();
-        Log.d(TAG, "Image saved");
+
+        // Save to gallery
+        galleryAddPic();
+
+        Log.d(TAG, "Image "+outFile+" saved");
 
     }
+
+    // Adds picture to gallery - https://developer.android.com/training/camera/photobasics.html#TaskGallery
+    private void galleryAddPic() {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File file = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM) + "/SkyWrite", outFile);
+        Uri contentUri = Uri.fromFile(file);
+        mediaScanIntent.setData(contentUri);
+        this.getActivity().sendBroadcast(mediaScanIntent);
+    }
+
 
     // Handle only one tap per frame, as taps are usually low frequency compared to frame rate.
     private void handleTap(Frame frame, Camera camera) {
