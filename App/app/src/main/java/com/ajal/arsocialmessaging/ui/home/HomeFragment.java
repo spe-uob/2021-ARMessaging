@@ -512,7 +512,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         // Show a message based on whether tracking has failed, if planes are detected, and if the user
         // has placed any objects.
         String message = null;
-        if (camera.getTrackingState() == TrackingState.PAUSED) {
+        if (capturePicture) {
+            // SkyWrite: display message when image is saved
+            // needs to be at the top of the if statements as it takes priority
+            message = "Image saved to storage!";
+        } else if (camera.getTrackingState() == TrackingState.PAUSED) {
             if (camera.getTrackingFailureReason() == TrackingFailureReason.NONE) {
                 message = SEARCHING_PLANE_MESSAGE;
                 anchors.clear(); // SkyWrite: will remove anchor whenever you lose track of the points
@@ -520,8 +524,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             } else {
                 message = TrackingStateHelper.getTrackingFailureReasonString(camera);
             }
-        } else if (capturePicture) { // W: display message when image is saved
-            message = "Image saved to storage!";
         } else if (hasTrackingPlane()) {
             if (anchors.isEmpty()) {
                 message = WAITING_FOR_TAP_MESSAGE;
