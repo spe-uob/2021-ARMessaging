@@ -89,7 +89,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
 
     private FragmentHomeBinding binding;
 
-    private static final String TAG = "Skywrite";
+    private static final String TAG = "SkyWrite";
 
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
     private static final String WAITING_FOR_TAP_MESSAGE = "Tap on a surface to place an object.";
@@ -185,7 +185,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        // Skywrite: add bottom navigation view to snackbar helper
+        // SkyWrite: add bottom navigation view to snackbar helper
         View bottomNavigation = super.getActivity().findViewById(R.id.nav_view);
         this.messageSnackbarHelper.setBottomNavigationView(bottomNavigation);
 
@@ -205,7 +205,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         Activity activity = this.getActivity();
         Context context = this.getContext();
 
-        // Skywrite: Set up button listener to take photo
+        // SkyWrite: Set up button listener to take photo
         Button snapBtn = (Button) root.findViewById(R.id.snap_button);
         snapBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -238,7 +238,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     public void onResume() {
         super.onResume();
 
-        // Skywrite: add bottom navigation view to snackbar helper
+        // SkyWrite: add bottom navigation view to snackbar helper
         View bottomNavigation = super.getActivity().findViewById(R.id.nav_view);
         this.messageSnackbarHelper.setBottomNavigationView(bottomNavigation);
 
@@ -515,12 +515,12 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             } else {
                 message = TrackingStateHelper.getTrackingFailureReasonString(camera);
             }
-        } else if (capturePicture) { // Skywrite: display message when image is saved
+        } else if (capturePicture) { // W: display message when image is saved
             message = "Image saved to storage!";
         } else if (hasTrackingPlane()) {
             if (anchors.isEmpty()) {
                 message = WAITING_FOR_TAP_MESSAGE;
-            } else { // Skywrite: display message when model is placed
+            } else { // SkyWrite: display message when model is placed
                 message = "Look up!";
             }
         } else {
@@ -586,7 +586,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             // Get the current pose of an Anchor in world space. The Anchor pose is updated
             // during calls to session.update() as ARCore refines its estimate of the world.
 
-            // Skywrite: translate the y position to make the object "float"
+            // SkyWrite: translate the y position to make the object "float"
             // TODO: test to see if 30f is correct (1f = 1m; 30f = 30m which is approx 100ft)
             // TODO: make it so that based on the user's distance from the ground, adjust the transformation to match 100ft
             anchor.getPose().makeTranslation(0, 30f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
@@ -608,7 +608,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         // Compose the virtual scene with the background.
         backgroundRenderer.drawVirtualScene(render, virtualSceneFramebuffer, Z_NEAR, Z_FAR);
 
-        // Skywrite: Save the picture if the button is pressed
+        // SkyWrite: Save the picture if the button is pressed
         if (capturePicture) {
             capturePicture = false;
             try {
@@ -717,7 +717,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                     // Cap the number of objects created. This avoids overloading both the
                     // rendering system and ARCore.
 
-                    // Skywrite: only wants 1 anchor for the text, > 0 because it hasn't been added yet
+                    // SkyWrite: only wants 1 anchor for the text, > 0 because it hasn't been added yet
                     // TODO: randomly pick an anchor instead of relying on tap
                     // TODO: hide surface once anchor is made, and thus must only have one anchor
                     if (anchors.size() > 0) {
