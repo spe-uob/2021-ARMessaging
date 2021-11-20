@@ -18,15 +18,16 @@
 
     <Button
         android:id="@+id/snap_button"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:layout_alignStart="@+id/surfaceview"
         android:layout_alignTop="@+id/surfaceview"
-        android:layout_marginBottom="140dp"
+        android:layout_marginBottom="120dp"
         android:background="@drawable/rounded_button"
         app:backgroundTint="@null"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
