@@ -77,6 +77,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+// REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
+
 /**
  * This is a simple example that shows how to create an augmented reality (AR) application using the
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
@@ -618,7 +620,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
 
     /**
      * Call from the GLThread to save a picture of the current frame.
-     * Reference: https://stackoverflow.com/questions/48191513/how-to-take-picture-with-camera-using-arcore
+     * REFERENCE: https://stackoverflow.com/questions/48191513/how-to-take-picture-with-camera-using-arcore 20/11/2021 @ 4:36pm
      */
     // @RequiresApi(api = Build.VERSION_CODES.O)
     public void SavePicture() throws IOException {
@@ -673,7 +675,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
 
     }
 
-    // Adds picture to gallery - https://developer.android.com/training/camera/photobasics.html#TaskGallery
+    /**
+     * Adds picture to gallery
+     * REFERENCE: https://developer.android.com/training/camera/photobasics.html#TaskGallery 20/11/2021 @ 12:17am
+     */
     private void galleryAddPic() {
         Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         File file = new File(Environment.getExternalStoragePublicDirectory(
