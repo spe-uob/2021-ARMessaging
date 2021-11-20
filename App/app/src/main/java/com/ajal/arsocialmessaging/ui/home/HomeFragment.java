@@ -76,6 +76,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
 
@@ -399,13 +400,13 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             Texture virtualObjectAlbedoTexture =
                     Texture.createFromAsset(
                             render,
-                            "models/black_texture.png",
+                            "models/red_texture.png",
                             Texture.WrapMode.CLAMP_TO_EDGE,
                             Texture.ColorFormat.SRGB);
             Texture virtualObjectPbrTexture =
                     Texture.createFromAsset(
                             render,
-                            "models/black_texture.png",
+                            "models/red_texture.png",
                             Texture.WrapMode.CLAMP_TO_EDGE,
                             Texture.ColorFormat.LINEAR);
             virtualObjectMesh = Mesh.createFromAsset(render, "models/happy-birthday.obj");
@@ -498,6 +499,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             }
         }
 
+        // TODO: remove handleTap() code and replace with a automatically generated anchor
         // Handle one tap per frame.
         handleTap(frame, camera);
 
@@ -513,14 +515,14 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             } else {
                 message = TrackingStateHelper.getTrackingFailureReasonString(camera);
             }
+        } else if (capturePicture) { // Skywrite: display message when image is saved
+            message = "Image saved to storage!";
         } else if (hasTrackingPlane()) {
             if (anchors.isEmpty()) {
                 message = WAITING_FOR_TAP_MESSAGE;
-            } else { // Skywrite: display message when model is place
+            } else { // Skywrite: display message when model is placed
                 message = "Look up!";
             }
-//        } else if (capturePicture) { // Skywrite: save image // TODO:  figure out why this only sometimes works
-//            message = "Image saved: "+outFile;
         } else {
             message = SEARCHING_PLANE_MESSAGE;
         }
@@ -622,7 +624,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
      * Call from the GLThread to save a picture of the current frame.
      * REFERENCE: https://stackoverflow.com/questions/48191513/how-to-take-picture-with-camera-using-arcore 20/11/2021 @ 4:36pm
      */
-    // @RequiresApi(api = Build.VERSION_CODES.O)
     public void SavePicture() throws IOException {
         int pixelData[] = new int[mWidth * mHeight];
 
@@ -639,6 +640,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         final File out = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DCIM) + "/SkyWrite", "IMG_" +
                 date+ ".png");
+
         outFile = out.getName();
 
         // Make sure the directory exists, if not make it
@@ -672,7 +674,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         galleryAddPic();
 
         Log.d(TAG, "Image "+outFile+" saved");
-
     }
 
     /**
