@@ -179,6 +179,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     private  boolean capturePicture = false;
     private String outFile;
 
+    // Boolean to only show tracked points and planes once when it has been found
+    private boolean drawTracked = true;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -512,6 +515,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         if (camera.getTrackingState() == TrackingState.PAUSED) {
             if (camera.getTrackingFailureReason() == TrackingFailureReason.NONE) {
                 message = SEARCHING_PLANE_MESSAGE;
+                anchors.clear(); // SkyWrite: will remove anchor whenever you lose track of the points
+                drawTracked = true;
             } else {
                 message = TrackingStateHelper.getTrackingFailureReasonString(camera);
             }
@@ -520,11 +525,14 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         } else if (hasTrackingPlane()) {
             if (anchors.isEmpty()) {
                 message = WAITING_FOR_TAP_MESSAGE;
+                drawTracked = true;
             } else { // SkyWrite: display message when model is placed
                 message = "Look up!";
+                drawTracked = false;
             }
         } else {
             message = SEARCHING_PLANE_MESSAGE;
+            drawTracked = true;
         }
 
         if (message == null) {
@@ -554,24 +562,27 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         // Get camera matrix and draw.
         camera.getViewMatrix(viewMatrix, 0);
 
-        // Visualize tracked points.
-        // Use try-with-resources to automatically release the point cloud.
-        try (PointCloud pointCloud = frame.acquirePointCloud()) {
-            if (pointCloud.getTimestamp() > lastPointCloudTimestamp) {
-                pointCloudVertexBuffer.set(pointCloud.getPoints());
-                lastPointCloudTimestamp = pointCloud.getTimestamp();
+        // TODO: only visualise planes and tracked points when first found, then afterwards, stop drawing them
+        if (drawTracked) {
+            // Visualize tracked points.
+            // Use try-with-resources to automatically release the point cloud.
+            try (PointCloud pointCloud = frame.acquirePointCloud()) {
+                if (pointCloud.getTimestamp() > lastPointCloudTimestamp) {
+                    pointCloudVertexBuffer.set(pointCloud.getPoints());
+                    lastPointCloudTimestamp = pointCloud.getTimestamp();
+                }
+                Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
+                pointCloudShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
+                render.draw(pointCloudMesh, pointCloudShader);
             }
-            Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
-            pointCloudShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
-            render.draw(pointCloudMesh, pointCloudShader);
-        }
 
-        // Visualize planes.
-        planeRenderer.drawPlanes(
-                render,
-                session.getAllTrackables(Plane.class),
-                camera.getDisplayOrientedPose(),
-                projectionMatrix);
+            // Visualize planes.
+            planeRenderer.drawPlanes(
+                    render,
+                    session.getAllTrackables(Plane.class),
+                    camera.getDisplayOrientedPose(),
+                    projectionMatrix);
+        }
 
         // Update lighting parameters in the shader
         updateLightEstimation(frame.getLightEstimate(), viewMatrix);
