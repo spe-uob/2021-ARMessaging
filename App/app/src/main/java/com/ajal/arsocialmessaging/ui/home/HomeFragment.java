@@ -1,54 +1,32 @@
 package com.ajal.arsocialmessaging.ui.home;
 
-import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.pm.PackageManager;
-import android.content.res.Resources;
-import android.graphics.ImageFormat;
-import android.graphics.SurfaceTexture;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CameraMetadata;
-import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.TotalCaptureResult;
-import android.hardware.camera2.params.StreamConfigurationMap;
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.media.Image;
-import android.media.ImageReader;
+import android.net.Uri;
+import android.opengl.GLES20;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.util.Size;
-import android.util.SparseIntArray;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.Surface;
-import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.PopupMenu;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
+
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.CameraPermissionHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DepthSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DisplayRotationHelper;
-import com.ajal.arsocialmessaging.ui.home.common.helpers.FullScreenHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.InstantPlacementSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.SnackbarHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.TapHelper;
@@ -91,12 +69,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Semaphore;
+
+// REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
 
 /**
  * This is a simple example that shows how to create an augmented reality (AR) application using the
@@ -107,7 +89,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
 
     private FragmentHomeBinding binding;
 
-    private static final String TAG = "Skywrite";
+    private static final String TAG = "SkyWrite";
 
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
     private static final String WAITING_FOR_TAP_MESSAGE = "Tap on a surface to place an object.";
@@ -191,13 +173,22 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     private final float[] worldLightDirection = {0.0f, 0.0f, 0.0f, 0.0f};
     private final float[] viewLightDirection = new float[4]; // view x world light direction
 
+    // For taking pictures
+    private int mWidth;
+    private int mHeight;
+    private  boolean capturePicture = false;
+    private String outFile;
+
+    // Boolean to only show tracked points and planes once when it has been found
+    private boolean drawTracked = true;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        // Skywrite: add bottom navigation view to snackbar helper
+        // SkyWrite: add bottom navigation view to snackbar helper
         View bottomNavigation = super.getActivity().findViewById(R.id.nav_view);
         this.messageSnackbarHelper.setBottomNavigationView(bottomNavigation);
 
@@ -213,6 +204,18 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         render = new SampleRender(surfaceView, this, this.getContext().getAssets());
 
         installRequested = false;
+
+        Activity activity = this.getActivity();
+        Context context = this.getContext();
+
+        // SkyWrite: Set up button listener to take photo
+        Button snapBtn = (Button) root.findViewById(R.id.snap_button);
+        snapBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                capturePicture = true;
+            }
+        });
 
         return root;
     }
@@ -238,7 +241,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     public void onResume() {
         super.onResume();
 
-        // Skywrite: add bottom navigation view to snackbar helper
+        // SkyWrite: add bottom navigation view to snackbar helper
         View bottomNavigation = super.getActivity().findViewById(R.id.nav_view);
         this.messageSnackbarHelper.setBottomNavigationView(bottomNavigation);
 
@@ -400,13 +403,13 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             Texture virtualObjectAlbedoTexture =
                     Texture.createFromAsset(
                             render,
-                            "models/black_texture.png",
+                            "models/red_texture.png",
                             Texture.WrapMode.CLAMP_TO_EDGE,
                             Texture.ColorFormat.SRGB);
             Texture virtualObjectPbrTexture =
                     Texture.createFromAsset(
                             render,
-                            "models/black_texture.png",
+                            "models/red_texture.png",
                             Texture.WrapMode.CLAMP_TO_EDGE,
                             Texture.ColorFormat.LINEAR);
             virtualObjectMesh = Mesh.createFromAsset(render, "models/happy-birthday.obj");
@@ -436,6 +439,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     public void onSurfaceChanged(SampleRender render, int width, int height) {
         displayRotationHelper.onSurfaceChanged(width, height);
         virtualSceneFramebuffer.resize(width, height);
+        mWidth = width;
+        mHeight = height;
     }
 
     @Override
@@ -497,6 +502,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             }
         }
 
+        // TODO: remove handleTap() code and replace with a automatically generated anchor
         // Handle one tap per frame.
         handleTap(frame, camera);
 
@@ -506,21 +512,31 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         // Show a message based on whether tracking has failed, if planes are detected, and if the user
         // has placed any objects.
         String message = null;
-        if (camera.getTrackingState() == TrackingState.PAUSED) {
+        if (capturePicture) {
+            // SkyWrite: display message when image is saved
+            // needs to be at the top of the if statements as it takes priority
+            message = "Image saved to storage!";
+        } else if (camera.getTrackingState() == TrackingState.PAUSED) {
             if (camera.getTrackingFailureReason() == TrackingFailureReason.NONE) {
                 message = SEARCHING_PLANE_MESSAGE;
+                anchors.clear(); // SkyWrite: will remove anchor whenever you lose track of the points
+                drawTracked = true;
             } else {
                 message = TrackingStateHelper.getTrackingFailureReasonString(camera);
             }
         } else if (hasTrackingPlane()) {
             if (anchors.isEmpty()) {
                 message = WAITING_FOR_TAP_MESSAGE;
-            } else { // Skywrite: display message when model is place
+                drawTracked = true;
+            } else { // SkyWrite: display message when model is placed
                 message = "Look up!";
+                drawTracked = false;
             }
         } else {
             message = SEARCHING_PLANE_MESSAGE;
+            drawTracked = true;
         }
+
         if (message == null) {
             messageSnackbarHelper.hide(this.getActivity());
         } else {
@@ -548,26 +564,27 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         // Get camera matrix and draw.
         camera.getViewMatrix(viewMatrix, 0);
 
-        // Visualize tracked points.
-        // Use try-with-resources to automatically release the point cloud.
-        try (PointCloud pointCloud = frame.acquirePointCloud()) {
-            if (pointCloud.getTimestamp() > lastPointCloudTimestamp) {
-                pointCloudVertexBuffer.set(pointCloud.getPoints());
-                lastPointCloudTimestamp = pointCloud.getTimestamp();
+        // TODO: only visualise planes and tracked points when first found, then afterwards, stop drawing them
+        if (drawTracked) {
+            // Visualize tracked points.
+            // Use try-with-resources to automatically release the point cloud.
+            try (PointCloud pointCloud = frame.acquirePointCloud()) {
+                if (pointCloud.getTimestamp() > lastPointCloudTimestamp) {
+                    pointCloudVertexBuffer.set(pointCloud.getPoints());
+                    lastPointCloudTimestamp = pointCloud.getTimestamp();
+                }
+                Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
+                pointCloudShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
+                render.draw(pointCloudMesh, pointCloudShader);
             }
-            Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
-            pointCloudShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
-            render.draw(pointCloudMesh, pointCloudShader);
+
+            // Visualize planes.
+            planeRenderer.drawPlanes(
+                    render,
+                    session.getAllTrackables(Plane.class),
+                    camera.getDisplayOrientedPose(),
+                    projectionMatrix);
         }
-
-        // Visualize planes.
-        planeRenderer.drawPlanes(
-                render,
-                session.getAllTrackables(Plane.class),
-                camera.getDisplayOrientedPose(),
-                projectionMatrix);
-
-        // -- Draw occluded virtual objects
 
         // Update lighting parameters in the shader
         updateLightEstimation(frame.getLightEstimate(), viewMatrix);
@@ -582,13 +599,13 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             // Get the current pose of an Anchor in world space. The Anchor pose is updated
             // during calls to session.update() as ARCore refines its estimate of the world.
 
-            // Skywrite: translate the y position to make the object "float"
+            // SkyWrite: translate the y position to make the object "float"
             // TODO: test to see if 30f is correct (1f = 1m; 30f = 30m which is approx 100ft)
             // TODO: make it so that based on the user's distance from the ground, adjust the transformation to match 100ft
             anchor.getPose().makeTranslation(0, 30f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
 
             // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
-            Matrix.scaleM(modelMatrix, 0, 5f, 5f, 5f);
+            Matrix.scaleM(modelMatrix, 0, 2f, 2f, 2f);
 
             // Calculate model/view/projection matrices
             Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
@@ -604,7 +621,87 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         // Compose the virtual scene with the background.
         backgroundRenderer.drawVirtualScene(render, virtualSceneFramebuffer, Z_NEAR, Z_FAR);
 
+        // SkyWrite: Save the picture if the button is pressed
+        if (capturePicture) {
+            capturePicture = false;
+            try {
+                SavePicture();
+            } catch (IOException e) {
+                messageSnackbarHelper.showError(this.getActivity(), "Exception saving image");
+                Log.e(TAG, "Exception saving image", e);
+            }
+        }
     }
+
+    /**
+     * Call from the GLThread to save a picture of the current frame.
+     * REFERENCE: https://stackoverflow.com/questions/48191513/how-to-take-picture-with-camera-using-arcore 20/11/2021 @ 4:36pm
+     */
+    public void SavePicture() throws IOException {
+        int pixelData[] = new int[mWidth * mHeight];
+
+        // Read the pixels from the current GL frame.
+        IntBuffer buf = IntBuffer.wrap(pixelData);
+        buf.position(0);
+        GLES20.glReadPixels(0, 0, mWidth, mHeight,
+                GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buf);
+
+        // Get time of photo taken to use to store file
+        String date = new SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(new Date());
+
+        // Create a file in Internal Storage/DCIM/SkyWrite
+        final File out = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM) + "/SkyWrite", "IMG_" +
+                date+ ".png");
+
+        outFile = out.getName();
+
+        // Make sure the directory exists, if not make it
+        if (!out.getParentFile().exists()) {
+            out.getParentFile().mkdirs();
+        }
+
+        // Convert the pixel data from RGBA to what Android wants, ARGB.
+        int bitmapData[] = new int[pixelData.length];
+        for (int i = 0; i < mHeight; i++) {
+            for (int j = 0; j < mWidth; j++) {
+                int p = pixelData[i * mWidth + j];
+                int b = (p & 0x00ff0000) >> 16;
+                int r = (p & 0x000000ff) << 16;
+                int ga = p & 0xff00ff00;
+                bitmapData[(mHeight - i - 1) * mWidth + j] = ga | r | b;
+            }
+        }
+
+        // Create a bitmap.
+        Bitmap bmp = Bitmap.createBitmap(bitmapData,
+                mWidth, mHeight, Bitmap.Config.ARGB_8888);
+
+        // Write it to disk.
+        FileOutputStream fos = new FileOutputStream(out);
+        bmp.compress(Bitmap.CompressFormat.PNG, 100, fos);
+        fos.flush();
+        fos.close();
+
+        // Save to gallery
+        galleryAddPic();
+
+        Log.d(TAG, "Image "+outFile+" saved");
+    }
+
+    /**
+     * Adds picture to gallery
+     * REFERENCE: https://developer.android.com/training/camera/photobasics.html#TaskGallery 20/11/2021 @ 12:17am
+     */
+    private void galleryAddPic() {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File file = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM) + "/SkyWrite", outFile);
+        Uri contentUri = Uri.fromFile(file);
+        mediaScanIntent.setData(contentUri);
+        this.getActivity().sendBroadcast(mediaScanIntent);
+    }
+
 
     // Handle only one tap per frame, as taps are usually low frequency compared to frame rate.
     private void handleTap(Frame frame, Camera camera) {
@@ -633,7 +730,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                     // Cap the number of objects created. This avoids overloading both the
                     // rendering system and ARCore.
 
-                    // Skywrite: only wants 1 anchor for the text, > 0 because it hasn't been added yet
+                    // SkyWrite: only wants 1 anchor for the text, > 0 because it hasn't been added yet
                     // TODO: randomly pick an anchor instead of relying on tap
                     // TODO: hide surface once anchor is made, and thus must only have one anchor
                     if (anchors.size() > 0) {
