@@ -1,9 +1,4 @@
-workflows:  
-  version: 2
-  build_and_save:
-    jobs:
-      - build
-      - release-build
+version: 2
 jobs:
   build:
     working_directory: ~/repo/App
