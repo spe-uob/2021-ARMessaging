@@ -1,3 +1,10 @@
+version: 2.1
+
+orbs:
+  android: circleci/android@1.0.3
+
+jobs:
+  build:
     working_directory: ~/repo/App
     docker:
       - image: circleci/android:api-30-node
