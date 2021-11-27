@@ -60,14 +60,6 @@ public class MessageFragment extends Fragment {
         binding = FragmentMessageBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-//        final TextView textView = binding.textMessage;
-//        messageViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
-//            @Override
-//            public void onChanged(@Nullable String s) {
-//                textView.setText(s);
-//            }
-//        });
-
         /** ListView code */
         // Fills the ListView with messages
         messages = Arrays.asList(getResources().getStringArray(R.array.messages));
