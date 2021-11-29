@@ -33,7 +33,6 @@ public class GalleryFragment extends Fragment {
     private FragmentGalleryBinding binding;
     private static final String TAG = "SkyWrite";
     private List<File> images;
-    private GridLayout galleryView;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
