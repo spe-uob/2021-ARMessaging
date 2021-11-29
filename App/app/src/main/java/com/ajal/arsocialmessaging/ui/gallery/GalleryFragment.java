@@ -18,12 +18,14 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentGalleryBinding;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.squareup.picasso.Picasso;
 
 // REFERENCE: https://acomputerengineer.com/2018/04/15/display-image-grid-in-recyclerview-in-android/ 29/11/2021 12:42
 public class GalleryFragment extends Fragment {
@@ -50,6 +52,7 @@ public class GalleryFragment extends Fragment {
         List<String> imageList = new ArrayList<>();
         if (dir.exists()) {
             images = Arrays.asList(dir.listFiles().clone());
+            Collections.reverse(images); // reverse images so that the newest images are first
 
             if (images != null) {
                 for (int i = 0; i < images.size(); i++) {
@@ -59,8 +62,18 @@ public class GalleryFragment extends Fragment {
             }
         }
 
-        ImageGridAdapter iga = new ImageGridAdapter(this.getContext(), imageList);
+        ImageView imageViewFull = root.findViewById(R.id.image_view_full);
+        ImageGridAdapter iga = new ImageGridAdapter(this.getContext(), imageList, rv, imageViewFull);
         rv.setAdapter(iga);
+
+        // Set an onClick listener for imageViewFull so when the user clicks on the image, it will minimise it again
+        imageViewFull.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                imageViewFull.setVisibility(View.INVISIBLE);
+                rv.setVisibility(View.VISIBLE);
+            }
+        });
 
         return root;
     }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,8 +18,9 @@ import java.util.List;
 public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.GridItemViewHolder> {
 
     private List<String> imageList;
-
     private Context c;
+    private RecyclerView rv;
+    private ImageView imageViewFull;
 
     public class GridItemViewHolder extends RecyclerView.ViewHolder {
         SquareImageView siv;
@@ -29,9 +31,11 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
         }
     }
 
-    public ImageGridAdapter(Context c, List imageList) {
+    public ImageGridAdapter(Context c, List imageList, RecyclerView rv, ImageView imageViewFull) {
         this.c = c;
         this.imageList = imageList;
+        this.rv = rv;
+        this.imageViewFull = imageViewFull;
     }
 
     @NonNull
@@ -55,7 +59,15 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
         holder.siv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //handle click event on image
+                // Skywrite: when an image is clicked on, fill the entire screen with it
+                Picasso.get()
+                        .load(path)
+                        .resize(1000, 1000)
+                        .centerInside()
+                        .into(imageViewFull);
+
+                imageViewFull.setVisibility(View.VISIBLE);
+                rv.setVisibility(View.INVISIBLE);
             }
         });
     }
