@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "messages")
-public class Messages {
+public class Message {
     @Id @GeneratedValue @Column(name = "id") @Getter @Setter
     Integer id;
 

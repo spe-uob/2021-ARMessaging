@@ -6,15 +6,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity @Table(name = "banners")
-public class Banners {
+public class Banner {
     @Id @GeneratedValue @Column(name = "id") @Getter @Setter
     Integer id;
 
     @Column(name = "postcode") @Getter @Setter
     String postcode;
 
-    @Column(name = "messageId") @Getter @Setter
-    Integer messageId;
+    @ManyToOne @JoinColumn(name = "messageId") @Getter @Setter
+    Message message;
 
     @Column(name = "created_at") @Getter @Setter
     Timestamp timestamp;
