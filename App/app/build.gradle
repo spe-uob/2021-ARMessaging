@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.application'
+    id 'org.springframework.boot' version '2.4.5'
 }
 
 android {
@@ -28,6 +29,13 @@ android {
     buildFeatures {
         viewBinding true
     }
+    packagingOptions {
+        resources.excludes.add("META-INF/*")
+        resources.excludes.add("notice.txt")
+        resources.excludes.add("license.txt")
+        resources.excludes.add("readme.txt")
+        resources.excludes.add("changelog.txt")
+    }
 }
 
 dependencies {
@@ -51,6 +59,10 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     implementation 'com.squareup.picasso:picasso:2.8'
 
+    // SpringBoot
+    implementation platform('org.springframework.boot:spring-boot-dependencies:2.4.5')
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation "mysql:mysql-connector-java:8.0.23"
 
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
