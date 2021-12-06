@@ -37,7 +37,7 @@ public class DbServerApplication {
 		StringBuilder response = new StringBuilder();
 		Iterable<Banner> banners = bannersRepo.findAll();
 		for(Banner banner: banners) {
-			response.append(banner.getId()).append(" ").append(banner.getPostcode()).append(banner.getMessage()).append(banner.getTimestamp()).append("<br>\n");
+			response.append(banner.getId()).append(" ").append(banner.getPostcode()).append(" ").append(banner.getMessage()).append(" ").append(banner.getTimestamp()).append("<br>\n");
 		}
 		return response.toString();
 	}
@@ -47,7 +47,7 @@ public class DbServerApplication {
 		StringBuilder response = new StringBuilder();
 		Iterable<Message> messages = messagesRepo.findAll();
 		for(Message message: messages) {
-			response.append(message.getId()).append(message.getMessage()).append(" ").append(message.getObjfilename()).append("<br>\n");
+			response.append(message.getId()).append(" ").append(message.getMessage()).append(" ").append(message.getObjfilename()).append("<br>\n");
 		}
 		return response.toString();
 	}
