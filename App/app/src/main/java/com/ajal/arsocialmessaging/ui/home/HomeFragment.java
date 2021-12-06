@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
@@ -59,6 +60,7 @@ import com.google.ar.core.TrackingFailureReason;
 import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.NotYetAvailableException;
+import com.google.ar.core.exceptions.TextureNotSetException;
 import com.google.ar.core.exceptions.UnavailableApkTooOldException;
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
@@ -188,6 +190,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+
         // SkyWrite: add bottom navigation view to snackbar helper
         View bottomNavigation = super.getActivity().findViewById(R.id.nav_view);
         this.messageSnackbarHelper.setBottomNavigationView(bottomNavigation);
@@ -229,6 +232,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             // https://developers.google.com/ar/reference/java/arcore/reference/com/google/ar/core/Session#close()
             session.close();
             session = null;
+            hasSetTextureNames = false; // needed to set the camera textures again when back button is pressed
         }
 
         super.onDestroyView();
@@ -314,12 +318,14 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     @Override
     public void onPause() {
         super.onPause();
+
         if (session != null) {
             // Note that the order matters - GLSurfaceView is paused first so that it does not try
             // to query the session. If Session is paused before GLSurfaceView, GLSurfaceView may
             // still call session.update() and get a SessionPausedException.
             displayRotationHelper.onPause();
             surfaceView.onPause();
+            hasSetTextureNames = false; // needed to set the camera textures again when back button is pressed
             session.pause();
         }
     }
@@ -473,6 +479,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         } catch (CameraNotAvailableException e) {
             Log.e(TAG, "Camera not available during onDrawFrame", e);
             messageSnackbarHelper.showError(this.getActivity(), "Camera not available. Try restarting the app.");
+            return;
+        } catch (TextureNotSetException e) {
+            Log.e(TAG, "No textures", e);
+            messageSnackbarHelper.showError(this.getActivity(), "Textures not available. Try restarting the app.");
             return;
         }
         Camera camera = frame.getCamera();
