@@ -21,6 +21,15 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
     private Context c;
     private RecyclerView rv;
     private ImageView imageViewFull;
+    private int imagePos;
+
+    public int getImagePos() {
+        return imagePos;
+    }
+
+    public void setImagePos(int imagePos) {
+        this.imagePos = imagePos;
+    }
 
     public class GridItemViewHolder extends RecyclerView.ViewHolder {
         SquareImageView siv;
@@ -48,6 +57,7 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
 
     @Override
     public void onBindViewHolder(GridItemViewHolder holder, int position) {
+        imagePos = position;
         final String path = imageList.get(position);
 
         Picasso.get()
