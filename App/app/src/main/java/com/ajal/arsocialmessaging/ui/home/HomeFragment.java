@@ -27,9 +27,7 @@ import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.CameraPermissionHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DepthSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DisplayRotationHelper;
-import com.ajal.arsocialmessaging.ui.home.common.helpers.InstantPlacementSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.SnackbarHelper;
-import com.ajal.arsocialmessaging.ui.home.common.helpers.TapHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.TrackingStateHelper;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Framebuffer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.GLError;
@@ -117,7 +115,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     private final SnackbarHelper messageSnackbarHelper = new SnackbarHelper();;
     private DisplayRotationHelper displayRotationHelper;
     private final TrackingStateHelper trackingStateHelper = new TrackingStateHelper(this.getActivity());
-    private TapHelper tapHelper;
     private SampleRender render;
 
     private PlaneRenderer planeRenderer;
@@ -126,18 +123,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     private boolean hasSetTextureNames = false;
 
     private final DepthSettings depthSettings = new DepthSettings();
-    private boolean[] depthSettingsMenuDialogCheckboxes = new boolean[2];
-
-    private final InstantPlacementSettings instantPlacementSettings = new InstantPlacementSettings();
-    private boolean[] instantPlacementSettingsMenuDialogCheckboxes = new boolean[1];
-    // Assumed distance from the device camera to the surface on which user will try to place objects.
-    // This value affects the apparent scale of objects while the tracking method of the
-    // Instant Placement point is SCREENSPACE_WITH_APPROXIMATE_DISTANCE.
-    // Values in the [0.2, 2.0] meter range are a good choice for most AR experiences. Use lower
-    // values for AR experiences where users are expected to place objects on surfaces close to the
-    // camera. Use larger values for experiences where the user will likely be standing and trying to
-    // place an object on the ground or floor in front of them.
-    private static final float APPROXIMATE_DISTANCE_METERS = 2.0f;
 
     // Point Cloud
     private VertexBuffer pointCloudVertexBuffer;
@@ -190,10 +175,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         super.onCreate(savedInstanceState);
         surfaceView = root.findViewById(R.id.surfaceview);
         displayRotationHelper = new DisplayRotationHelper(/*context=*/ this.getContext());
-
-        // Set up touch listener.
-        tapHelper = new TapHelper(/*context=*/ this.getContext());
-        surfaceView.setOnTouchListener(tapHelper);
 
         // Set up renderer.
         render = new SampleRender(surfaceView, this, this.getContext().getAssets());
@@ -333,7 +314,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                 // Permission denied with checking "Do not ask again".
                 CameraPermissionHelper.launchPermissionSettings(this.getActivity());
             }
-            // finish(); <- not too sure where this comes from
+            this.getActivity().finish();
         }
     }
 
@@ -504,7 +485,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             }
         }
 
-        // TODO: remove handleTap() code and replace with a automatically generated anchor
         // Handle one tap per frame.
         handleAnchor(frame, camera);
 
@@ -597,13 +577,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             if (anchor.getTrackingState() != TrackingState.TRACKING) {
                 continue;
             }
-
             // Get the current pose of an Anchor in world space. The Anchor pose is updated
             // during calls to session.update() as ARCore refines its estimate of the world.
 
-            // SkyWrite: translate the y position to make the object "float"
-            // TODO: test to see if 30f is correct (1f = 1m; 30f = 30m which is approx 100ft)
-            // TODO: make it so that based on the user's distance from the ground, adjust the transformation to match 100ft
             anchor.getPose().makeTranslation(0, 30f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
 
             // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
@@ -796,16 +772,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     private void configureSession() {
         Config config = session.getConfig();
         config.setLightEstimationMode(Config.LightEstimationMode.ENVIRONMENTAL_HDR);
-        if (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
-            config.setDepthMode(Config.DepthMode.AUTOMATIC);
-        } else {
-            config.setDepthMode(Config.DepthMode.DISABLED);
-        }
-        if (instantPlacementSettings.isInstantPlacementEnabled()) {
-            config.setInstantPlacementMode(Config.InstantPlacementMode.LOCAL_Y_UP);
-        } else {
-            config.setInstantPlacementMode(Config.InstantPlacementMode.DISABLED);
-        }
+        config.setDepthMode(Config.DepthMode.DISABLED);
+        config.setInstantPlacementMode(Config.InstantPlacementMode.DISABLED);
         session.configure(config);
     }
 }
