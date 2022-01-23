@@ -34,3 +34,6 @@ It is recommended to run the app using the [Android Emulator](https://developer.
 
 ### Deployment ###
 Currently there is no server code so no deployment is required.
+
+## Blog ##
+Our [blog](https://sky-write.github.io/) contains documentation as well as updates on the development process.
