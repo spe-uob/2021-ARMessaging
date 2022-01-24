@@ -47,6 +47,7 @@ import com.google.ar.core.Frame;
 import com.google.ar.core.LightEstimate;
 import com.google.ar.core.Plane;
 import com.google.ar.core.PointCloud;
+import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.TrackingFailureReason;
 import com.google.ar.core.TrackingState;
@@ -84,7 +85,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     private static final String TAG = "SkyWrite";
 
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
-    private static final String WAITING_FOR_TAP_MESSAGE = "Tap on a surface to place an object.";
+    private static final String FOUND_PLANE_MESSAGE = "Look up to view message!";
 
     // See the definition of updateSphericalHarmonicsCoefficients for an explanation of these
     // constants.
@@ -507,13 +508,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                 message = TrackingStateHelper.getTrackingFailureReasonString(camera);
             }
         } else if (hasTrackingPlane()) {
-            if (anchors.isEmpty()) {
-                message = WAITING_FOR_TAP_MESSAGE;
-                drawTracked = true;
-            } else { // SkyWrite: display message when model is placed
-                message = "Look up!";
-                drawTracked = false;
-            }
+            message = FOUND_PLANE_MESSAGE;
+            drawTracked = false;
         } else {
             message = SEARCHING_PLANE_MESSAGE;
             drawTracked = true;
@@ -542,11 +538,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
 
         // Get projection matrix.
         camera.getProjectionMatrix(projectionMatrix, 0, Z_NEAR, Z_FAR);
-
         // Get camera matrix and draw.
         camera.getViewMatrix(viewMatrix, 0);
 
-        // TODO: only visualise planes and tracked points when first found, then afterwards, stop drawing them
         if (drawTracked) {
             // Visualize tracked points.
             // Use try-with-resources to automatically release the point cloud.
@@ -681,15 +675,20 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     }
 
     /**
-     * handleAnchor - hello_ar_java requires a tap to place an object in AR, this automatically does it
+     * Automatically place an anchor rather than by tap, unlike how hello_ar_java does it
      * @param frame
      * @param camera
      */
     private void handleAnchor(Frame frame, Camera camera) {
-
         for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
             if (plane.getTrackingState() == TrackingState.TRACKING) {
-                Anchor anchor = plane.createAnchor(plane.getCenterPose());
+                Pose pose = plane.getCenterPose();
+                if (pose.qy() > 0) {
+                    pose = pose.compose(Pose.makeRotation(0, -pose.qy(), 0, 1));
+                } else {
+                    pose = pose.compose(Pose.makeRotation(0, pose.qy(), 0, 1));
+                }
+                Anchor anchor = session.createAnchor(pose);
                 if (anchors.size() > 0) {
                     anchors.get(0).detach();
                     anchors.remove(0);
