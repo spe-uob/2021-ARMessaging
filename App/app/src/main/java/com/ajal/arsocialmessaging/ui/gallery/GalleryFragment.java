@@ -1,5 +1,6 @@
 package com.ajal.arsocialmessaging.ui.gallery;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -7,7 +8,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
@@ -73,27 +76,31 @@ public class GalleryFragment extends Fragment {
             // Displays previous image
             @Override
             public void onSwipeLeft() {
-                iga.decrementImagePos();
-                final String path = imageList.get(iga.getImagePos());
+                if (iga.getImagePos() > 0) {
+                    iga.decrementImagePos();
+                    final String path = imageList.get(iga.getImagePos());
 
-                Picasso.get()
-                    .load(path)
-                    .resize(1000, 1000)
-                    .centerInside()
-                    .into(imageViewFull);
+                    Picasso.get()
+                            .load(path)
+                            .resize(1000, 1000)
+                            .centerInside()
+                            .into(imageViewFull);
+                }
             }
 
             // Displays next image
             @Override
             public void onSwipeRight() {
-                iga.incrementImagePos();
-                final String path = imageList.get(iga.getImagePos());
+                if (iga.getImagePos() < imageList.size()-1) {
+                    iga.incrementImagePos();
+                    final String path = imageList.get(iga.getImagePos());
 
-                Picasso.get()
-                        .load(path)
-                        .resize(1000, 1000)
-                        .centerInside()
-                        .into(imageViewFull);
+                    Picasso.get()
+                            .load(path)
+                            .resize(1000, 1000)
+                            .centerInside()
+                            .into(imageViewFull);
+                }
             }
         });
 
