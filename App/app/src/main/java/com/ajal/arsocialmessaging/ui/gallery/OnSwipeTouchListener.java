@@ -1,6 +1,7 @@
 package com.ajal.arsocialmessaging.ui.gallery;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -8,7 +9,7 @@ import android.view.View;
 // REFERENCE: https://stackoverflow.com/questions/4139288/android-how-to-handle-right-to-left-swipe-gestures 06/12/2021 14:19
 
 /**
- * Detects left and right swipes across a view.
+ * Detects left and right swipes and single-tap on a view
  */
 public class OnSwipeTouchListener implements View.OnTouchListener {
 
@@ -22,6 +23,9 @@ public class OnSwipeTouchListener implements View.OnTouchListener {
     }
 
     public void onSwipeRight() {
+    }
+
+    public void onClick() {
     }
 
     @Override
@@ -40,10 +44,16 @@ public class OnSwipeTouchListener implements View.OnTouchListener {
         }
 
         @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            onClick();
+            return true;
+        }
+
+        @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
             float distanceX = e2.getX() - e1.getX();
             float distanceY = e2.getY() - e1.getY();
-            if (Math.abs(distanceX) > Math.abs(distanceY) && Math.abs(distanceX) > SWIPE_DISTANCE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+            if (Math.abs(distanceX) > Math.abs(distanceY) &&Math.abs(distanceX) > SWIPE_DISTANCE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
                 if (distanceX > 0)
                     onSwipeLeft();
                 else

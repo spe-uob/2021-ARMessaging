@@ -28,18 +28,14 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
     }
 
     public void decrementImagePos() {
-        if (imagePos == 0) {
-            this.imagePos = this.imageList.size() - 1;
-        }
-        else {
+        // if imagePos == 0, will not update imagePos
+        if (imagePos > 0) {
             this.imagePos = imagePos - 1;
         }
     }
     public void incrementImagePos() {
-        if (imagePos == this.imageList.size() - 1) {
-            this.imagePos = 0;
-        }
-        else {
+        // if imagePos == this.imageList.size()-1, will not update imagePos
+        if (imagePos < this.imageList.size() - 1) {
             this.imagePos = imagePos + 1;
         }
     }

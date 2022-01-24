@@ -3,11 +3,9 @@ package com.ajal.arsocialmessaging.ui.gallery;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.GridLayout;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -23,8 +21,6 @@ import java.util.List;
 
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentGalleryBinding;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.squareup.picasso.Picasso;
 
 // REFERENCE: https://acomputerengineer.com/2018/04/15/display-image-grid-in-recyclerview-in-android/ 29/11/2021 12:42
@@ -40,14 +36,9 @@ public class GalleryFragment extends Fragment {
         binding = FragmentGalleryBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        RecyclerView rv = root.findViewById(R.id.rv);
-
-        StaggeredGridLayoutManager sglm = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        rv.setLayoutManager(sglm);
-
+        // Load files and store in imageList
         File dir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DCIM) + "/SkyWrite");
-
         List<String> imageList = new ArrayList<>();
         if (dir.exists()) {
             images = Arrays.asList(dir.listFiles().clone());
@@ -61,20 +52,25 @@ public class GalleryFragment extends Fragment {
             }
         }
 
+        // Set up Image Grid
+        RecyclerView rv = root.findViewById(R.id.rv);
+        StaggeredGridLayoutManager sglm = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        rv.setLayoutManager(sglm);
         ImageView imageViewFull = root.findViewById(R.id.image_view_full);
         ImageGridAdapter iga = new ImageGridAdapter(this.getContext(), imageList, rv, imageViewFull);
         rv.setAdapter(iga);
 
-        // Set an onClick listener for imageViewFull so when the user clicks on the image, it will minimise it again
-        imageViewFull.setOnClickListener(new View.OnClickListener() {
+        // Add a touch listener to imageViewFull to listen for left/right swipes and taps
+        imageViewFull.setOnTouchListener(new OnSwipeTouchListener(this.getContext()) {
+
+            // Minimise imageViewFull when tapped
             @Override
-            public void onClick(View view) {
+            public void onClick() {
                 imageViewFull.setVisibility(View.INVISIBLE);
                 rv.setVisibility(View.VISIBLE);
             }
-        });
 
-        imageViewFull.setOnTouchListener(new OnSwipeTouchListener(this.getContext()) {
+            // Displays previous image
             @Override
             public void onSwipeLeft() {
                 iga.decrementImagePos();
@@ -87,6 +83,7 @@ public class GalleryFragment extends Fragment {
                     .into(imageViewFull);
             }
 
+            // Displays next image
             @Override
             public void onSwipeRight() {
                 iga.incrementImagePos();
