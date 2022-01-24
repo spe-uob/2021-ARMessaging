@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -28,20 +29,12 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
     }
 
     public void decrementImagePos() {
-        if (imagePos == 0) {
-            this.imagePos = this.imageList.size() - 1;
-        }
-        else {
-            this.imagePos = imagePos - 1;
-        }
+        // if imagePos == 0, will not update imagePos. Checked in GalleryFragment
+        this.imagePos = imagePos - 1;
     }
     public void incrementImagePos() {
-        if (imagePos == this.imageList.size() - 1) {
-            this.imagePos = 0;
-        }
-        else {
-            this.imagePos = imagePos + 1;
-        }
+        // if imagePos == this.imageList.size()-1, will not update imagePos. Checked in GalleryFragment
+        this.imagePos = imagePos + 1;
     }
 
     public class GridItemViewHolder extends RecyclerView.ViewHolder {
