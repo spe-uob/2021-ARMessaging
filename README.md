@@ -15,7 +15,7 @@ Those with the app/service will be notified that a message exists in a nearby po
 
 
 ## Getting Started ##
-This project uses the Gradle build system. To build this project use `gradlew build` in the terminal or import the project in Android Studio.
+This project uses the Gradle build system. To build the project use `gradlew build` in the terminal or import the project in Android Studio.
 
 To run tests, run `gradlew test` or navigate to the tests on Android Studio and run from there.
 
