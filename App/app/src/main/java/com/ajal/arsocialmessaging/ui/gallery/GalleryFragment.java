@@ -77,7 +77,7 @@ public class GalleryFragment extends Fragment {
         imageViewFull.setOnTouchListener(new OnSwipeTouchListener(this.getContext()) {
             @Override
             public void onSwipeLeft() {
-                iga.setImagePos(iga.getImagePos() - 1);
+                iga.decrementImagePos();
                 final String path = imageList.get(iga.getImagePos());
 
                 Picasso.get()
@@ -89,7 +89,7 @@ public class GalleryFragment extends Fragment {
 
             @Override
             public void onSwipeRight() {
-                iga.setImagePos(iga.getImagePos() + 1);
+                iga.incrementImagePos();
                 final String path = imageList.get(iga.getImagePos());
 
                 Picasso.get()
