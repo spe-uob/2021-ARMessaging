@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,6 +22,20 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
     private Context c;
     private RecyclerView rv;
     private ImageView imageViewFull;
+    private int imagePos;
+
+    public int getImagePos() {
+        return imagePos;
+    }
+
+    public void decrementImagePos() {
+        // if imagePos == 0, will not update imagePos. Checked in GalleryFragment
+        this.imagePos = imagePos - 1;
+    }
+    public void incrementImagePos() {
+        // if imagePos == this.imageList.size()-1, will not update imagePos. Checked in GalleryFragment
+        this.imagePos = imagePos + 1;
+    }
 
     public class GridItemViewHolder extends RecyclerView.ViewHolder {
         SquareImageView siv;
@@ -48,7 +63,8 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
 
     @Override
     public void onBindViewHolder(GridItemViewHolder holder, int position) {
-        final String path = imageList.get(position);
+        int pos = position;
+        final String path = imageList.get(pos);
 
         Picasso.get()
                 .load(path)
@@ -68,6 +84,7 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
 
                 imageViewFull.setVisibility(View.VISIBLE);
                 rv.setVisibility(View.INVISIBLE);
+                imagePos = pos;
             }
         });
     }
