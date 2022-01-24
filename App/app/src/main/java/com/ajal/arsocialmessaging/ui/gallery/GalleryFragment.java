@@ -74,6 +74,32 @@ public class GalleryFragment extends Fragment {
             }
         });
 
+        imageViewFull.setOnTouchListener(new OnSwipeTouchListener(this.getContext()) {
+            @Override
+            public void onSwipeLeft() {
+                iga.decrementImagePos();
+                final String path = imageList.get(iga.getImagePos());
+
+                Picasso.get()
+                    .load(path)
+                    .resize(1000, 1000)
+                    .centerInside()
+                    .into(imageViewFull);
+            }
+
+            @Override
+            public void onSwipeRight() {
+                iga.incrementImagePos();
+                final String path = imageList.get(iga.getImagePos());
+
+                Picasso.get()
+                        .load(path)
+                        .resize(1000, 1000)
+                        .centerInside()
+                        .into(imageViewFull);
+            }
+        });
+
         return root;
     }
 
