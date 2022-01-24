@@ -33,7 +33,7 @@ To run tests, run `gradlew test` or navigate to the tests on Android Studio and 
 It is recommended to run the app using the [Android Emulator](https://developer.android.com/studio/run/emulator) but it is also possible to run the app on a [hardware device](https://developer.android.com/studio/run/device).
 
 ### Deployment ###
-Currently there is no server code so no deployment is required.
+The server code is not full set up. When it is, this section will be updated.
 
 ## Blog ##
 Our [blog](https://sky-write.github.io/) contains all the documentation as well as updates on the development process.
