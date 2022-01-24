@@ -14,7 +14,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -28,9 +27,7 @@ import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.CameraPermissionHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DepthSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DisplayRotationHelper;
-import com.ajal.arsocialmessaging.ui.home.common.helpers.InstantPlacementSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.SnackbarHelper;
-import com.ajal.arsocialmessaging.ui.home.common.helpers.TapHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.TrackingStateHelper;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Framebuffer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.GLError;
@@ -46,16 +43,11 @@ import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Config;
-import com.google.ar.core.DepthPoint;
 import com.google.ar.core.Frame;
-import com.google.ar.core.HitResult;
-import com.google.ar.core.InstantPlacementPoint;
 import com.google.ar.core.LightEstimate;
 import com.google.ar.core.Plane;
-import com.google.ar.core.Point;
 import com.google.ar.core.PointCloud;
 import com.google.ar.core.Session;
-import com.google.ar.core.Trackable;
 import com.google.ar.core.TrackingFailureReason;
 import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
@@ -77,8 +69,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.Semaphore;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
 
@@ -125,7 +115,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     private final SnackbarHelper messageSnackbarHelper = new SnackbarHelper();;
     private DisplayRotationHelper displayRotationHelper;
     private final TrackingStateHelper trackingStateHelper = new TrackingStateHelper(this.getActivity());
-    private TapHelper tapHelper;
     private SampleRender render;
 
     private PlaneRenderer planeRenderer;
@@ -134,18 +123,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     private boolean hasSetTextureNames = false;
 
     private final DepthSettings depthSettings = new DepthSettings();
-    private boolean[] depthSettingsMenuDialogCheckboxes = new boolean[2];
-
-    private final InstantPlacementSettings instantPlacementSettings = new InstantPlacementSettings();
-    private boolean[] instantPlacementSettingsMenuDialogCheckboxes = new boolean[1];
-    // Assumed distance from the device camera to the surface on which user will try to place objects.
-    // This value affects the apparent scale of objects while the tracking method of the
-    // Instant Placement point is SCREENSPACE_WITH_APPROXIMATE_DISTANCE.
-    // Values in the [0.2, 2.0] meter range are a good choice for most AR experiences. Use lower
-    // values for AR experiences where users are expected to place objects on surfaces close to the
-    // camera. Use larger values for experiences where the user will likely be standing and trying to
-    // place an object on the ground or floor in front of them.
-    private static final float APPROXIMATE_DISTANCE_METERS = 2.0f;
 
     // Point Cloud
     private VertexBuffer pointCloudVertexBuffer;
@@ -198,10 +175,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         super.onCreate(savedInstanceState);
         surfaceView = root.findViewById(R.id.surfaceview);
         displayRotationHelper = new DisplayRotationHelper(/*context=*/ this.getContext());
-
-        // Set up touch listener.
-        tapHelper = new TapHelper(/*context=*/ this.getContext());
-        surfaceView.setOnTouchListener(tapHelper);
 
         // Set up renderer.
         render = new SampleRender(surfaceView, this, this.getContext().getAssets());
@@ -341,7 +314,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                 // Permission denied with checking "Do not ask again".
                 CameraPermissionHelper.launchPermissionSettings(this.getActivity());
             }
-            // finish(); <- not too sure where this comes from
+            this.getActivity().finish();
         }
     }
 
@@ -512,9 +485,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             }
         }
 
-        // TODO: remove handleTap() code and replace with a automatically generated anchor
         // Handle one tap per frame.
-        handleTap(frame, camera);
+        handleAnchor(frame, camera);
 
         // Keep the screen unlocked while tracking, but allow it to lock when tracking stops.
 //        trackingStateHelper.updateKeepScreenOnFlag(camera.getTrackingState());
@@ -605,13 +577,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             if (anchor.getTrackingState() != TrackingState.TRACKING) {
                 continue;
             }
-
             // Get the current pose of an Anchor in world space. The Anchor pose is updated
             // during calls to session.update() as ARCore refines its estimate of the world.
 
-            // SkyWrite: translate the y position to make the object "float"
-            // TODO: test to see if 30f is correct (1f = 1m; 30f = 30m which is approx 100ft)
-            // TODO: make it so that based on the user's distance from the ground, adjust the transformation to match 100ft
             anchor.getPose().makeTranslation(0, 30f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
 
             // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
@@ -712,54 +680,22 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         this.getActivity().sendBroadcast(mediaScanIntent);
     }
 
+    /**
+     * handleAnchor - hello_ar_java requires a tap to place an object in AR, this automatically does it
+     * @param frame
+     * @param camera
+     */
+    private void handleAnchor(Frame frame, Camera camera) {
 
-    // Handle only one tap per frame, as taps are usually low frequency compared to frame rate.
-    private void handleTap(Frame frame, Camera camera) {
-        MotionEvent tap = tapHelper.poll();
-        if (tap != null && camera.getTrackingState() == TrackingState.TRACKING) {
-            List<HitResult> hitResultList;
-            if (instantPlacementSettings.isInstantPlacementEnabled()) {
-                hitResultList =
-                        frame.hitTestInstantPlacement(tap.getX(), tap.getY(), APPROXIMATE_DISTANCE_METERS);
-            } else {
-                hitResultList = frame.hitTest(tap);
-            }
-            for (HitResult hit : hitResultList) {
-                // If any plane, Oriented Point, or Instant Placement Point was hit, create an anchor.
-                Trackable trackable = hit.getTrackable();
-                // If a plane was hit, check that it was hit inside the plane polygon.
-                // DepthPoints are only returned if Config.DepthMode is set to AUTOMATIC.
-                if ((trackable instanceof Plane
-                        && ((Plane) trackable).isPoseInPolygon(hit.getHitPose())
-                        && (PlaneRenderer.calculateDistanceToPlane(hit.getHitPose(), camera.getPose()) > 0))
-                        || (trackable instanceof Point
-                        && ((Point) trackable).getOrientationMode()
-                        == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)
-                        || (trackable instanceof InstantPlacementPoint)
-                        || (trackable instanceof DepthPoint)) {
-                    // Cap the number of objects created. This avoids overloading both the
-                    // rendering system and ARCore.
-
-                    // SkyWrite: only wants 1 anchor for the text, > 0 because it hasn't been added yet
-                    // TODO: randomly pick an anchor instead of relying on tap
-                    // TODO: hide surface once anchor is made, and thus must only have one anchor
-                    if (anchors.size() > 0) {
-                        anchors.get(0).detach();
-                        anchors.remove(0);
-                    }
-
-                    // Adding an Anchor tells ARCore that it should track this position in
-                    // space. This anchor is created on the Plane to place the 3D model
-                    // in the correct position relative both to the world and to the plane.
-                    anchors.add(hit.createAnchor());
-
-                    // For devices that support the Depth API, shows a dialog to suggest enabling
-                    // depth-based occlusion. This dialog needs to be spawned on the UI thread.
-
-                    // Hits are sorted by depth. Consider only closest hit on a plane, Oriented Point, or
-                    // Instant Placement Point.
-                    break;
+        for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
+            if (plane.getTrackingState() == TrackingState.TRACKING) {
+                Anchor anchor = plane.createAnchor(plane.getCenterPose());
+                if (anchors.size() > 0) {
+                    anchors.get(0).detach();
+                    anchors.remove(0);
                 }
+                anchors.add(anchor);
+                break;
             }
         }
     }
@@ -836,16 +772,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     private void configureSession() {
         Config config = session.getConfig();
         config.setLightEstimationMode(Config.LightEstimationMode.ENVIRONMENTAL_HDR);
-        if (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
-            config.setDepthMode(Config.DepthMode.AUTOMATIC);
-        } else {
-            config.setDepthMode(Config.DepthMode.DISABLED);
-        }
-        if (instantPlacementSettings.isInstantPlacementEnabled()) {
-            config.setInstantPlacementMode(Config.InstantPlacementMode.LOCAL_Y_UP);
-        } else {
-            config.setInstantPlacementMode(Config.InstantPlacementMode.DISABLED);
-        }
+        config.setDepthMode(Config.DepthMode.DISABLED);
+        config.setInstantPlacementMode(Config.InstantPlacementMode.DISABLED);
         session.configure(config);
     }
 }
