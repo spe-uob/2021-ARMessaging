@@ -63,7 +63,8 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
 
     @Override
     public void onBindViewHolder(GridItemViewHolder holder, int position) {
-        final String path = imageList.get(position);
+        int pos = position;
+        final String path = imageList.get(pos);
 
         Picasso.get()
                 .load(path)
@@ -83,7 +84,7 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
 
                 imageViewFull.setVisibility(View.VISIBLE);
                 rv.setVisibility(View.INVISIBLE);
-                imagePos = position;
+                imagePos = pos;
             }
         });
     }
