@@ -14,7 +14,7 @@ public class Banner {
     @Column(name = "postcode") @Getter @Setter
     String postcode;
 
-    @ManyToOne @JoinColumn(name = "messageId") @Getter @Setter
+    @ManyToOne @JoinColumn(name = "message_Id") @Getter @Setter
     Message message;
 
     @Column(name = "created_at") @Getter @Setter
