@@ -17,7 +17,7 @@ public class DbServerApplication {
 	BannersRepository bannersRepo;
 
 	@RequestMapping("/addBanner")
-	public String addBanner(@RequestParam("postcode") String postcode, @RequestParam("messageId") Message messageId){
+	public String addBanner(@RequestParam("postcode") String postcode, @RequestParam("messageId") Integer messageId){
 		Banner newBanner = new Banner(postcode, messageId);
 		bannersRepo.save(newBanner);
 		return "OK";

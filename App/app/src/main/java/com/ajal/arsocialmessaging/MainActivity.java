@@ -34,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
+        // Set up connection for app to talk to database via rest controller
+
+
     }
 
 }
