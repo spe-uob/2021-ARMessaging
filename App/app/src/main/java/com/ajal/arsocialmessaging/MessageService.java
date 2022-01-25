@@ -12,5 +12,5 @@ public interface MessageService {
     Call<List<Message>> getAllMessages();
 
     @GET("/users/{username}")
-    public Call<User> getUser(@Path("username") String username);
+    Call<User> getUser(@Path("username") String username);
 }

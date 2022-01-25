@@ -50,26 +50,39 @@ public class MainActivity extends AppCompatActivity {
 
 
         // Set up connection for app to talk to database via rest controller
-        OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://10.0.2.2:8080/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(httpClient.build())
-                .build();
+        /*
+        MessageService service = ServiceGenerator.createService(MessageService.class);
+        Call<User> callAsync = service.getUser();
+        callAsync.enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                User user = response.body();
+                assert user != null;
+                Log.d("MYTAG", "Got response: "+user.getId()+", "+user.getUrl()+", "+user.getLogin());
+            }
+            @Override
+            public void onFailure(Call<User> call, Throwable throwable) {
+                Log.e("MYTAG", "Error " + throwable);
+            }
+        });
+         */
 
-        MessageService service = retrofit.create(MessageService.class);
+
+        MessageService service = ServiceGenerator.createService(MessageService.class, "root", "");
         Call<List<Message>> callAsync = service.getAllMessages();
+        Log.d("MYTAG", "Call has been set up");
         callAsync.enqueue(new Callback<List<Message>>() {
             @Override
             public void onResponse(@NonNull Call<List<Message>> call, @NonNull Response<List<Message>> response) {
                 List<Message> allMessages = response.body();
-                Log.d("TAG2", "We got a response!!");
+                Log.d("MYTAG", "We got a response!!");
             }
             @Override
             public void onFailure(@NonNull Call<List<Message>> call, @NonNull Throwable throwable) {
-                Log.e("TAG3", "Error " + throwable);
+                Log.e("MYTAG", "Error " + throwable);
             }
         });
+
 
     }
 
