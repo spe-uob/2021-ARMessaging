@@ -50,39 +50,22 @@ public class MainActivity extends AppCompatActivity {
 
 
         // Set up connection for app to talk to database via rest controller
-        /*
         MessageService service = ServiceGenerator.createService(MessageService.class);
-        Call<User> callAsync = service.getUser();
-        callAsync.enqueue(new Callback<User>() {
-            @Override
-            public void onResponse(Call<User> call, Response<User> response) {
-                User user = response.body();
-                assert user != null;
-                Log.d("MYTAG", "Got response: "+user.getId()+", "+user.getUrl()+", "+user.getLogin());
-            }
-            @Override
-            public void onFailure(Call<User> call, Throwable throwable) {
-                Log.e("MYTAG", "Error " + throwable);
-            }
-        });
-         */
-
-
-        MessageService service = ServiceGenerator.createService(MessageService.class, "root", "");
-        Call<List<Message>> callAsync = service.getAllMessages();
+        Call<String> callAsync = service.getAllMessages();
         Log.d("MYTAG", "Call has been set up");
-        callAsync.enqueue(new Callback<List<Message>>() {
+        callAsync.enqueue(new Callback<String>() {
             @Override
-            public void onResponse(@NonNull Call<List<Message>> call, @NonNull Response<List<Message>> response) {
-                List<Message> allMessages = response.body();
-                Log.d("MYTAG", "We got a response!!");
+            public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
+                Log.d("MYTAG", "Got a response "+response.message()+" "+response.errorBody());
+                String allMessages = response.body();
+                assert allMessages != null;
+                Log.d("MYTAG", "We got a response! "+allMessages.toString());
             }
             @Override
-            public void onFailure(@NonNull Call<List<Message>> call, @NonNull Throwable throwable) {
+            public void onFailure(@NonNull Call<String> call, @NonNull Throwable throwable) {
                 Log.e("MYTAG", "Error " + throwable);
             }
         });
-
 
     }
 

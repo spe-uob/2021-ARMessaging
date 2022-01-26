@@ -3,9 +3,10 @@ package ajal.arsocialmessaging.DBServer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @SpringBootApplication
 @RestController
@@ -42,8 +43,20 @@ public class DbServerApplication {
 		return response.toString();
 	}
 
-	@RequestMapping("/getAllMessages")
+	@RequestMapping("/sayHello")
+	public Map<String, String> sayHello() {
+		System.out.println("received call for sayHello");
+		HashMap<String, String> map = new HashMap<>();
+		map.put("login", "lucy");
+		map.put("id", "1666345");
+		map.put("url", "https://api.github.com/users/lucy");
+		return map;
+	}
+
+	@RequestMapping(value = "/getAllMessages", method = RequestMethod.GET)
+	@ResponseBody
 	public String getAllMessages() {
+		System.out.println("received call for getMessages");
 		StringBuilder response = new StringBuilder();
 		Iterable<Message> messages = messagesRepo.findAll();
 		for(Message message: messages) {

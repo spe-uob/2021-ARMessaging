@@ -1,5 +1,7 @@
 package com.ajal.arsocialmessaging;
 
+import java.util.concurrent.TimeUnit;
+
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -7,7 +9,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ServiceGenerator {
-    private static final String BASE_URL = "https://31.53.133.188";
+    private static final String BASE_URL = "http://192.168.1.112:8080/"; // URL of where spring boot server is running
 
     private static final Retrofit.Builder builder
             = new Retrofit.Builder()
@@ -23,6 +25,7 @@ public class ServiceGenerator {
         return retrofit.create(serviceClass);
     }
 
+    // Authentication version in case needed in future
     public static <S> S createService(Class<S> serviceClass, String username, String password) {
         httpClient.interceptors().clear();
         httpClient.addInterceptor( chain -> {
