@@ -38,13 +38,19 @@ public class DbServerApplication {
 	}
 
 	@RequestMapping("/getAllBanners")
-	public String getAllBanners() {
-		StringBuilder response = new StringBuilder();
+	public List<Map<String, String>> getAllBanners() {
+		System.out.println("received call for getBanners");
 		Iterable<Banner> banners = bannersRepo.findAll();
+		List<Map<String, String>> response = new ArrayList<>();
 		for(Banner banner: banners) {
-			response.append(banner.getId()).append(" ").append(banner.getPostcode()).append(" ").append(banner.getMessage()).append(" ").append(banner.getTimestamp()).append("<br>\n");
+			HashMap<String, String> bannerData = new HashMap<>();
+			bannerData.put("id", banner.getId().toString());
+			bannerData.put("postcode", banner.getPostcode());
+			bannerData.put("message", banner.getMessage().toString());
+			bannerData.put("timestamp", banner.getTimestamp().toString());
+			response.add(bannerData);
 		}
-		return response.toString();
+		return response;
 	}
 
 

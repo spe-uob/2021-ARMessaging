@@ -12,6 +12,9 @@ public interface MessageService {
     @GET("/getAllMessages")
     Call<List<Message>> getAllMessages();
 
+    @GET("/getAllBanners")
+    Call<List<Banner>> getAllBanners();
+
     //@GET("/users/{username}")
     //Call<User> getUser(@Path("username") String username);
 }

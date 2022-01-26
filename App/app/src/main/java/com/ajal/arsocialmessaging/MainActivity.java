@@ -51,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
+
+        /*
+        // Retrieve all messages stored in database
         Call<List<Message>> callAsync = service.getAllMessages();
         Log.d("MYTAG", "Call has been set up");
         callAsync.enqueue(new Callback<List<Message>>() {
@@ -63,6 +66,24 @@ public class MainActivity extends AppCompatActivity {
             }
             @Override
             public void onFailure(@NonNull Call<List<Message>> call, @NonNull Throwable throwable) {
+                Log.e("MYTAG", "Error " + throwable);
+            }
+        });
+         */
+
+        // Retrieve all banners stored in database
+        Call<List<Banner>> callAsync = service.getAllBanners();
+        Log.d("MYTAG", "Call has been set up");
+        callAsync.enqueue(new Callback<List<Banner>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<Banner>> call, @NonNull Response<List<Banner>> response) {
+                Log.d("MYTAG", "Got a response "+response.message()+" "+response.errorBody());
+                List<Banner> allBanners = response.body();
+                assert allBanners != null;
+                Log.d("MYTAG", "We got a response! "+allBanners.get(0).id+" "+allBanners.get(0).postcode+" "+allBanners.get(0).message+" "+allBanners.get(0).timestamp);
+            }
+            @Override
+            public void onFailure(@NonNull Call<List<Banner>> call, @NonNull Throwable throwable) {
                 Log.e("MYTAG", "Error " + throwable);
             }
         });
