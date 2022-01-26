@@ -51,18 +51,18 @@ public class MainActivity extends AppCompatActivity {
 
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
-        Call<String> callAsync = service.getAllMessages();
+        Call<Message> callAsync = service.getAllMessages();
         Log.d("MYTAG", "Call has been set up");
-        callAsync.enqueue(new Callback<String>() {
+        callAsync.enqueue(new Callback<Message>() {
             @Override
-            public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
+            public void onResponse(@NonNull Call<Message> call, @NonNull Response<Message> response) {
                 Log.d("MYTAG", "Got a response "+response.message()+" "+response.errorBody());
-                String allMessages = response.body();
+                Message allMessages = response.body();
                 assert allMessages != null;
-                Log.d("MYTAG", "We got a response! "+allMessages.toString());
+                Log.d("MYTAG", "We got a response! "+allMessages.id+" "+allMessages.objfilename+" "+allMessages.message);
             }
             @Override
-            public void onFailure(@NonNull Call<String> call, @NonNull Throwable throwable) {
+            public void onFailure(@NonNull Call<Message> call, @NonNull Throwable throwable) {
                 Log.e("MYTAG", "Error " + throwable);
             }
         });

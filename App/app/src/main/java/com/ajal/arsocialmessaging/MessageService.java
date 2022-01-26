@@ -10,11 +10,8 @@ import retrofit2.http.Query;
 
 public interface MessageService {
     @GET("/getAllMessages")
-    Call<String> getAllMessages();
+    Call<Message> getAllMessages();
 
-    @GET("/sayHello")
-    Call<User> sayHello();
-
-    @GET("/users/{username}")
-    Call<User> getUser(@Path("username") String username);
+    //@GET("/users/{username}")
+    //Call<User> getUser(@Path("username") String username);
 }

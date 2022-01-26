@@ -55,14 +55,17 @@ public class DbServerApplication {
 
 	@RequestMapping(value = "/getAllMessages", method = RequestMethod.GET)
 	@ResponseBody
-	public String getAllMessages() {
+	public Map<String, String>  getAllMessages() {
 		System.out.println("received call for getMessages");
-		StringBuilder response = new StringBuilder();
 		Iterable<Message> messages = messagesRepo.findAll();
+		HashMap<String, String> response = new HashMap<>();
 		for(Message message: messages) {
-			response.append(message.getId()).append(" ").append(message.getMessage()).append(" ").append(message.getObjfilename()).append("<br>\n");
+			response.put("id", message.getId().toString());
+			response.put("message", message.getMessage());
+			response.put("objfilename", message.getObjfilename());
+			//response.append(message.getId()).append(" ").append(message.getMessage()).append(" ").append(message.getObjfilename()).append("<br>\n");
 		}
-		return response.toString();
+		return response;
 	}
 
 	public static void main(String[] args){
