@@ -43,16 +43,6 @@ public class DbServerApplication {
 		return response.toString();
 	}
 
-	@RequestMapping("/sayHello")
-	public Map<String, String> sayHello() {
-		System.out.println("received call for sayHello");
-		HashMap<String, String> map = new HashMap<>();
-		map.put("login", "lucy");
-		map.put("id", "1666345");
-		map.put("url", "https://api.github.com/users/lucy");
-		return map;
-	}
-
 	@RequestMapping(value = "/getAllMessages", method = RequestMethod.GET)
 	@ResponseBody
 	public Map<String, String>  getAllMessages() {
@@ -63,7 +53,6 @@ public class DbServerApplication {
 			response.put("id", message.getId().toString());
 			response.put("message", message.getMessage());
 			response.put("objfilename", message.getObjfilename());
-			//response.append(message.getId()).append(" ").append(message.getMessage()).append(" ").append(message.getObjfilename()).append("<br>\n");
 		}
 		return response;
 	}
