@@ -1,11 +1,15 @@
 package ajal.arsocialmessaging.DBServer;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @SpringBootApplication
@@ -43,19 +47,44 @@ public class DbServerApplication {
 		return response.toString();
 	}
 
+
 	@RequestMapping(value = "/getAllMessages", method = RequestMethod.GET)
 	@ResponseBody
-	public Map<String, String>  getAllMessages() {
+	public List<Map<String, String>> getAllMessages() {
 		System.out.println("received call for getMessages");
 		Iterable<Message> messages = messagesRepo.findAll();
-		HashMap<String, String> response = new HashMap<>();
+		List<Map<String, String>> response = new ArrayList<>();
 		for(Message message: messages) {
-			response.put("id", message.getId().toString());
-			response.put("message", message.getMessage());
-			response.put("objfilename", message.getObjfilename());
+			HashMap<String, String> messageData = new HashMap<>();
+			messageData.put("id", message.getId().toString());
+			messageData.put("message", message.getMessage());
+			messageData.put("objfilename", message.getObjfilename());
+			response.add(messageData);
 		}
 		return response;
 	}
+
+
+
+	/*
+	@RequestMapping(value = "/getAllMessages", method = RequestMethod.GET)
+	@ResponseBody
+	public String getAllMessages() throws JSONException {
+		System.out.println("received call to getMessages");
+		JSONObject response = new JSONObject();
+		Iterable<Message> messages = messagesRepo.findAll();
+		for(Message message: messages){
+			System.out.println("adding a new message to the json object");
+			response.put("Message", new JSONObject()
+					.put("id", message.getId().toString())
+					.put("message", message.getMessage())
+					.put("objfilename", message.getObjfilename()));
+		}
+		return response.toString();
+	}
+
+	 */
+
 
 	public static void main(String[] args){
 		SpringApplication.run(DbServerApplication.class, args);
