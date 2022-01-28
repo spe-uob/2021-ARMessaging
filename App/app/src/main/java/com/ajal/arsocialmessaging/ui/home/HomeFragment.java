@@ -24,11 +24,13 @@ import androidx.fragment.app.Fragment;
 
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
+import com.ajal.arsocialmessaging.ui.home.common.helpers.Banner;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.CameraPermissionHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DepthSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DisplayRotationHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.SnackbarHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.TrackingStateHelper;
+import com.ajal.arsocialmessaging.ui.home.common.helpers.VirtualObjectRenderHelper;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Framebuffer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.GLError;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Mesh;
@@ -70,6 +72,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
 
@@ -133,10 +136,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     // was not changed.  Do this using the timestamp since we can't compare PointCloud objects.
     private long lastPointCloudTimestamp = 0;
 
-    // Virtual object (ARCore pawn)
+    // Virtual object
     private Mesh virtualObjectMesh;
     private Shader virtualObjectShader;
     private final ArrayList<Anchor> anchors = new ArrayList<>();
+    private List<Banner> localBanners = new ArrayList<>();
 
     // Environmental HDR
     private Texture dfgTexture;
@@ -323,6 +327,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     public void onSurfaceCreated(SampleRender render) {
         // Prepare the rendering objects. This involves reading shaders and 3D model files, so may throw
         // an IOException.
+
         try {
             planeRenderer = new PlaneRenderer(render);
             backgroundRenderer = new BackgroundRenderer(render);
@@ -378,37 +383,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                     new Mesh(
                             render, Mesh.PrimitiveMode.POINTS, /*indexBuffer=*/ null, pointCloudVertexBuffers);
 
-            // TODO: create multiple textures for different words
-            // Virtual object to render (text)
-            Texture virtualObjectAlbedoTexture =
-                    Texture.createFromAsset(
-                            render,
-                            "models/red_texture.png",
-                            Texture.WrapMode.CLAMP_TO_EDGE,
-                            Texture.ColorFormat.SRGB);
-            Texture virtualObjectPbrTexture =
-                    Texture.createFromAsset(
-                            render,
-                            "models/red_texture.png",
-                            Texture.WrapMode.CLAMP_TO_EDGE,
-                            Texture.ColorFormat.LINEAR);
-            virtualObjectMesh = Mesh.createFromAsset(render, "models/happy-birthday.obj");
-            virtualObjectShader =
-                    Shader.createFromAssets(
-                            render,
-                            "shaders/environmental_hdr.vert",
-                            "shaders/environmental_hdr.frag",
-                            /*defines=*/ new HashMap<String, String>() {
-                                {
-                                    put(
-                                            "NUMBER_OF_MIPMAP_LEVELS",
-                                            Integer.toString(cubemapFilter.getNumberOfMipmapLevels()));
-                                }
-                            })
-                            .setTexture("u_AlbedoTexture", virtualObjectAlbedoTexture)
-                            .setTexture("u_RoughnessMetallicAmbientOcclusionTexture", virtualObjectPbrTexture)
-                            .setTexture("u_Cubemap", cubemapFilter.getFilteredCubemapTexture())
-                            .setTexture("u_DfgTexture", dfgTexture);
+            // TODO: use localBanners, which stores the banners in the postcode, rather than one single banner
+            Banner banner = new Banner(0);
+            virtualObjectMesh = VirtualObjectRenderHelper.renderVirtualObjectMesh(render, banner);
+            virtualObjectShader = VirtualObjectRenderHelper.renderVirtualObjectShader(render, banner, cubemapFilter, dfgTexture);
         } catch (IOException e) {
             Log.e(TAG, "Failed to read a required asset file", e);
             messageSnackbarHelper.showError(this.getActivity(), "Failed to read a required asset file: " + e);
@@ -486,7 +464,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             }
         }
 
-        // Handle one tap per frame.
+        // Handle the anchors
         handleAnchor(frame, camera);
 
         // Keep the screen unlocked while tracking, but allow it to lock when tracking stops.
