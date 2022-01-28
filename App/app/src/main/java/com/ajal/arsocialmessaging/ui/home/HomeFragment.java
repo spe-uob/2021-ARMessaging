@@ -670,7 +670,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
 
         for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
             if (plane.getTrackingState() == TrackingState.TRACKING) {
-                if (anchors.size() < localBanners.size()) {
+                while (anchors.size() < localBanners.size()) {
                     Pose pose = plane.getCenterPose().compose(Pose.makeTranslation(10f * anchors.size(), 0, 0));
                     if (pose.qy() > 0) {
                         pose = pose.compose(Pose.makeRotation(0, -pose.qy(), 0, 1));
