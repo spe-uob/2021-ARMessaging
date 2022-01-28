@@ -71,8 +71,8 @@ import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
 
@@ -137,8 +137,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     private long lastPointCloudTimestamp = 0;
 
     // Virtual object
-    private Mesh virtualObjectMesh;
-    private Shader virtualObjectShader;
+    private List<Mesh> virtualObjectMeshesList;
+    private List<Shader> virtualObjectShadersList;
     private final ArrayList<Anchor> anchors = new ArrayList<>();
     private List<Banner> localBanners = new ArrayList<>();
 
@@ -383,10 +383,20 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                     new Mesh(
                             render, Mesh.PrimitiveMode.POINTS, /*indexBuffer=*/ null, pointCloudVertexBuffers);
 
-            // TODO: use localBanners, which stores the banners in the postcode, rather than one single banner
-            Banner banner = new Banner(0);
-            virtualObjectMesh = VirtualObjectRenderHelper.renderVirtualObjectMesh(render, banner);
-            virtualObjectShader = VirtualObjectRenderHelper.renderVirtualObjectShader(render, banner, cubemapFilter, dfgTexture);
+            // TODO: update localBanners from the server
+            Banner banner1 = new Banner(0);
+            Banner banner2 = new Banner(0);
+            localBanners = new ArrayList<>();
+            localBanners.add(banner1);
+            localBanners.add(banner2);
+            virtualObjectMeshesList = new ArrayList<>();
+            virtualObjectShadersList = new ArrayList<>();
+            for (int i = 0; i < localBanners.size(); i++) {
+                Banner banner = localBanners.get(i);
+                virtualObjectMeshesList.add(VirtualObjectRenderHelper.renderVirtualObjectMesh(render, banner));
+                virtualObjectShadersList.add(VirtualObjectRenderHelper.renderVirtualObjectShader(render, banner, cubemapFilter, dfgTexture));
+            }
+
         } catch (IOException e) {
             Log.e(TAG, "Failed to read a required asset file", e);
             messageSnackbarHelper.showError(this.getActivity(), "Failed to read a required asset file: " + e);
@@ -467,9 +477,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         // Handle the anchors
         handleAnchor(frame, camera);
 
-        // Keep the screen unlocked while tracking, but allow it to lock when tracking stops.
-//        trackingStateHelper.updateKeepScreenOnFlag(camera.getTrackingState());
-
         // Show a message based on whether tracking has failed, if planes are detected, and if the user
         // has placed any objects.
         String message = null;
@@ -545,7 +552,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
 
         // Visualize anchors created by touch.
         render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
-        for (Anchor anchor : anchors) {
+        for (int i = 0; i < anchors.size(); i++) {
+            Anchor anchor = anchors.get(i);
+            Banner banner = localBanners.get(i);
             if (anchor.getTrackingState() != TrackingState.TRACKING) {
                 continue;
             }
@@ -562,9 +571,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
 
             // Update shader properties and draw
-            virtualObjectShader.setMat4("u_ModelView", modelViewMatrix);
-            virtualObjectShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
-            render.draw(virtualObjectMesh, virtualObjectShader, virtualSceneFramebuffer);
+            virtualObjectShadersList.get(i).setMat4("u_ModelView", modelViewMatrix);
+            virtualObjectShadersList.get(i).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
+            render.draw(virtualObjectMeshesList.get(i), virtualObjectShadersList.get(i), virtualSceneFramebuffer);
 
         }
 
@@ -658,22 +667,29 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
      * @param camera
      */
     private void handleAnchor(Frame frame, Camera camera) {
+
         for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
             if (plane.getTrackingState() == TrackingState.TRACKING) {
-                Pose pose = plane.getCenterPose();
-                if (pose.qy() > 0) {
-                    pose = pose.compose(Pose.makeRotation(0, -pose.qy(), 0, 1));
-                } else {
-                    pose = pose.compose(Pose.makeRotation(0, pose.qy(), 0, 1));
+                if (anchors.size() < localBanners.size()) {
+                    Pose pose = plane.getCenterPose().compose(Pose.makeTranslation(10f * anchors.size(), 0, 0));
+                    if (pose.qy() > 0) {
+                        pose = pose.compose(Pose.makeRotation(0, -pose.qy(), 0, 1));
+                    }
+                    else {
+                        pose = pose.compose(Pose.makeRotation(0, pose.qy(), 0, 1));
+                    }
+                    Anchor anchor = session.createAnchor(pose);
+
+                    // if there are more anchors than messages, remove the first one
+                    // TODO: consider whether this is needed or not
+//                    if (anchors.size() > localBanners.size() - 1) {
+//                        anchors.get(0).detach();
+//                        anchors.remove(0);
+//                    }
+                    anchors.add(anchor);
                 }
-                Anchor anchor = session.createAnchor(pose);
-                if (anchors.size() > 0) {
-                    anchors.get(0).detach();
-                    anchors.remove(0);
-                }
-                anchors.add(anchor);
-                break;
             }
+            break;
         }
     }
 
@@ -690,14 +706,16 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     /** Update state based on the current frame's light estimation. */
     private void updateLightEstimation(LightEstimate lightEstimate, float[] viewMatrix) {
         if (lightEstimate.getState() != LightEstimate.State.VALID) {
-            virtualObjectShader.setBool("u_LightEstimateIsValid", false);
+            for (Shader s : virtualObjectShadersList) {
+                s.setBool("u_LightEstimateIsValid", false);
+            }
             return;
         }
-        virtualObjectShader.setBool("u_LightEstimateIsValid", true);
-
-        Matrix.invertM(viewInverseMatrix, 0, viewMatrix, 0);
-        virtualObjectShader.setMat4("u_ViewInverse", viewInverseMatrix);
-
+        for (int i = 0; i < localBanners.size(); i++) {
+            virtualObjectShadersList.get(i).setBool("u_LightEstimateIsValid", true);
+            Matrix.invertM(viewInverseMatrix, 0, viewMatrix, 0);
+            virtualObjectShadersList.get(i).setMat4("u_ViewInverse", viewInverseMatrix);
+        }
         updateMainLight(
                 lightEstimate.getEnvironmentalHdrMainLightDirection(),
                 lightEstimate.getEnvironmentalHdrMainLightIntensity(),
@@ -713,8 +731,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         worldLightDirection[1] = direction[1];
         worldLightDirection[2] = direction[2];
         Matrix.multiplyMV(viewLightDirection, 0, viewMatrix, 0, worldLightDirection, 0);
-        virtualObjectShader.setVec4("u_ViewLightDirection", viewLightDirection);
-        virtualObjectShader.setVec3("u_LightIntensity", intensity);
+        for (Shader s : virtualObjectShadersList) {
+            s.setVec4("u_ViewLightDirection", viewLightDirection);
+            s.setVec3("u_LightIntensity", intensity);
+        }
     }
 
     private void updateSphericalHarmonicsCoefficients(float[] coefficients) {
@@ -741,8 +761,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         for (int i = 0; i < 9 * 3; ++i) {
             sphericalHarmonicsCoefficients[i] = coefficients[i] * sphericalHarmonicFactors[i / 3];
         }
-        virtualObjectShader.setVec3Array(
-                "u_SphericalHarmonicsCoefficients", sphericalHarmonicsCoefficients);
+        for (Shader s : virtualObjectShadersList) {
+            s.setVec3Array(
+                    "u_SphericalHarmonicsCoefficients", sphericalHarmonicsCoefficients);
+        }
     }
 
     /** Configures the session with feature settings. */
