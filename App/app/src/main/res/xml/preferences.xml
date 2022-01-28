@@ -1,10 +1,48 @@
-<PreferenceScreen
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <SwitchPreferenceCompat
-        app:title="Enable message notifications" />
+    <PreferenceCategory
+        app:key="general_setting"
+        app:title="General">
+        <SeekBarPreference
+            app:key="text_size"
+            app:title="Text Size" />
+        <SwitchPreferenceCompat
+            app:title="Dark Mode" />
+    </PreferenceCategory>
 
-    <Preference
-        app:title="Send feedback" />
+
+    <PreferenceCategory
+        app:key="notification"
+        app:title="Notification">
+
+        <SwitchPreferenceCompat
+            app:title="Enable message notifications" />
+    </PreferenceCategory>
+
+
+
+    <PreferenceCategory
+        app:key="privacy_setting"
+        app:title="Privacy">
+
+        <SeekBarPreference
+            app:key="location_update"
+            app:title="Location Update Frequency" />
+
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+        app:key="about"
+        app:title="About">
+
+        <Preference
+            app:title="About Sky Write" />
+
+        <Preference
+            app:title="Send feedback" />
+    </PreferenceCategory>
+
 
 </PreferenceScreen>
