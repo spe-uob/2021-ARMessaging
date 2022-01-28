@@ -16,7 +16,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:text="Settings"
+            android:textColor="@color/black"
             android:textSize="25sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/text_General"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -36,10 +38,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Text Size"
+            android:textColor="@color/black"
             android:textSize="18sp"
+            app:layout_constraintBottom_toTopOf="@+id/seekBar"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_General"
-            app:layout_constraintBottom_toTopOf="@+id/seekBar"/>
+            app:layout_constraintTop_toBottomOf="@+id/text_General" />
 
 
         <SeekBar
@@ -57,7 +60,7 @@
         <Switch
             android:id="@+id/switch_DarkMode"
             android:layout_width="350dp"
-            android:layout_height="20dp"
+            android:layout_height="48dp"
             android:text="Dark Mode"
             android:textSize="18sp"
             app:layout_constraintBottom_toTopOf="@+id/text_NotificationSettings"
@@ -78,7 +81,7 @@
         <Switch
             android:id="@+id/switch1"
             android:layout_width="350dp"
-            android:layout_height="20dp"
+            android:layout_height="48dp"
             android:text="Push Notification"
             android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -98,8 +101,10 @@
             android:id="@+id/textView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="205dp"
             android:text="Update Your Location"
             android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
