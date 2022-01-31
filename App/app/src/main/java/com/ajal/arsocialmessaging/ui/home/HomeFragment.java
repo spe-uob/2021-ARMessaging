@@ -403,13 +403,13 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             Texture virtualObjectAlbedoTexture =
                     Texture.createFromAsset(
                             render,
-                            "models/red_texture.png",
+                            "models/happy-birthday.png",
                             Texture.WrapMode.CLAMP_TO_EDGE,
                             Texture.ColorFormat.SRGB);
             Texture virtualObjectPbrTexture =
                     Texture.createFromAsset(
                             render,
-                            "models/red_texture.png",
+                            "models/white_texture.png",
                             Texture.WrapMode.CLAMP_TO_EDGE,
                             Texture.ColorFormat.LINEAR);
             virtualObjectMesh = Mesh.createFromAsset(render, "models/happy-birthday.obj");
