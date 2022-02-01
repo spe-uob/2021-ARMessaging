@@ -25,13 +25,13 @@ public class VirtualObjectRenderHelper {
         Texture virtualObjectAlbedoTexture =
                 Texture.createFromAsset(
                         render,
-                        "models/red_texture.png",
+                        banner.getAlbedoTexture(),
                         Texture.WrapMode.CLAMP_TO_EDGE,
                         Texture.ColorFormat.SRGB);
         Texture virtualObjectPbrTexture =
                 Texture.createFromAsset(
                         render,
-                        "models/red_texture.png",
+                        banner.getPbrTexture(),
                         Texture.WrapMode.CLAMP_TO_EDGE,
                         Texture.ColorFormat.LINEAR);
 
