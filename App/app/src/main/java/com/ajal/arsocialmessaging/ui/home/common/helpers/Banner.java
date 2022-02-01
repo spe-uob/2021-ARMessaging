@@ -14,6 +14,7 @@ public class Banner {
                 this.albedoTexture = "models/happy-birthday.png";
                 this.pbrTexture = "models/white_texture.png";
                 this.filename = "models/happy-birthday.obj";
+                break;
         }
     }
 
