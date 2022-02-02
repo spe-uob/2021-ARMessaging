@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(binding.navView, navController);
 
 
+        /*
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
 
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        /*
+
 
         // Retrieve all banners stored in database
         Call<List<Banner>> callAsync = service.getAllBanners();
