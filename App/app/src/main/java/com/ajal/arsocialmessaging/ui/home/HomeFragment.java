@@ -205,10 +205,15 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
         globalBanners.add(banner1);
         globalBanners.add(banner2);
         Location location = PostcodeHelper.getLocation(this.getContext());
-        String currentPostcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
-        for (Banner b : globalBanners) {
-            if (b.getPostCode().equals(currentPostcode)) {
-                localBanners.add(b);
+        if (location == null) {
+            messageSnackbarHelper.showError(this.getActivity(), "Cannot find location. Please try restarting SkyWrite.");
+        }
+        else {
+            String currentPostcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
+            for (Banner b : globalBanners) {
+                if (b.getPostCode().equals(currentPostcode)) {
+                    localBanners.add(b);
+                }
             }
         }
 
