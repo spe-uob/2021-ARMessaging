@@ -240,7 +240,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
                         break;
                 }
 
-                // Check that SkyWrite has the correct permissions and if not, request them
+                // Check that SkyWrite still has the correct permissions and if not, open the permissions page
                 if (!PermissionHelper.hasPermissions(this.getActivity())) {
                     Toast.makeText(this.getContext(), "Permissions are needed to run this application", Toast.LENGTH_LONG).show();
                     PermissionHelper.requestPermissionsIfDenied(this.getActivity());
@@ -306,21 +306,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
             surfaceView.onPause();
             hasSetTextureNames = false; // needed to set the camera textures again when back button is pressed
             session.pause();
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
-        super.onRequestPermissionsResult(requestCode, permissions, results);
-        // If SkyWrite still doesn't have permissions, close the app and launch the device's permission settings page
-        if (!PermissionHelper.hasPermissions(this.getActivity())) {
-            Toast.makeText(this.getContext(), "Permissions are needed to run this application", Toast.LENGTH_LONG)
-                    .show();
-            if (!PermissionHelper.shouldShowRequestPermissionRationale(this.getActivity())) {
-                // Permission denied with checking "Do not ask again".
-                PermissionHelper.launchPermissionSettings(this.getActivity());
-            }
-            this.getActivity().finish();
         }
     }
 

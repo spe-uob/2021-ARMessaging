@@ -27,7 +27,7 @@ public class SettingsFragment extends Fragment {
         binding = FragmentSettingsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        // Check that SkyWrite has the correct permissions and if not, request them
+        // Check that SkyWrite still has the correct permissions and if not, open the permissions page
         if (!PermissionHelper.hasPermissions(this.getActivity())) {
             Toast.makeText(this.getContext(), "Permissions are needed to run this application", Toast.LENGTH_LONG).show();
             PermissionHelper.requestPermissionsIfDenied(this.getActivity());
