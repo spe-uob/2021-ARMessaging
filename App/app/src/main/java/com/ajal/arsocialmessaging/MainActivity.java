@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
 
-        /*
+
         // Retrieve all messages stored in database
         Call<List<Message>> callAsync = service.getAllMessages();
         Log.d("MYTAG", "Call has been set up");
@@ -69,7 +69,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("MYTAG", "Error " + throwable);
             }
         });
-         */
+
+        /*
 
         // Retrieve all banners stored in database
         Call<List<Banner>> callAsync = service.getAllBanners();
@@ -87,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("MYTAG", "Error " + throwable);
             }
         });
+        
+         */
 
     }
 

@@ -9,7 +9,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ServiceGenerator {
-    private static final String BASE_URL = "http://192.168.1.112:8080/"; // URL of where spring boot server is running
+    private static final String BASE_URL = "https://group-armessaging.classroom-eu-gb-1-bx2-4x1-d4ceb080620f0ec34cd169ad110144ef-0000.eu-gb.containers.appdomain.cloud/"; // URL of where spring boot server is running
 
     private static final Retrofit.Builder builder
             = new Retrofit.Builder()
