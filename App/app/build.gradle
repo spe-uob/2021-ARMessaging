@@ -73,6 +73,6 @@ dependencies {
 
     // Testing
     testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3' // needs to be v1.1.3+ for Android tests to work
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }
