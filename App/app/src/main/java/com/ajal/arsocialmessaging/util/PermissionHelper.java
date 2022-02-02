@@ -21,15 +21,19 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.provider.Settings;
+import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-/** Helper to ask camera permission. */
+import java.util.ArrayList;
+import java.util.List;
+
+/** Helper to ask camera permission.
+ * Needs to be a singleton so that it doesn't close the app if it is asking for permissions for the first time */
 public final class PermissionHelper {
 
   private static final int PERMISSIONS_CODE = 0;
-
   private static final String REQUIRED_PERMISSIONS[] = {
           Manifest.permission.WRITE_EXTERNAL_STORAGE,
           Manifest.permission.CAMERA,
@@ -37,12 +41,13 @@ public final class PermissionHelper {
           Manifest.permission.ACCESS_COARSE_LOCATION,
           Manifest.permission.INTERNET
   };
+  private boolean permissionsRequested = false;
+
 
   /** Check to see we have the necessary permissions for this app. */
   public static boolean hasPermissions(Activity activity) {
     for (String p : REQUIRED_PERMISSIONS) {
-      if (ContextCompat.checkSelfPermission(activity, p) !=
-              PackageManager.PERMISSION_GRANTED) {
+      if (ContextCompat.checkSelfPermission(activity, p) != PackageManager.PERMISSION_GRANTED) {
         return false;
       }
     }
@@ -63,6 +68,13 @@ public final class PermissionHelper {
       }
     }
     return false;
+  }
+
+  public static void requestPermissionsIfDenied(Activity activity){
+    if (shouldShowRequestPermissionRationale(activity)) {
+      launchPermissionSettings(activity);
+      return;
+    }
   }
 
   /** Launch Application Setting to grant permission. */

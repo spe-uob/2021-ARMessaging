@@ -1,5 +1,6 @@
 package com.ajal.arsocialmessaging.ui.home;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -81,7 +82,7 @@ import java.util.List;
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
  * plane to place a 3D model.
  */
-public class HomeFragment extends Fragment implements SampleRender.Renderer{
+public class HomeFragment extends Fragment implements SampleRender.Renderer {
 
     private FragmentHomeBinding binding;
 
@@ -239,9 +240,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                         break;
                 }
 
-                // Check that SkyWrite has the correct permissions
+                // Check that SkyWrite has the correct permissions and if not, request them
                 if (!PermissionHelper.hasPermissions(this.getActivity())) {
-                    PermissionHelper.requestPermissions(this.getActivity());
+                    Toast.makeText(this.getContext(), "Permissions are needed to run this application", Toast.LENGTH_LONG).show();
+                    PermissionHelper.requestPermissionsIfDenied(this.getActivity());
                     return;
                 }
 
@@ -310,9 +312,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(requestCode, permissions, results);
+        // If SkyWrite still doesn't have permissions, close the app and launch the device's permission settings page
         if (!PermissionHelper.hasPermissions(this.getActivity())) {
-            // Use toast instead of snackbar here since the activity will exit.
-            Toast.makeText(this.getContext(), "Camera permission is needed to run this application", Toast.LENGTH_LONG)
+            Toast.makeText(this.getContext(), "Permissions are needed to run this application", Toast.LENGTH_LONG)
                     .show();
             if (!PermissionHelper.shouldShowRequestPermissionRationale(this.getActivity())) {
                 // Permission denied with checking "Do not ask again".
