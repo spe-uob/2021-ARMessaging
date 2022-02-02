@@ -1,6 +1,6 @@
-# 2021-ARMessaging #
+# 2021-ARMessaging - SkyWrite #
 ## Summary ##
-ARMessaging will allow a sender to select an appropriate message (eg Happy Birthday,
+SkyWrite is an Android app that will allow a sender to select an appropriate message (eg Happy Birthday,
 Merry Christmas etc) to a postcode. The message will appear in augmented reality 100ft above the ground.
 Those with the app/service will be notified that a message exists in a nearby postcode.
 
@@ -25,15 +25,15 @@ You can read more about the development in our [blog](https://sky-write.github.i
 1. Install the prerequisites
 2. Clone the repository: `git clone git@github.com:spe-uob/2021-ARMessaging.git`
 
-### Getting Started ###
-This project uses the Gradle build system. To build this project use `gradlew build` in the terminal or import the project in Android Studio.
+## Getting Started ##
+This project uses the Gradle build system. To build the project use `gradlew build` in the terminal or import the project in Android Studio.
 
 To run tests, run `gradlew test` or navigate to the tests on Android Studio and run from there.
 
 It is recommended to run the app using the [Android Emulator](https://developer.android.com/studio/run/emulator) but it is also possible to run the app on a [hardware device](https://developer.android.com/studio/run/device).
 
 ### Deployment ###
-Currently there is no server code so no deployment is required.
+The server code is not full set up. When it is, this section will be updated.
 
 ## Blog ##
-Our [blog](https://sky-write.github.io/) contains documentation as well as updates on the development process.
+Our [blog](https://sky-write.github.io/) contains all the documentation as well as updates on the development process.
