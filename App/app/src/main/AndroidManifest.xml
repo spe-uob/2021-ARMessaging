@@ -22,7 +22,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ARSocialMessaging"
         android:hardwareAccelerated="false"
-        android:largeHeap="true">
+        android:largeHeap="true"
+        android:usesCleartextTraffic="true">
 
         <meta-data android:name="com.google.ar.core" android:value="required" />
 

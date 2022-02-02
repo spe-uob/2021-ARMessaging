@@ -14,20 +14,23 @@ public class Banner {
     @Column(name = "postcode") @Getter @Setter
     String postcode;
 
-    @ManyToOne @JoinColumn(name = "messageId") @Getter @Setter
-    Message message;
+    //@ManyToOne @JoinColumn(name = "message_id") @Getter @Setter
+    //Message message;
+
+    @Column(name = "message_id") @Getter @Setter
+    Integer message;
 
     @Column(name = "created_at") @Getter @Setter
     Timestamp timestamp;
 
     public Banner() {
         postcode = "";
-        message = new Message();
+        message = 1;
         Date date = new Date();
         timestamp = new Timestamp(date.getTime());
     }
 
-    public Banner(String postcode, Message messageId) {
+    public Banner(String postcode, Integer messageId) {
         this.postcode = postcode;
         this.message = messageId;
     }

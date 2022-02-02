@@ -25,8 +25,8 @@ You can read more about the development in our [blog](https://sky-write.github.i
 1. Install the prerequisites
 2. Clone the repository: `git clone git@github.com:spe-uob/2021-ARMessaging.git`
 
-### Getting Started ###
-This project uses the Gradle build system. To build this project use `gradlew build` in the terminal or import the project in Android Studio.
+## Getting Started ##
+This project uses the Gradle build system. To build the project use `gradlew build` in the terminal or import the project in Android Studio.
 
 To run tests, run `gradlew test` or navigate to the tests on Android Studio and run from there.
 
