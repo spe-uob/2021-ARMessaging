@@ -1,4 +1,4 @@
-package com.ajal.arsocialmessaging.ui.home.common.helpers;
+package com.ajal.arsocialmessaging.ui.home.common;
 
 // Note: this is only temporary and will be removed when the database is fully implemented
 
@@ -7,9 +7,10 @@ public class Banner {
     private String albedoTexture;
     private String pbrTexture;
     private String filename;
+    private String postcode;
 
-
-    public Banner(int messageId) {
+    public Banner(int messageId, String postcode) {
+        this.postcode = postcode;
         switch (messageId) {
             case 0:
                 this.messageId = messageId;
@@ -34,5 +35,9 @@ public class Banner {
 
     public String getFilename() {
         return this.filename;
+    }
+
+    public String getPostCode() {
+        return this.postcode;
     }
 }

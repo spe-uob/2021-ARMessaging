@@ -1,10 +1,10 @@
 package com.ajal.arsocialmessaging.ui.home;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.location.Location;
 import android.media.Image;
 import android.net.Uri;
 import android.opengl.GLES20;
@@ -25,7 +25,7 @@ import androidx.fragment.app.Fragment;
 
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
-import com.ajal.arsocialmessaging.ui.home.common.helpers.Banner;
+import com.ajal.arsocialmessaging.ui.home.common.Banner;
 import com.ajal.arsocialmessaging.util.PermissionHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DepthSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DisplayRotationHelper;
@@ -90,6 +90,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
 
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
     private static final String FOUND_PLANE_MESSAGE = "Look up to view message!";
+    private static final String NO_BANNERS_MESSAGE = "This postcode has no messages;";
+    private static final String IMG_SAVED_MESSAGE = "Image saved to storage!";
 
     // See the definition of updateSphericalHarmonicsCoefficients for an explanation of these
     // constants.
@@ -142,6 +144,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
     private List<Shader> virtualObjectShadersList;
     private final ArrayList<Anchor> anchors = new ArrayList<>();
     private List<Banner> localBanners = new ArrayList<>();
+    private List<Banner> globalBanners = new ArrayList<>(); // TODO: temporary, remove this when app gets messages from server
 
     // Environmental HDR
     private Texture dfgTexture;
@@ -187,9 +190,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
 
         installRequested = false;
 
-        Activity activity = this.getActivity();
-        Context context = this.getContext();
-
         // SkyWrite: Set up button listener to take photo
         Button snapBtn = (Button) root.findViewById(R.id.snap_button);
         snapBtn.setOnClickListener(new View.OnClickListener() {
@@ -198,6 +198,19 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
                 capturePicture = true;
             }
         });
+
+        // TODO: update globalBanners from the server
+        Banner banner1 = new Banner(0, "BS8 1LN"); // Richmond Building (Bristol SU)
+        Banner banner2 = new Banner(0, "BS8 1UB"); // Merchant Venturer's Building (University of Bristol)
+        globalBanners.add(banner1);
+        globalBanners.add(banner2);
+        Location location = PostcodeHelper.getLocation(this.getContext());
+        String currentPostcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
+        for (Banner b : globalBanners) {
+            if (b.getPostCode().equals(currentPostcode)) {
+                localBanners.add(b);
+            }
+        }
 
         return root;
     }
@@ -369,12 +382,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
                     new Mesh(
                             render, Mesh.PrimitiveMode.POINTS, /*indexBuffer=*/ null, pointCloudVertexBuffers);
 
-            // TODO: update localBanners from the server
-            Banner banner1 = new Banner(0);
-            Banner banner2 = new Banner(0);
-            localBanners = new ArrayList<>();
-            localBanners.add(banner1);
-            localBanners.add(banner2);
             virtualObjectMeshesList = new ArrayList<>();
             virtualObjectShadersList = new ArrayList<>();
             for (int i = 0; i < localBanners.size(); i++) {
@@ -469,7 +476,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
         if (capturePicture) {
             // SkyWrite: display message when image is saved
             // needs to be at the top of the if statements as it takes priority
-            message = "Image saved to storage!";
+            message = IMG_SAVED_MESSAGE;
+        } else if (localBanners.size() == 0) {
+            message = NO_BANNERS_MESSAGE;
         } else if (camera.getTrackingState() == TrackingState.PAUSED) {
             if (camera.getTrackingFailureReason() == TrackingFailureReason.NONE) {
                 message = SEARCHING_PLANE_MESSAGE;

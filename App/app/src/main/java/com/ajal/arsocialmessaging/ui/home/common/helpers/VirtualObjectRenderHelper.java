@@ -1,5 +1,6 @@
 package com.ajal.arsocialmessaging.ui.home.common.helpers;
 
+import com.ajal.arsocialmessaging.ui.home.common.Banner;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Mesh;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.SampleRender;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Shader;
@@ -8,7 +9,6 @@ import com.ajal.arsocialmessaging.ui.home.common.samplerender.arcore.SpecularCub
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 
 public class VirtualObjectRenderHelper {
 
