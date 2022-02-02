@@ -121,4 +121,13 @@
             android:text="Help and Feedback"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/seekBar2" />
+
+        <TextView
+            android:id="@+id/text_currentPostcode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Postcode = "
+            android:textSize="18sp"
+            app:layout_constraintTop_toBottomOf="@+id/textView4"
+            app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -25,7 +25,7 @@ import androidx.fragment.app.Fragment;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.Banner;
-import com.ajal.arsocialmessaging.ui.home.common.helpers.CameraPermissionHelper;
+import com.ajal.arsocialmessaging.util.PermissionHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DepthSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DisplayRotationHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.SnackbarHelper;
@@ -41,6 +41,7 @@ import com.ajal.arsocialmessaging.ui.home.common.samplerender.VertexBuffer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.arcore.BackgroundRenderer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.arcore.PlaneRenderer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.arcore.SpecularCubemapFilter;
+import com.ajal.arsocialmessaging.util.PostcodeHelper;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
@@ -72,7 +73,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
 
@@ -239,10 +239,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                         break;
                 }
 
-                // ARCore requires camera permissions to operate. If we did not yet obtain runtime
-                // permission on Android M and above, now is a good time to ask the user for it.
-                if (!CameraPermissionHelper.hasCameraPermission(this.getActivity())) {
-                    CameraPermissionHelper.requestCameraPermission(this.getActivity());
+                // Check that SkyWrite has the correct permissions
+                if (!PermissionHelper.hasPermissions(this.getActivity())) {
+                    PermissionHelper.requestPermissions(this.getActivity());
                     return;
                 }
 
@@ -311,13 +310,13 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(requestCode, permissions, results);
-        if (!CameraPermissionHelper.hasCameraPermission(this.getActivity())) {
+        if (!PermissionHelper.hasPermissions(this.getActivity())) {
             // Use toast instead of snackbar here since the activity will exit.
             Toast.makeText(this.getContext(), "Camera permission is needed to run this application", Toast.LENGTH_LONG)
                     .show();
-            if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this.getActivity())) {
+            if (!PermissionHelper.shouldShowRequestPermissionRationale(this.getActivity())) {
                 // Permission denied with checking "Do not ask again".
-                CameraPermissionHelper.launchPermissionSettings(this.getActivity());
+                PermissionHelper.launchPermissionSettings(this.getActivity());
             }
             this.getActivity().finish();
         }

@@ -1,5 +1,7 @@
 package com.ajal.arsocialmessaging.ui.home.common.helpers;
 
+// Note: this is only temporary and will be removed when the database is fully implemented
+
 public class Banner {
     private int messageId;
     private String albedoTexture;
