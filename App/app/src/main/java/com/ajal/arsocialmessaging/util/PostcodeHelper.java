@@ -17,7 +17,10 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.ajal.arsocialmessaging.ui.home.common.Banner;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -42,6 +45,13 @@ public class PostcodeHelper {
         return location;
     }
 
+    /**
+     * getPostcode takes in the latitude and longitude of a given location and returns a postcode
+     * @param ctx
+     * @param latitude
+     * @param longitude
+     * @return
+     */
     public static String getPostCode(Context ctx, double latitude, double longitude) {
         try {
             Geocoder geocoder = new Geocoder(ctx, Locale.getDefault());
@@ -53,5 +63,16 @@ public class PostcodeHelper {
         catch (IOException e) {
             return null;
         }
+    }
+
+    public static List<Banner> getLocalBanners(Context ctx, List<Banner> globalBanners, double latitude, double longitude) {
+        List<Banner> result = new ArrayList<>();
+        String currentPostcode = PostcodeHelper.getPostCode(ctx, latitude, longitude);
+        for (Banner b : globalBanners) {
+            if (b.getPostCode().equals(currentPostcode)) {
+                result.add(b);
+            }
+        }
+        return result;
     }
 }
