@@ -2,6 +2,7 @@ package com.ajal.arsocialmessaging;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.ajal.arsocialmessaging.util.PermissionHelper;
@@ -13,6 +14,9 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
+
 import com.ajal.arsocialmessaging.databinding.ActivityMainBinding;
 
 import java.util.List;
@@ -97,6 +101,28 @@ public class MainActivity extends AppCompatActivity {
         
          */
 
+    }
+
+    /**
+     * If the viewPager is opened, pressing back will "close" it
+     * Otherwise, use super.onBackPressed()
+     */
+    @Override
+    public void onBackPressed() {
+        ViewPager viewPager = findViewById(R.id.viewPagerMain);
+        RecyclerView rv = findViewById(R.id.rv);
+        if (viewPager != null) { // it can be null when the Gallery fragment is not open
+            if (viewPager.getVisibility() == View.VISIBLE) {
+                rv.setVisibility(View.VISIBLE);
+                viewPager.setVisibility(View.INVISIBLE);
+            }
+            else {
+                super.onBackPressed();
+            }
+        }
+        else {
+            super.onBackPressed();
+        }
     }
 
 }

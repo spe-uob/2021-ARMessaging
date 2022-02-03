@@ -4,11 +4,11 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 import com.ajal.arsocialmessaging.R;
 import com.squareup.picasso.Picasso;
@@ -18,24 +18,11 @@ import java.util.List;
 // REFERENCE: https://acomputerengineer.com/2018/04/15/display-image-grid-in-recyclerview-in-android/ 29/11/2021 12:42
 public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.GridItemViewHolder> {
 
-    private List<String> imageList;
+    private List<String> images;
     private Context c;
     private RecyclerView rv;
-    private ImageView imageViewFull;
+    private ViewPager viewPager;
     private int imagePos;
-
-    public int getImagePos() {
-        return imagePos;
-    }
-
-    public void decrementImagePos() {
-        // if imagePos == 0, will not update imagePos. Checked in GalleryFragment
-        this.imagePos = imagePos - 1;
-    }
-    public void incrementImagePos() {
-        // if imagePos == this.imageList.size()-1, will not update imagePos. Checked in GalleryFragment
-        this.imagePos = imagePos + 1;
-    }
 
     public class GridItemViewHolder extends RecyclerView.ViewHolder {
         SquareImageView siv;
@@ -46,11 +33,11 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
         }
     }
 
-    public ImageGridAdapter(Context c, List imageList, RecyclerView rv, ImageView imageViewFull) {
+    public ImageGridAdapter(Context c, List images, RecyclerView rv, ViewPager viewPager) {
         this.c = c;
-        this.imageList = imageList;
+        this.images = images;
         this.rv = rv;
-        this.imageViewFull = imageViewFull;
+        this.viewPager = viewPager;
     }
 
     @NonNull
@@ -64,7 +51,7 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
     @Override
     public void onBindViewHolder(GridItemViewHolder holder, int position) {
         int pos = position;
-        final String path = imageList.get(pos);
+        final String path = images.get(pos);
 
         Picasso.get()
                 .load(path)
@@ -75,23 +62,20 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
         holder.siv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Skywrite: when an image is clicked on, fill the entire screen with it
-                Picasso.get()
-                        .load(path)
-                        .resize(1000, 1000)
-                        .centerInside()
-                        .into(imageViewFull);
-
-                imageViewFull.setVisibility(View.VISIBLE);
+                viewPager.setVisibility(View.VISIBLE);
                 rv.setVisibility(View.INVISIBLE);
+                // sets a new adapter every time so you won't see the viewPager scrolling to your current position
+                PagerAdapter viewPagerAdapter = new ViewPagerAdapter(c, images);
+                viewPager.setAdapter(viewPagerAdapter);
                 imagePos = pos;
+                viewPager.setCurrentItem(imagePos);
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return imageList.size();
+        return images.size();
     }
 
 }
