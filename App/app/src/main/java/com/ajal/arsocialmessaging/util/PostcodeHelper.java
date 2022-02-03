@@ -1,23 +1,16 @@
 package com.ajal.arsocialmessaging.util;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
-import android.net.Uri;
-import android.provider.Settings;
-import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
-import com.ajal.arsocialmessaging.ui.home.common.Banner;
+import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,10 +58,10 @@ public class PostcodeHelper {
         }
     }
 
-    public static List<Banner> getLocalBanners(Context ctx, List<Banner> globalBanners, double latitude, double longitude) {
-        List<Banner> result = new ArrayList<>();
+    public static List<VirtualMessage> getLocalVirtualMessages(Context ctx, List<VirtualMessage> globalVirtualMessages, double latitude, double longitude) {
+        List<VirtualMessage> result = new ArrayList<>();
         String currentPostcode = PostcodeHelper.getPostCode(ctx, latitude, longitude);
-        for (Banner b : globalBanners) {
+        for (VirtualMessage b : globalVirtualMessages) {
             if (b.getPostCode().equals(currentPostcode)) {
                 result.add(b);
             }

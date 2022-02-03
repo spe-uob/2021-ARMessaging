@@ -1,6 +1,6 @@
 package com.ajal.arsocialmessaging.ui.home.common.helpers;
 
-import com.ajal.arsocialmessaging.ui.home.common.Banner;
+import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Mesh;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.SampleRender;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Shader;
@@ -12,26 +12,26 @@ import java.util.HashMap;
 
 public class VirtualObjectRenderHelper {
 
-    public static Mesh renderVirtualObjectMesh(SampleRender render, Banner banner) throws IOException {
+    public static Mesh renderVirtualObjectMesh(SampleRender render, VirtualMessage virtualMessage) throws IOException {
 
         // Note: throws IOException, which will be caught in onSurfaceCreated() in HomeFragment
-        return Mesh.createFromAsset(render, banner.getFilename());
+        return Mesh.createFromAsset(render, virtualMessage.getFilename());
     }
 
     public static Shader renderVirtualObjectShader(
-            SampleRender render, Banner banner, SpecularCubemapFilter cubemapFilter, Texture dfgTexture)
+            SampleRender render, VirtualMessage virtualMessage, SpecularCubemapFilter cubemapFilter, Texture dfgTexture)
             throws IOException {
 
         Texture virtualObjectAlbedoTexture =
                 Texture.createFromAsset(
                         render,
-                        banner.getAlbedoTexture(),
+                        virtualMessage.getAlbedoTexture(),
                         Texture.WrapMode.CLAMP_TO_EDGE,
                         Texture.ColorFormat.SRGB);
         Texture virtualObjectPbrTexture =
                 Texture.createFromAsset(
                         render,
-                        banner.getPbrTexture(),
+                        virtualMessage.getPbrTexture(),
                         Texture.WrapMode.CLAMP_TO_EDGE,
                         Texture.ColorFormat.LINEAR);
 

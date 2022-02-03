@@ -1,7 +1,5 @@
 package com.ajal.arsocialmessaging.ui.home;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.location.Location;
@@ -25,7 +23,7 @@ import androidx.fragment.app.Fragment;
 
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
-import com.ajal.arsocialmessaging.ui.home.common.Banner;
+import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
 import com.ajal.arsocialmessaging.util.PermissionHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DepthSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DisplayRotationHelper;
@@ -90,7 +88,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
 
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
     private static final String FOUND_PLANE_MESSAGE = "Look up to view message!";
-    private static final String NO_BANNERS_MESSAGE = "This postcode has no messages";
+    private static final String NO_VIRTUAL_MESSAGES_MESSAGE = "This postcode has no messages";
     private static final String IMG_SAVED_MESSAGE = "Image saved to storage!";
 
     // See the definition of updateSphericalHarmonicsCoefficients for an explanation of these
@@ -143,8 +141,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
     private List<Mesh> virtualObjectMeshesList;
     private List<Shader> virtualObjectShadersList;
     private final ArrayList<Anchor> anchors = new ArrayList<>();
-    private List<Banner> localBanners = new ArrayList<>();
-    private List<Banner> globalBanners = new ArrayList<>(); // TODO: temporary, remove this when app gets messages from server
+    private List<VirtualMessage> localVirtualMessages = new ArrayList<>();
+    private List<VirtualMessage> globalVirtualMessages = new ArrayList<>(); // TODO: temporary, remove this when app gets messages from server
 
     // Environmental HDR
     private Texture dfgTexture;
@@ -199,11 +197,14 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
             }
         });
 
-        // TODO: update globalBanners from the server
-        Banner banner1 = new Banner(0, "BS8 1LN"); // Richmond Building (Bristol SU)
-        Banner banner2 = new Banner(0, "BS8 1UB"); // Merchant Venturer's Building (University of Bristol)
-        globalBanners.add(banner1);
-        globalBanners.add(banner2);
+        // TODO: update globalVirtualMessages from the server
+        VirtualMessage virtualMessage1 = new VirtualMessage(0, "BS8 1LN"); // Richmond Building (Bristol SU)
+        VirtualMessage virtualMessage2 = new VirtualMessage(1, "BS8 1UB"); // Merchant Venturer's Building (University of Bristol)
+        VirtualMessage virtualMessage3 = new VirtualMessage(2, "BS8 1QE"); // Wills Memorial Building (University of Bristol)
+        globalVirtualMessages.add(virtualMessage1);
+        globalVirtualMessages.add(virtualMessage2);
+        globalVirtualMessages.add(virtualMessage3);
+
         Location location = PostcodeHelper.getLocation(this.getContext());
         if (location == null) {
             messageSnackbarHelper.showError(this.getActivity(), "Cannot find location. Please try restarting SkyWrite.");
@@ -211,7 +212,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
         else {
             double latitude = location.getLatitude();
             double longitude = location.getLongitude();
-            localBanners = PostcodeHelper.getLocalBanners(this.getContext(), globalBanners, latitude, longitude);
+            localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(this.getContext(), globalVirtualMessages, latitude, longitude);
         }
 
         return root;
@@ -384,12 +385,13 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
                     new Mesh(
                             render, Mesh.PrimitiveMode.POINTS, /*indexBuffer=*/ null, pointCloudVertexBuffers);
 
+            // Store the meshes and the shaders of every banner into the respective lists
             virtualObjectMeshesList = new ArrayList<>();
             virtualObjectShadersList = new ArrayList<>();
-            for (int i = 0; i < localBanners.size(); i++) {
-                Banner banner = localBanners.get(i);
-                virtualObjectMeshesList.add(VirtualObjectRenderHelper.renderVirtualObjectMesh(render, banner));
-                virtualObjectShadersList.add(VirtualObjectRenderHelper.renderVirtualObjectShader(render, banner, cubemapFilter, dfgTexture));
+            for (int i = 0; i < localVirtualMessages.size(); i++) {
+                VirtualMessage virtualMessage = localVirtualMessages.get(i);
+                virtualObjectMeshesList.add(VirtualObjectRenderHelper.renderVirtualObjectMesh(render, virtualMessage));
+                virtualObjectShadersList.add(VirtualObjectRenderHelper.renderVirtualObjectShader(render, virtualMessage, cubemapFilter, dfgTexture));
             }
 
         } catch (IOException e) {
@@ -472,15 +474,19 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
         // Handle the anchors
         handleAnchor(frame, camera);
 
-        // Show a message based on whether tracking has failed, if planes are detected, and if the user
-        // has placed any objects.
+        /* Show a message based on whether:
+         * - tracking has failed,
+         * - planes are detected and models are drawn
+         * - there are no messages in the area
+         */
         String message = null;
         if (capturePicture) {
             // SkyWrite: display message when image is saved
             // needs to be at the top of the if statements as it takes priority
             message = IMG_SAVED_MESSAGE;
-        } else if (localBanners.size() == 0) {
-            message = NO_BANNERS_MESSAGE;
+        } else if (localVirtualMessages.size() == 0) {
+            message = NO_VIRTUAL_MESSAGES_MESSAGE;
+            drawTracked = false;
         } else if (camera.getTrackingState() == TrackingState.PAUSED) {
             if (camera.getTrackingFailureReason() == TrackingFailureReason.NONE) {
                 message = SEARCHING_PLANE_MESSAGE;
@@ -551,7 +557,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
         render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
         for (int i = 0; i < anchors.size(); i++) {
             Anchor anchor = anchors.get(i);
-            Banner banner = localBanners.get(i);
             if (anchor.getTrackingState() != TrackingState.TRACKING) {
                 continue;
             }
@@ -571,7 +576,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
             virtualObjectShadersList.get(i).setMat4("u_ModelView", modelViewMatrix);
             virtualObjectShadersList.get(i).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
             render.draw(virtualObjectMeshesList.get(i), virtualObjectShadersList.get(i), virtualSceneFramebuffer);
-
         }
 
         // Compose the virtual scene with the background.
@@ -667,19 +671,24 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
 
         for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
             if (plane.getTrackingState() == TrackingState.TRACKING) {
-                while (anchors.size() < localBanners.size()) {
-                    Pose pose = plane.getCenterPose().compose(Pose.makeTranslation(10f * anchors.size(), 0, 0));
+                while (anchors.size() < localVirtualMessages.size()) {
+                    Pose pose = plane.getCenterPose();
+
+                    // Change the rotation of the pose to face the camera
                     if (pose.qy() > 0) {
                         pose = pose.compose(Pose.makeRotation(0, -pose.qy(), 0, 1));
                     }
                     else {
                         pose = pose.compose(Pose.makeRotation(0, pose.qy(), 0, 1));
                     }
+
+                    // Shift the pose up by 5m for every virtualMessage
+                    pose = pose.compose(Pose.makeTranslation(0, anchors.size()*5f, 0));
                     Anchor anchor = session.createAnchor(pose);
 
                     // if there are more anchors than messages, remove the first one
                     // TODO: consider whether this is needed or not
-//                    if (anchors.size() > localBanners.size() - 1) {
+//                    if (anchors.size() > localVirtualMessages.size() - 1) {
 //                        anchors.get(0).detach();
 //                        anchors.remove(0);
 //                    }
@@ -708,7 +717,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
             }
             return;
         }
-        for (int i = 0; i < localBanners.size(); i++) {
+        for (int i = 0; i < localVirtualMessages.size(); i++) {
             virtualObjectShadersList.get(i).setBool("u_LightEstimateIsValid", true);
             Matrix.invertM(viewInverseMatrix, 0, viewMatrix, 0);
             virtualObjectShadersList.get(i).setMat4("u_ViewInverse", viewInverseMatrix);
