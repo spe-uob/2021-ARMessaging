@@ -90,7 +90,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
 
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
     private static final String FOUND_PLANE_MESSAGE = "Look up to view message!";
-    private static final String NO_BANNERS_MESSAGE = "This postcode has no messages;";
+    private static final String NO_BANNERS_MESSAGE = "This postcode has no messages";
     private static final String IMG_SAVED_MESSAGE = "Image saved to storage!";
 
     // See the definition of updateSphericalHarmonicsCoefficients for an explanation of these
