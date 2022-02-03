@@ -15,19 +15,19 @@ public class VirtualMessage {
             case 0:
                 this.messageId = messageId;
                 this.albedoTexture = "models/happy-birthday.png";
-                this.pbrTexture = "models/grey_texture.png";
+                this.pbrTexture = "models/grey-texture.png";
                 this.filename = "models/happy-birthday.obj";
                 break;
             case 1:
                 this.messageId = messageId;
                 this.albedoTexture = "models/merry-christmas.png";
-                this.pbrTexture = "models/grey_texture.png";
+                this.pbrTexture = "models/grey-texture.png";
                 this.filename = "models/merry-christmas.obj";
                 break;
             case 2:
                 this.messageId = messageId;
                 this.albedoTexture = "models/congratulations.png";
-                this.pbrTexture = "models/grey_texture.png";
+                this.pbrTexture = "models/grey-texture.png";
                 this.filename = "models/congratulations.obj";
                 break;
         }
