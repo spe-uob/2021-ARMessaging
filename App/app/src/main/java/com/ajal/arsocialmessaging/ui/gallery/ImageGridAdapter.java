@@ -33,7 +33,7 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
         }
     }
 
-    public ImageGridAdapter(Context c, List images, RecyclerView rv, ViewPager viewPager) {
+    public ImageGridAdapter(Context c, List<String> images, RecyclerView rv, ViewPager viewPager) {
         this.c = c;
         this.images = images;
         this.rv = rv;
