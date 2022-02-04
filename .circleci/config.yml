@@ -7,6 +7,17 @@ jobs:
   executor:
       name: android/android-machine
       resource-class: xlarge
+
+  android-test:
+    executor:
+      name: android/android-machine
+      resource-class: xlarge
+    steps:
+      - checkout
+      - android/start-emulator-and-run-tests:
+          test-command: ./gradlew connectedDebugAndroidTest
+          system-image: system-images;android-30;google_apis;x86
+          
   build:
     working_directory: ~/repo/App
     docker:
@@ -16,9 +27,8 @@ jobs:
     steps:
       - checkout:
           path: ~/repo
-      - android/start-emulator-and-run-tests:
-          test-command: ./gradlew connectedDebugAndroidTest
-          system-image: system-images;android-30;google_apis;x86
+      - android/restore-gradle-cache
+      - android/restore-build-cache
       - restore_cache:
           key: jars-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}
       - run:
