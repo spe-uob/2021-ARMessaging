@@ -11,17 +11,21 @@
             app:title="Font Size"
             app:iconSpaceReserved="false"
             app:showSeekBarValue="true"
+            app:summary="Change font size here"
             android:id="@+id/text_size"
             android:key="text_size"
             android:title="Text Size"
             android:max="2"
-            android:progress="0"/>
+            android:defaultValue="0"
+            />
+
         <SwitchPreference
             app:key="dark_mode"
             app:title="Dark Mode"
             app:iconSpaceReserved="false"
             app:summaryOn="On"
             app:summaryOff="Off"
+            android:id="@+id/dark_mode"
             />
     </PreferenceCategory>
 
@@ -67,8 +71,10 @@
             app:key="about_sky_write"
             app:title="About Sky Write"
             app:iconSpaceReserved="false"
-            android:id="@+id/about"
-            android:onClick="about"/>
+            android:id="@+id/about">
+            <intent android:action="android.intent.action.VIEW"
+                    android:data="https://sky-write.github.io/" />
+        </Preference>
 
         <Preference
             app:key="send_feedback"
