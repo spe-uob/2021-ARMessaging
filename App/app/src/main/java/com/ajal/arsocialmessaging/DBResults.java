@@ -1,7 +1,5 @@
 package com.ajal.arsocialmessaging;
 
-import static android.os.SystemClock.sleep;
-
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -44,7 +42,7 @@ public class DBResults {
             }
             @Override
             public void onFailure(@NonNull Call<List<Message>> call, @NonNull Throwable throwable) {
-                Log.e("SkyWrite", throwable.getMessage());
+                Log.e(TAG, throwable.getMessage());
             }
         });
 
@@ -60,7 +58,7 @@ public class DBResults {
 
             @Override
             public void onFailure(@NonNull Call<List<Banner>> call, @NonNull Throwable throwable) {
-                Log.e("SkyWrite", throwable.getMessage());
+                Log.e(TAG, throwable.getMessage());
             }
         });
     }
@@ -91,6 +89,8 @@ public class DBResults {
         return banners;
     }
 
+    // Note: in theory, this should be safe as you register one ApiCallback and remove it every time
+    // you switch between fragments that implement ApiCallback
     public void clearCallbacks() {
         this.callbacks.clear();
     }
