@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(@NonNull Call<List<Message>> call, @NonNull Response<List<Message>> response) {
                 Log.d("MYTAG", "Got a response, error is "+response.errorBody());
                 List<Message> allMessages = response.body();
+                // NOTE: use allMessages.get([INDEX]).[ATTRIBUTE] to extract message data, as below
                 assert allMessages != null;
                 Log.d("MYTAG", "Response: "+allMessages.get(0).id+" "+allMessages.get(0).objfilename+" "+allMessages.get(0).message);
                 Log.d("MYTAG", "Response: "+allMessages.get(4).id+" "+allMessages.get(4).objfilename+" "+allMessages.get(4).message);
@@ -79,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("MYTAG", "Got a response "+response.message()+" "+response.errorBody());
                 List<Banner> allBanners = response.body();
                 assert allBanners != null;
+                // NOTE: use allBanners.get([INDEX]).[ATTRIBUTE] to extract banner data, as below
                 Log.d("MYTAG", "Response: "+allBanners.get(0).id+" "+allBanners.get(0).postcode+" "+allBanners.get(0).message+" "+allBanners.get(0).timestamp);
                 Log.d("MYTAG", "Response: "+allBanners.get(8).id+" "+allBanners.get(8).postcode+" "+allBanners.get(8).message+" "+allBanners.get(8).timestamp);
             }

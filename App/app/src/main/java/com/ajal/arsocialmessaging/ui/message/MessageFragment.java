@@ -20,12 +20,19 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.ajal.arsocialmessaging.Banner;
+import com.ajal.arsocialmessaging.MessageService;
 import com.ajal.arsocialmessaging.R;
+import com.ajal.arsocialmessaging.ServiceGenerator;
 import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MessageFragment extends Fragment {
 
@@ -36,9 +43,16 @@ public class MessageFragment extends Fragment {
     private ListView listView;
     private TextView postCodeInput;
     private Button sendBtn;
-
     private String messageSelected = "";
     private String postCode;
+
+
+    private void addBannerToDatabase(String postcode, String message){
+        // Set up connection for app to talk to database via rest controller
+        MessageService service = ServiceGenerator.createService(MessageService.class);
+
+        // TODO: Execute POST to add banner to server
+    }
 
     /**
      * Enables/disables the send button, depending on postCode and messageSelected
@@ -99,6 +113,7 @@ public class MessageFragment extends Fragment {
             public void onClick(View view) {
                 postCode = postCodeInput.getText().toString();
                 Toast.makeText(getContext(), postCode+": "+messageSelected, Toast.LENGTH_SHORT).show();
+                addBannerToDatabase(postCode, messageSelected);
             }
         });
 
