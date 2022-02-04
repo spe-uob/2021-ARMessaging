@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Entity @Table(name = "banners")
 public class Banner {
-    @Id @GeneratedValue @Column(name = "id") @Getter @Setter
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id") @Getter @Setter
     Integer id;
 
     @Column(name = "postcode") @Getter @Setter
@@ -33,5 +33,7 @@ public class Banner {
     public Banner(String postcode, Integer messageId) {
         this.postcode = postcode;
         this.message = messageId;
+        Date date = new Date();
+        this.timestamp = new Timestamp(date.getTime());
     }
 }

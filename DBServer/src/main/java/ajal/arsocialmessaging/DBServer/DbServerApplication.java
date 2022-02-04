@@ -53,7 +53,6 @@ public class DbServerApplication {
 		return response;
 	}
 
-
 	@RequestMapping(value = "/getAllMessages", method = RequestMethod.GET)
 	@ResponseBody
 	public List<Map<String, String>> getAllMessages() {
@@ -69,28 +68,6 @@ public class DbServerApplication {
 		}
 		return response;
 	}
-
-
-
-	/*
-	@RequestMapping(value = "/getAllMessages", method = RequestMethod.GET)
-	@ResponseBody
-	public String getAllMessages() throws JSONException {
-		System.out.println("received call to getMessages");
-		JSONObject response = new JSONObject();
-		Iterable<Message> messages = messagesRepo.findAll();
-		for(Message message: messages){
-			System.out.println("adding a new message to the json object");
-			response.put("Message", new JSONObject()
-					.put("id", message.getId().toString())
-					.put("message", message.getMessage())
-					.put("objfilename", message.getObjfilename()));
-		}
-		return response.toString();
-	}
-
-	 */
-
 
 	public static void main(String[] args){
 		SpringApplication.run(DbServerApplication.class, args);
