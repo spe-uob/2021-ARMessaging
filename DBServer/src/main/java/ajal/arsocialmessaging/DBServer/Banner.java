@@ -31,6 +31,7 @@ public class Banner {
     }
 
     public Banner(String postcode, Integer messageId) {
+        this.id = 1;
         this.postcode = postcode;
         this.message = messageId;
         Date date = new Date();
