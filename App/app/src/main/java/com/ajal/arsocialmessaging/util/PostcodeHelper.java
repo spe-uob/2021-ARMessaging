@@ -10,6 +10,7 @@ import android.location.LocationManager;
 
 import androidx.core.app.ActivityCompat;
 
+import com.ajal.arsocialmessaging.Banner;
 import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
 
 import java.io.IOException;
@@ -58,12 +59,13 @@ public class PostcodeHelper {
         }
     }
 
-    public static List<VirtualMessage> getLocalVirtualMessages(Context ctx, List<VirtualMessage> globalVirtualMessages, double latitude, double longitude) {
+    public static List<VirtualMessage> getLocalVirtualMessages(Context ctx, List<Banner> globalBanners, double latitude, double longitude) {
         List<VirtualMessage> result = new ArrayList<>();
         String currentPostcode = PostcodeHelper.getPostCode(ctx, latitude, longitude);
-        for (VirtualMessage b : globalVirtualMessages) {
-            if (b.getPostCode().equals(currentPostcode)) {
-                result.add(b);
+        for (Banner b : globalBanners) {
+            if (b.getPostcode().equals(currentPostcode)) {
+                VirtualMessage virtualMessage = new VirtualMessage(b);
+                result.add(virtualMessage);
             }
         }
         return result;

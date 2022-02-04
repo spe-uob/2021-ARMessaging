@@ -21,6 +21,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.ajal.arsocialmessaging.ApiCallback;
+import com.ajal.arsocialmessaging.Banner;
+import com.ajal.arsocialmessaging.DBResults;
+import com.ajal.arsocialmessaging.Message;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
 import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
@@ -80,7 +84,7 @@ import java.util.List;
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
  * plane to place a 3D model.
  */
-public class HomeFragment extends Fragment implements SampleRender.Renderer {
+public class HomeFragment extends Fragment implements SampleRender.Renderer, ApiCallback {
 
     private FragmentHomeBinding binding;
 
@@ -142,7 +146,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
     private List<Shader> virtualObjectShadersList;
     private final ArrayList<Anchor> anchors = new ArrayList<>();
     private List<VirtualMessage> localVirtualMessages = new ArrayList<>();
-    private List<VirtualMessage> globalVirtualMessages = new ArrayList<>(); // TODO: temporary, remove this when app gets messages from server
+    private List<Banner> globalBanners = new ArrayList<>();
 
     // Environmental HDR
     private Texture dfgTexture;
@@ -197,23 +201,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
             }
         });
 
-        // TODO: update globalVirtualMessages from the server
-        VirtualMessage virtualMessage1 = new VirtualMessage(0, "BS8 1LN"); // Richmond Building (Bristol SU)
-        VirtualMessage virtualMessage2 = new VirtualMessage(1, "BS8 1UB"); // Merchant Venturer's Building (University of Bristol)
-        VirtualMessage virtualMessage3 = new VirtualMessage(2, "BS8 1QE"); // Wills Memorial Building (University of Bristol)
-        globalVirtualMessages.add(virtualMessage1);
-        globalVirtualMessages.add(virtualMessage2);
-        globalVirtualMessages.add(virtualMessage3);
-
-        Location location = PostcodeHelper.getLocation(this.getContext());
-        if (location == null) {
-            messageSnackbarHelper.showError(this.getActivity(), "Cannot find location. Please try restarting SkyWrite.");
-        }
-        else {
-            double latitude = location.getLatitude();
-            double longitude = location.getLongitude();
-            localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(this.getContext(), globalVirtualMessages, latitude, longitude);
-        }
+        // Request the server to load the results from the database
+        DBResults dbResults = DBResults.getInstance();
+        dbResults.registerCallback(this);
+        dbResults.retrieveDBResults();
 
         return root;
     }
@@ -780,5 +771,26 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer {
         config.setDepthMode(Config.DepthMode.DISABLED);
         config.setInstantPlacementMode(Config.InstantPlacementMode.DISABLED);
         session.configure(config);
+    }
+
+    @Override
+    public void onMessageSuccess(List<Message> result) {
+        Log.d(TAG, "Messages have been received");
+    }
+
+    @Override
+    public void onBannerSuccess(List<Banner> result) {
+        Log.d(TAG, "Banners have been received");
+        globalBanners = result;
+
+        Location location = PostcodeHelper.getLocation(this.getContext());
+        if (location == null) {
+            messageSnackbarHelper.showError(this.getActivity(), "Cannot find location. Please try restarting SkyWrite.");
+        }
+        else {
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
+            localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(this.getContext(), globalBanners, latitude, longitude);
+        }
     }
 }

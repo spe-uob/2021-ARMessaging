@@ -15,7 +15,7 @@ public class VirtualObjectRenderHelper {
     public static Mesh renderVirtualObjectMesh(SampleRender render, VirtualMessage virtualMessage) throws IOException {
 
         // Note: throws IOException, which will be caught in onSurfaceCreated() in HomeFragment
-        return Mesh.createFromAsset(render, virtualMessage.getFilename());
+        return Mesh.createFromAsset(render, virtualMessage.getObjfilename());
     }
 
     public static Shader renderVirtualObjectShader(

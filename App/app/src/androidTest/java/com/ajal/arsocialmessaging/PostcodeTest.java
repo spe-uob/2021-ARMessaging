@@ -66,13 +66,13 @@ public class PostcodeTest {
     @Test
     public void test_ReturnsZeroLocalBanners() {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        List<VirtualMessage> globalVirtualMessages = new ArrayList<>();
-        VirtualMessage virtualMessage1 = new VirtualMessage(0, "BS8 1LN"); // Richmond Building (Bristol SU)
-        VirtualMessage virtualMessage2 = new VirtualMessage(0, "BS8 1LN"); // Richmond Building (Bristol SU)
-        globalVirtualMessages.add(virtualMessage1);
-        globalVirtualMessages.add(virtualMessage2);
+        List<Banner> globalBanners = new ArrayList<>();
+        Banner virtualMessage1 = new Banner("BS8 1LN", 1, "2000-01-01 00:00:00.000000"); // Richmond Building (Bristol SU)
+        Banner virtualMessage2 = new Banner("BS8 1LN", 2, "2000-01-01 00:00:00.000000"); // Merchant Venturer's Building (University of Bristol)
+        globalBanners.add(virtualMessage1);
+        globalBanners.add(virtualMessage2);
 
-        List<VirtualMessage> localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(appContext, globalVirtualMessages, 51.4559275, -2.6031669);
+        List<VirtualMessage> localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(appContext, globalBanners, 51.4559275, -2.6031669);
         assertEquals(0, localVirtualMessages.size());
     }
 
@@ -80,13 +80,13 @@ public class PostcodeTest {
     public void test_ReturnsOneLocalBanner() {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         String postcode = PostcodeHelper.getPostCode(appContext, 51.4559275, -2.6031669);
-        List<VirtualMessage> globalVirtualMessages = new ArrayList<>();
-        VirtualMessage virtualMessage1 = new VirtualMessage(0, "BS8 1LN"); // Richmond Building (Bristol SU)
-        VirtualMessage virtualMessage2 = new VirtualMessage(0, "BS8 1UB"); // Merchant Venturer's Building (University of Bristol)
-        globalVirtualMessages.add(virtualMessage1);
-        globalVirtualMessages.add(virtualMessage2);
+        List<Banner> globalBanners = new ArrayList<>();
+        Banner banner1 = new Banner("BS8 1LN", 1, "2000-01-01 00:00:00.000000"); // Richmond Building (Bristol SU)
+        Banner banner2 = new Banner("BS8 1UB", 2, "2000-01-01 00:00:00.000000"); // Merchant Venturer's Building (University of Bristol)
+        globalBanners.add(banner1);
+        globalBanners.add(banner2);
 
-        List<VirtualMessage> localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(appContext, globalVirtualMessages, 51.4559275, -2.6031669);
+        List<VirtualMessage> localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(appContext, globalBanners, 51.4559275, -2.6031669);
         assertEquals(1, localVirtualMessages.size());
         assertEquals(postcode, localVirtualMessages.get(0).getPostCode());
     }
@@ -95,15 +95,15 @@ public class PostcodeTest {
     public void test_ReturnsMultipleLocalBanners() {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         String postcode = PostcodeHelper.getPostCode(appContext, 51.4559275, -2.6031669);
-        List<VirtualMessage> globalVirtualMessages = new ArrayList<>();
-        VirtualMessage virtualMessage1 = new VirtualMessage(0, "BS8 1LN"); // Richmond Building (Bristol SU)
-        VirtualMessage virtualMessage2 = new VirtualMessage(0, "BS8 1UB"); // Merchant Venturer's Building (University of Bristol)
-        VirtualMessage virtualMessage3 = new VirtualMessage(0, "BS8 1UB"); // Merchant Venturer's Building (University of Bristol)
-        globalVirtualMessages.add(virtualMessage1);
-        globalVirtualMessages.add(virtualMessage2);
-        globalVirtualMessages.add(virtualMessage3);
+        List<Banner> globalBanners = new ArrayList<>();
+        Banner banner1 = new Banner("BS8 1LN", 1, "2000-01-01 00:00:00.000000"); // Richmond Building (Bristol SU)
+        Banner banner2 = new Banner("BS8 1UB", 2, "2000-01-01 00:00:00.000000"); // Merchant Venturer's Building (University of Bristol)
+        Banner banner3 = new Banner("BS8 1UB", 2, "2000-01-01 00:00:00.000000"); // Merchant Venturer's Building (University of Bristol)
+        globalBanners.add(banner1);
+        globalBanners.add(banner2);
+        globalBanners.add(banner3);
 
-        List<VirtualMessage> localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(appContext, globalVirtualMessages, 51.4559275, -2.6031669);
+        List<VirtualMessage> localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(appContext, globalBanners, 51.4559275, -2.6031669);
         assertEquals(2, localVirtualMessages.size());
         assertEquals(postcode, localVirtualMessages.get(0).getPostCode());
         assertEquals(postcode, localVirtualMessages.get(1).getPostCode());
