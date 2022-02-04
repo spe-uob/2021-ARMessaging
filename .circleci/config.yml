@@ -9,6 +9,10 @@ jobs:
       resource-class: xlarge
 
   android-test:
+    parameters:
+      system-image:
+        type: string
+        default: system-images;android-30;google_apis;x86
     executor:
       name: android/android-machine
       resource-class: xlarge
@@ -16,8 +20,18 @@ jobs:
       - checkout
       - android/start-emulator-and-run-tests:
           test-command: ./gradlew connectedDebugAndroidTest
-          system-image: system-images;android-30;google_apis;x86
-          
+          system-image: << parameters.system-image >>
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/build/outputs/androidTest-results/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit
+
   build:
     working_directory: ~/repo/App
     docker:
