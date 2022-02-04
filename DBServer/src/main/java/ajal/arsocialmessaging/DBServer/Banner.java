@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Entity @Table(name = "banners")
 public class Banner {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id") @Getter @Setter
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id", columnDefinition = "serial") @Getter @Setter
     Integer id;
 
     @Column(name = "postcode") @Getter @Setter
