@@ -3,45 +3,79 @@
 
     <PreferenceCategory
         app:key="general_setting"
-        app:title="General">
-        <SeekBarPreference
+        app:title="General"
+        app:iconSpaceReserved="false">
+
+        <SeekBar
             app:key="text_size"
-            app:title="Text Size" />
-        <SwitchPreferenceCompat
-            app:title="Dark Mode" />
+            app:title="Font Size"
+            app:iconSpaceReserved="false"
+            app:showSeekBarValue="true"
+            android:id="@+id/text_size"
+            android:key="text_size"
+            android:title="Text Size"
+            android:max="2"
+            android:progress="0"/>
+        <SwitchPreference
+            app:key="dark_mode"
+            app:title="Dark Mode"
+            app:iconSpaceReserved="false"
+            app:summaryOn="On"
+            app:summaryOff="Off"
+            />
     </PreferenceCategory>
 
 
     <PreferenceCategory
+        android:baselineAligned="false"
         app:key="notification"
-        app:title="Notification">
+        app:title="Notification"
+        app:iconSpaceReserved="false">
 
-        <SwitchPreferenceCompat
-            app:title="Enable message notifications" />
+        <SwitchPreference
+            app:key="@string/title_notifications"
+            app:title="Enable message notifications"
+            app:iconSpaceReserved="false"
+            app:summaryOn="On"
+            app:summaryOff="Off"/>
     </PreferenceCategory>
 
 
 
     <PreferenceCategory
         app:key="privacy_setting"
-        app:title="Privacy">
+        app:title="Privacy"
+        app:iconSpaceReserved="false">
 
-        <SeekBarPreference
-            app:key="location_update"
-            app:title="Location Update Frequency" />
+        <SwitchPreference
+            app:key="location"
+            app:title="Allow access to your Location"
+            app:iconSpaceReserved="false"
+            app:summaryOn="On"
+            app:summaryOff="Off"
+             />
 
     </PreferenceCategory>
 
 
     <PreferenceCategory
         app:key="about"
-        app:title="About">
+        app:title="About"
+        app:iconSpaceReserved="false">
 
         <Preference
-            app:title="About Sky Write" />
+            app:key="about_sky_write"
+            app:title="About Sky Write"
+            app:iconSpaceReserved="false"
+            android:id="@+id/about"
+            android:onClick="about"/>
 
         <Preference
-            app:title="Send feedback" />
+            app:key="send_feedback"
+            app:title="Send feedback"
+            app:iconSpaceReserved="false"
+            android:id="@+id/send_feedback"
+            />
     </PreferenceCategory>
 
 
