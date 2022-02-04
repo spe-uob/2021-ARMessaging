@@ -3,6 +3,7 @@ package com.ajal.arsocialmessaging;
 import java.util.List;
 
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
@@ -15,6 +16,7 @@ public interface MessageService {
     @GET("/getAllBanners")
     Call<List<Banner>> getAllBanners();
 
-    //@GET("/users/{username}")
-    //Call<User> getUser(@Path("username") String username);
+    @POST("/addBanner")
+    Call<Void> addBanner(@Body String postcode, Integer messageId);
+
 }

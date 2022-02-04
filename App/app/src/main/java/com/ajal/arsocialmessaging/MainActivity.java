@@ -49,10 +49,9 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(binding.navView, navController);
 
 
-        /*
+
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
-
 
         // Retrieve all messages stored in database
         Call<List<Message>> callAsync = service.getAllMessages();
@@ -60,10 +59,12 @@ public class MainActivity extends AppCompatActivity {
         callAsync.enqueue(new Callback<List<Message>>() {
             @Override
             public void onResponse(@NonNull Call<List<Message>> call, @NonNull Response<List<Message>> response) {
-                Log.d("MYTAG", "Got a response "+response.message()+" "+response.errorBody());
+                Log.d("MYTAG", "Got a response, error is "+response.errorBody());
                 List<Message> allMessages = response.body();
+                // NOTE: use allMessages.get([INDEX]).[ATTRIBUTE] to extract message data, as below
                 assert allMessages != null;
-                Log.d("MYTAG", "We got a response! "+allMessages.get(2).id+" "+allMessages.get(2).objfilename+" "+allMessages.get(2).message);
+                Log.d("MYTAG", "Response: "+allMessages.get(0).id+" "+allMessages.get(0).objfilename+" "+allMessages.get(0).message);
+                Log.d("MYTAG", "Response: "+allMessages.get(4).id+" "+allMessages.get(4).objfilename+" "+allMessages.get(4).message);
             }
             @Override
             public void onFailure(@NonNull Call<List<Message>> call, @NonNull Throwable throwable) {
@@ -71,26 +72,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
         // Retrieve all banners stored in database
-        Call<List<Banner>> callAsync = service.getAllBanners();
+        Call<List<Banner>> bannerCallAsync = service.getAllBanners();
         Log.d("MYTAG", "Call has been set up");
-        callAsync.enqueue(new Callback<List<Banner>>() {
+        bannerCallAsync.enqueue(new Callback<List<Banner>>() {
             @Override
             public void onResponse(@NonNull Call<List<Banner>> call, @NonNull Response<List<Banner>> response) {
                 Log.d("MYTAG", "Got a response "+response.message()+" "+response.errorBody());
                 List<Banner> allBanners = response.body();
                 assert allBanners != null;
-                Log.d("MYTAG", "We got a response! "+allBanners.get(0).id+" "+allBanners.get(0).postcode+" "+allBanners.get(0).message+" "+allBanners.get(0).timestamp);
+                // NOTE: use allBanners.get([INDEX]).[ATTRIBUTE] to extract banner data, as below
+                Log.d("MYTAG", "Response: "+allBanners.get(0).id+" "+allBanners.get(0).postcode+" "+allBanners.get(0).message+" "+allBanners.get(0).timestamp);
+                Log.d("MYTAG", "Response: "+allBanners.get(8).id+" "+allBanners.get(8).postcode+" "+allBanners.get(8).message+" "+allBanners.get(8).timestamp);
             }
             @Override
             public void onFailure(@NonNull Call<List<Banner>> call, @NonNull Throwable throwable) {
                 Log.e("MYTAG", "Error " + throwable);
             }
         });
-        
-         */
 
     }
 
