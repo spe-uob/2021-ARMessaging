@@ -44,7 +44,6 @@ public class DbServerApplication {
 		List<Map<String, String>> response = new ArrayList<>();
 		for(Banner banner: banners) {
 			HashMap<String, String> bannerData = new HashMap<>();
-			bannerData.put("id", banner.getId().toString());
 			bannerData.put("postcode", banner.getPostcode());
 			bannerData.put("message", banner.getMessage().toString());
 			bannerData.put("timestamp", banner.getTimestamp().toString());

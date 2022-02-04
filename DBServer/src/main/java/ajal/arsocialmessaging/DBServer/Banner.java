@@ -10,7 +10,7 @@ import lombok.Setter;
 @Entity @Table(name = "banners")
 @IdClass(Banner.class)
 public class Banner implements Serializable {
-    
+
     @Id
     @Column(name = "postcode") @Getter @Setter
     String postcode;
