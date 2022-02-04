@@ -4,6 +4,9 @@ orbs:
   android: circleci/android@1.0.3
 
 jobs:
+  executor:
+      name: android/android-machine
+      resource-class: xlarge
   build:
     working_directory: ~/repo/App
     docker:
@@ -22,6 +25,9 @@ jobs:
           paths:
             - ~/.gradle
           key: jars-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}
+      - android/start-emulator-and-run-tests:
+          test-command: ./gradlew connectedDebugAndroidTest
+          system-image: system-images;android-30;google_apis;x86
       - run:
           name: Run Tests
           command: ./gradlew lint test
