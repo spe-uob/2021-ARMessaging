@@ -5,9 +5,6 @@ orbs:
 
 jobs:
   android-test:
-    executor:
-        name: android/android-machine
-        resource-class: xlarge
     working_directory: ~/repo/App
     parameters:
       system-image:
