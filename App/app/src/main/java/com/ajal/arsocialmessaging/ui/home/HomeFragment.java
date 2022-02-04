@@ -1,5 +1,6 @@
 package com.ajal.arsocialmessaging.ui.home;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.location.Location;
@@ -203,6 +204,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Api
 
         // Request the server to load the results from the database
         DBResults dbResults = DBResults.getInstance();
+        // Need to clear callbacks or else DBResults can try to send a context which no longer exists
+        DBResults.getInstance().clearCallbacks();
         dbResults.registerCallback(this);
         dbResults.retrieveDBResults();
 
@@ -211,6 +214,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Api
 
     @Override
     public void onDestroyView() {
+        // Need to clear callbacks or else DBResults can try to send a context which no longer exists
+        DBResults.getInstance().clearCallbacks();
         if (session != null) {
             // Explicitly close ARCore Session to release native resources.
             // Review the API reference for important considerations before calling close() in apps with
@@ -774,6 +779,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Api
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+    }
+
+    @Override
     public void onMessageSuccess(List<Message> result) {
         Log.d(TAG, "Messages have been received");
     }
@@ -782,6 +792,12 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Api
     public void onBannerSuccess(List<Banner> result) {
         Log.d(TAG, "Banners have been received");
         globalBanners = result;
+
+        if (this.getContext() == null) {
+            Log.e(TAG, "Unknown error");
+//            return;
+            assert this.getContext() != null;
+        }
 
         Location location = PostcodeHelper.getLocation(this.getContext());
         if (location == null) {

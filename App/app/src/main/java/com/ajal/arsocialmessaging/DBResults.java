@@ -90,4 +90,8 @@ public class DBResults {
     public List<Banner> getBanners() {
         return banners;
     }
+
+    public void clearCallbacks() {
+        this.callbacks.clear();
+    }
 }

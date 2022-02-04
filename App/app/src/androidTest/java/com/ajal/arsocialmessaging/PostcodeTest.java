@@ -18,6 +18,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
 import com.ajal.arsocialmessaging.util.PostcodeHelper;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
