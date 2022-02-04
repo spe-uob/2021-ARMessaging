@@ -378,21 +378,20 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                     new Mesh(
                             render, Mesh.PrimitiveMode.POINTS, /*indexBuffer=*/ null, pointCloudVertexBuffers);
 
-            // TODO: create multiple textures for different words
             // Virtual object to render (text)
             Texture virtualObjectAlbedoTexture =
                     Texture.createFromAsset(
                             render,
-                            "models/happy-birthday.png",
+                            "models/thank-you.png",
                             Texture.WrapMode.CLAMP_TO_EDGE,
                             Texture.ColorFormat.SRGB);
             Texture virtualObjectPbrTexture =
                     Texture.createFromAsset(
                             render,
-                            "models/white_texture.png",
+                            "models/grey-texture.png",
                             Texture.WrapMode.CLAMP_TO_EDGE,
                             Texture.ColorFormat.LINEAR);
-            virtualObjectMesh = Mesh.createFromAsset(render, "models/happy-birthday.obj");
+            virtualObjectMesh = Mesh.createFromAsset(render, "models/thank-you.obj");
             virtualObjectShader =
                     Shader.createFromAssets(
                             render,
