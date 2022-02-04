@@ -33,9 +33,8 @@ To run tests, run `gradlew test` or navigate to the tests on Android Studio and 
 It is recommended to run the app using the [Android Emulator](https://developer.android.com/studio/run/emulator) but it is also possible to run the app on a [hardware device](https://developer.android.com/studio/run/device).
 
 ### Deployment ###
-Since the front-end is an Android App, deployment is done via APK release. The CircleCI script includes a `release-build` which updates with every push to the `master` branch and produces an APK. Our website below contains a table of previous APK releases made during development.
-
 #### Client-side Deployment ####
+Since the front-end is an Android App, deployment is done via APK release. The CircleCI script includes a `release-build` which updates with every push to the `master` branch and produces an APK. Our website below contains a table of previous APK releases made during development.
 ##### Via Android Studio #####
 If you want to build an APK from Android Studio, Android Studio documentation for release builds can be found here: https://developer.android.com/studio/run.
 
