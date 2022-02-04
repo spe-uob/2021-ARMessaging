@@ -6,7 +6,7 @@
         app:title="General"
         app:iconSpaceReserved="false">
 
-        <SeekBar
+        <SeekBarPreference
             app:key="text_size"
             app:title="Font Size"
             app:iconSpaceReserved="false"

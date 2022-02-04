@@ -28,4 +28,9 @@
         android:name="com.ajal.arsocialmessaging.ui.settings.SettingsFragment"
         android:label="@string/title_settings"
         tools:layout="@xml/preferences" />
+    <fragment
+        android:id="@+id/navigation_gallery"
+        android:name="com.ajal.arsocialmessaging.ui.gallery.GalleryFragment"
+        android:label="@string/title_gallery"
+        tools:layout="@layout/fragment_gallery" />
 </navigation>

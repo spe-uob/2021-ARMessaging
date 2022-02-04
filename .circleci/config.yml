@@ -1,4 +1,8 @@
-version: 2
+version: 2.1
+
+orbs:
+  android: circleci/android@1.0.3
+
 jobs:
   build:
     working_directory: ~/repo/App
@@ -26,3 +30,25 @@ jobs:
           destination: reports
       - store_test_results:
           path: app/build/test-results
+  
+  release-build:
+    working_directory: ~/repo/App
+    executor:
+      name: android/android-machine
+    steps:
+      - checkout:
+          path: ~/repo
+      - android/restore-gradle-cache
+      - android/restore-build-cache
+      - run:
+          name: Assemble release build
+          command: |
+            ./gradlew assembleRelease
+      - store_artifacts:
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
+
+workflows:  
+  build_and_save:
+    jobs:
+      - build
+      - release-build

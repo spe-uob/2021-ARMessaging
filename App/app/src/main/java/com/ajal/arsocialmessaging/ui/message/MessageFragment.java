@@ -29,7 +29,6 @@ import java.util.List;
 
 public class MessageFragment extends Fragment {
 
-    private MessageViewModel messageViewModel;
     private FragmentMessageBinding binding;
 
     // Components on fragment
@@ -54,8 +53,6 @@ public class MessageFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-//        messageViewModel =
-//                new ViewModelProvider(this).get(MessageViewModel.class);
 
         binding = FragmentMessageBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
