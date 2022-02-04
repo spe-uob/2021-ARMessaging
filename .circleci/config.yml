@@ -4,11 +4,11 @@ orbs:
   android: circleci/android@1.0.3
 
 jobs:
-  executor:
-      name: android/android-machine
-      resource-class: xlarge
-
   android-test:
+    executor:
+        name: android/android-machine
+        resource-class: xlarge
+    working_directory: ~/repo/App
     parameters:
       system-image:
         type: string
