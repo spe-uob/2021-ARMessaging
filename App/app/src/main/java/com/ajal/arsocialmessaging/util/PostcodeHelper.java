@@ -46,6 +46,9 @@ public class PostcodeHelper implements LocationListener {
 
     public void registerObserver(GPSObserver observer) {
         this.observers.add(observer);
+        if (location != null) {
+            observer.onLocationSuccess(location);
+        }
     }
 
     public void clearObservers() {

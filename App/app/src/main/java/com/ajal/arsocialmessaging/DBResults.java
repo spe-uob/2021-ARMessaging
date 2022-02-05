@@ -65,6 +65,12 @@ public class DBResults {
 
     public void registerObserver(DBObserver observer) {
         observers.add(observer);
+        if (this.messages != null) {
+            observer.onMessageSuccess(messages);
+        }
+        if (this.banners != null) {
+            observer.onBannerSuccess(banners);
+        }
     }
 
     public void setMessages(List<Message> messages) {

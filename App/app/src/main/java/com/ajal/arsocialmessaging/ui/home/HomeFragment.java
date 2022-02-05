@@ -860,7 +860,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             double latitude = location.getLatitude();
             double longitude = location.getLongitude();
             localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(this.getContext(), globalBanners, latitude, longitude);
-
+            requiredDataRetrieved = true;
             requiredDataMutex.release();
         }
     }
