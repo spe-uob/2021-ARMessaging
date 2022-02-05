@@ -75,16 +75,6 @@ public class MessageFragment extends Fragment implements ApiCallback {
         binding = FragmentMessageBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        // Sets a listener to figure out what item was clicked in list view
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                messageSelected = parent.getItemAtPosition(position).toString();
-                String text = postCodeInput.getText().toString();
-                setSendBtnAvailability(text);
-            }
-        });
-
         /** Postcode button code */
         postCodeInput = root.findViewById(R.id.text_input_postcode);
         sendBtn = root.findViewById(R.id.send_button);
@@ -128,6 +118,16 @@ public class MessageFragment extends Fragment implements ApiCallback {
         listView = root.findViewById(R.id.list_messagesToSend);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, messages);
         listView.setAdapter(adapter);
+
+        // Sets a listener to figure out what item was clicked in list view
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                messageSelected = parent.getItemAtPosition(position).toString();
+                String text = postCodeInput.getText().toString();
+                setSendBtnAvailability(text);
+            }
+        });
     }
 
     @Override
