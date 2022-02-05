@@ -17,6 +17,8 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.ajal.arsocialmessaging.Banner;
+import com.ajal.arsocialmessaging.DBResults;
+import com.ajal.arsocialmessaging.Message;
 import com.ajal.arsocialmessaging.MessageService;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.ServiceGenerator;
@@ -24,6 +26,7 @@ import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -68,7 +71,7 @@ public class MessageFragment extends Fragment {
 
         /** ListView code */
         // Fills the ListView with messages
-        messages = Arrays.asList(getResources().getStringArray(R.array.messages));
+        messages = DBResults.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
         listView = root.findViewById(R.id.list_messagesToSend);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, messages);
         listView.setAdapter(adapter);
