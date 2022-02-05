@@ -82,6 +82,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
 
@@ -154,6 +155,13 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     private List<VirtualMessage> localVirtualMessages = new ArrayList<>();
     private List<Banner> globalBanners = new ArrayList<>();
 
+    // Messages, Banners and Location loading
+    private boolean messagesRetrieved = false;
+    private boolean bannersRetrieved = false;
+    private boolean locationRetrieved = false;
+    private boolean requiredDataRetrieved = false;
+    private Semaphore requiredDataMutex = new Semaphore(1);
+
     // Environmental HDR
     private Texture dfgTexture;
     private SpecularCubemapFilter cubemapFilter;
@@ -220,6 +228,12 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
         postcodeHelper.clearObservers();
         postcodeHelper.registerObserver(this);
+
+        try {
+            requiredDataMutex.acquire(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         return root;
     }
@@ -337,6 +351,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     public void onSurfaceCreated(SampleRender render) {
         // Prepare the rendering objects. This involves reading shaders and 3D model files, so may throw
         // an IOException.
+        try {
+            requiredDataMutex.acquire(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         try {
             planeRenderer = new PlaneRenderer(render);
@@ -406,6 +425,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             Log.e(TAG, "Failed to read a required asset file", e);
             messageSnackbarHelper.showError(this.getActivity(), "Failed to read a required asset file: " + e);
         }
+
+        requiredDataMutex.release();
     }
 
     @Override
@@ -798,16 +819,25 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     @Override
     public void onMessageSuccess(List<Message> result) {
         Log.d(TAG, "Messages have been received");
+        if (result == null) {
+            messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve messages. Please try restarting SkyWrite.");
+        }
+        else {
+            messagesRetrieved = true;
+            generateLocalVirtualMessages();
+        }
     }
 
     @Override
     public void onBannerSuccess(List<Banner> result) {
         Log.d(TAG, "Banners have been received");
-        globalBanners = result;
-
-        if (this.getContext() == null) {
-            Log.e(TAG, "Unknown error");
-            assert this.getContext() != null;
+        if (result == null) {
+            messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve banners. Please try restarting SkyWrite.");
+        }
+        else {
+            globalBanners = result;
+            bannersRetrieved = true;
+            generateLocalVirtualMessages();
         }
     }
 
@@ -820,9 +850,18 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             messageSnackbarHelper.showError(this.getActivity(), "Cannot find location. Please try restarting SkyWrite.");
         }
         else {
+            locationRetrieved = true;
+            generateLocalVirtualMessages();
+        }
+    }
+
+    private void generateLocalVirtualMessages() {
+        if (messagesRetrieved && bannersRetrieved && locationRetrieved) {
             double latitude = location.getLatitude();
             double longitude = location.getLongitude();
             localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(this.getContext(), globalBanners, latitude, longitude);
+
+            requiredDataMutex.release();
         }
     }
 }
