@@ -65,13 +65,13 @@ public class DatabaseTest implements ApiCallback {
         messageMutex.acquire();
         bannerMutex.acquire();
 
-        assertEquals(new Integer(1), this.messages.get(0).id);
-        assertEquals("happy birthday", this.messages.get(0).message);
-        assertEquals("happy-birthday.obj", this.messages.get(0).objfilename);
+        assertEquals(new Integer(1), this.messages.get(0).getId());
+        assertEquals("happy birthday", this.messages.get(0).getMessage());
+        assertEquals("happy-birthday.obj", this.messages.get(0).getObjfilename());
 
-//        assertEquals("BS8 1UB", this.banners.get(0).postcode);
-//        assertEquals(new Integer(2), this.banners.get(0).message);
-//        assertEquals("2022-02-02 18:40:52.476655", this.banners.get(0).timestamp);
+//        assertEquals("BS8 1UB", this.banners.get(0).getPostcode());
+//        assertEquals(new Integer(2), this.banners.get(0).getMessage());
+//        assertEquals("2022-02-02 18:40:52.476655", this.banners.get(0).getTimestamp());
 
         messageMutex.release();
         bannerMutex.release();

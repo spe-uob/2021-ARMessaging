@@ -1,11 +1,9 @@
 package com.ajal.arsocialmessaging;
 
-import java.sql.Timestamp;
-
 public class Banner {
-    String postcode;
-    Integer message;
-    String timestamp;
+    private String postcode;
+    private Integer message;
+    private String timestamp;
 
     public Banner(String postcode, Integer message, String timestamp){
         this.postcode = postcode;
