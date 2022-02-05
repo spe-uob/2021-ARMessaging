@@ -15,7 +15,7 @@ public class DBResults {
     private static final String TAG = "SkyWrite";
     private List<Message> messages;
     private List<Banner> banners;
-    private List<ApiCallback> callbacks = new ArrayList<>();
+    private List<DBObserver> observers = new ArrayList<>();
     private static volatile DBResults instance = new DBResults();
 
     public static DBResults getInstance() {
@@ -63,21 +63,21 @@ public class DBResults {
         });
     }
 
-    public void registerCallback(ApiCallback callback) {
-        callbacks.add(callback);
+    public void registerObserver(DBObserver observer) {
+        observers.add(observer);
     }
 
     public void setMessages(List<Message> messages) {
         this.messages = messages;
-        for (ApiCallback c : callbacks) {
-            c.onMessageSuccess(messages);
+        for (DBObserver o : observers) {
+            o.onMessageSuccess(messages);
         }
     }
 
     public void setBanners(List<Banner> banners) {
         this.banners = banners;
-        for (ApiCallback c : callbacks) {
-            c.onBannerSuccess(banners);
+        for (DBObserver o : observers) {
+            o.onBannerSuccess(banners);
         }
     }
 
@@ -89,9 +89,9 @@ public class DBResults {
         return banners;
     }
 
-    // Note: in theory, this should be safe as you register one ApiCallback and remove it every time
+    // Note: in theory, this should be safe as you register one GPSObserver and remove it every time
     // you switch between fragments that implement ApiCallback
-    public void clearCallbacks() {
-        this.callbacks.clear();
+    public void clearObservers() {
+        this.observers.clear();
     }
 }

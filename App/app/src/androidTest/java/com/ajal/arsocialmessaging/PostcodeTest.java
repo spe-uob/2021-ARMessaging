@@ -59,7 +59,7 @@ public class PostcodeTest {
     public void test_DisplayCorrectPostcode() {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         onView(withId(R.id.navigation_settings)).perform(click());
-        Location location = PostcodeHelper.getLocation(appContext);
+        Location location = PostcodeHelper.getInstance().getLocation();
         String postcode = PostcodeHelper.getPostCode(appContext, location.getLatitude(), location.getLongitude());
         onView(withId(R.id.text_currentPostcode)).check(matches(withText(containsString(postcode))));
     }

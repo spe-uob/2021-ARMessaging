@@ -6,8 +6,10 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import com.ajal.arsocialmessaging.Banner;
@@ -18,25 +20,44 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class PostcodeHelper {
+public class PostcodeHelper implements LocationListener {
+
+    private Location location;
+    private List<GPSObserver> observers = new ArrayList<>();
+
+    private static PostcodeHelper instance;
+
+    private PostcodeHelper() {}
+
+    public static PostcodeHelper getInstance() {
+        if (instance == null) {
+            instance = new PostcodeHelper();
+        }
+        return instance;
+    }
+
+    @Override
+    public void onLocationChanged(@NonNull Location location) {
+        this.location = location;
+        for (GPSObserver o : observers) {
+            o.onLocationSuccess(location);
+        }
+    }
+
+    public void registerObserver(GPSObserver observer) {
+        this.observers.add(observer);
+    }
+
+    public void clearObservers() {
+        this.observers.clear();
+    }
 
     /**
      * getLocation returns the current location, which can extract the latitude and longitude to be used for getting a postcode
-     * @param ctx
      * @return
      */
-    public static Location getLocation(Context ctx) {
-        LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
-
-        // As permissions are checked several times, in theory this should always return true
-        // However getLastKnownLocation() requires you to check that there are permissions
-        if (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return null;
-        }
-
-        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        return location;
+    public Location getLocation() {
+        return this.location;
     }
 
     /**
