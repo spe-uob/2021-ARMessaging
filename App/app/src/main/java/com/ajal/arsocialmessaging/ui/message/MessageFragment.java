@@ -3,6 +3,7 @@ package com.ajal.arsocialmessaging.ui.message;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.ajal.arsocialmessaging.ApiCallback;
 import com.ajal.arsocialmessaging.Banner;
 import com.ajal.arsocialmessaging.DBResults;
 import com.ajal.arsocialmessaging.Message;
@@ -24,15 +26,10 @@ import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.ServiceGenerator;
 import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-public class MessageFragment extends Fragment {
+public class MessageFragment extends Fragment implements ApiCallback {
 
     private FragmentMessageBinding binding;
 
@@ -43,6 +40,8 @@ public class MessageFragment extends Fragment {
     private Button sendBtn;
     private String messageSelected = "";
     private String postCode;
+    private static final String TAG = "SkyWrite";
+
 
 
     private void addBannerToDatabase(String postcode, String message){
@@ -66,12 +65,18 @@ public class MessageFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
+        // Request the server to load the results from the database
+        DBResults dbResults = DBResults.getInstance();
+        // Need to clear callbacks or else DBResults can try to send a context which no longer exists
+        DBResults.getInstance().clearCallbacks();
+        dbResults.registerCallback(this);
+        dbResults.retrieveDBResults();
+
         binding = FragmentMessageBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
         /** ListView code */
         // Fills the ListView with messages
-        messages = DBResults.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
         listView = root.findViewById(R.id.list_messagesToSend);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, messages);
         listView.setAdapter(adapter);
@@ -119,7 +124,19 @@ public class MessageFragment extends Fragment {
     }
 
     @Override
+    public void onMessageSuccess(List<Message> result) {
+        Log.d(TAG, "Messages have been received");
+        messages = DBResults.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
+    }
+
+    @Override
+    public void onBannerSuccess(List<Banner> result) {
+        Log.d(TAG, "Banners have been received");
+    }
+
+    @Override
     public void onDestroyView() {
+        DBResults.getInstance().clearCallbacks();
         super.onDestroyView();
         binding = null;
     }
