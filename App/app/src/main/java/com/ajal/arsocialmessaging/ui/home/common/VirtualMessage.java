@@ -15,12 +15,6 @@ public class VirtualMessage {
         setFiles(b.getMessage());
     }
 
-    // used for testing
-    public VirtualMessage(int messageId, String postcode) {
-        this.postcode = postcode;
-        setFiles(messageId);
-    }
-
     public void setFiles(int messageId) {
         switch (messageId) {
             case 1:
@@ -38,12 +32,12 @@ public class VirtualMessage {
                 this.pbrTexture = "models/white-texture.png";
                 this.objfilename = "models/congratulations.obj";
                 break;
-            case 4:
+            case 4: // temporary files
                 this.albedoTexture = "models/congratulations.png";
                 this.pbrTexture = "models/grey-texture.png";
                 this.objfilename = "models/congratulations.obj";
                 break;
-            case 5:
+            case 5: // temporary files
                 this.albedoTexture = "models/congratulations.png";
                 this.pbrTexture = "models/grey-texture.png";
                 this.objfilename = "models/congratulations.obj";

@@ -1,14 +1,11 @@
 package com.ajal.arsocialmessaging;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import com.ajal.arsocialmessaging.util.PermissionHelper;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -19,21 +16,9 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.ajal.arsocialmessaging.databinding.ActivityMainBinding;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import okhttp3.OkHttpClient;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
-    private final List<Message> messages = new ArrayList<>();
-    private final List<Banner> banners = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
