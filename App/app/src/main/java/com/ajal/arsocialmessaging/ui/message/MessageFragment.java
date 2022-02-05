@@ -75,12 +75,6 @@ public class MessageFragment extends Fragment implements ApiCallback {
         binding = FragmentMessageBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        /** ListView code */
-        // Fills the ListView with messages
-        listView = root.findViewById(R.id.list_messagesToSend);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, messages);
-        listView.setAdapter(adapter);
-
         // Sets a listener to figure out what item was clicked in list view
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -126,7 +120,14 @@ public class MessageFragment extends Fragment implements ApiCallback {
     @Override
     public void onMessageSuccess(List<Message> result) {
         Log.d(TAG, "Messages have been received");
+
+        /** ListView code */
+        // Fills the ListView with messages
+        View root = binding.getRoot();
         messages = DBResults.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
+        listView = root.findViewById(R.id.list_messagesToSend);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, messages);
+        listView.setAdapter(adapter);
     }
 
     @Override
