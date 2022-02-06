@@ -8,6 +8,8 @@ import android.widget.Toast;
 
 import com.ajal.arsocialmessaging.SettingsActivity;
 import com.ajal.arsocialmessaging.databinding.FragmentSettingsBinding;
+import com.ajal.arsocialmessaging.util.PermissionHelper;
+import com.ajal.arsocialmessaging.util.PostcodeHelper;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
