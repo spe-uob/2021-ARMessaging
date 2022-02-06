@@ -44,4 +44,13 @@ public class FragmentsTest {
 
     }
 
+    @Test
+    public void test_launchHomeFragmentMultipleTimes() {
+        onView(withId(R.id.navigation_home)).perform(click());
+        onView(withId(R.id.navigation_home)).perform(click());
+        onView(withId(R.id.navigation_home)).perform(click());
+        onView(withId(R.id.navigation_home)).perform(click());
+        onView(withId(R.id.navigation_home)).perform(click());
+    }
+
 }
