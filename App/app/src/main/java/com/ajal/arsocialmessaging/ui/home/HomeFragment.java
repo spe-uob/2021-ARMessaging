@@ -857,10 +857,14 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
 
     private void generateLocalVirtualMessages() {
         if (messagesRetrieved && bannersRetrieved && locationRetrieved) {
-            double latitude = location.getLatitude();
-            double longitude = location.getLongitude();
-            localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(this.getContext(), globalBanners, latitude, longitude);
-            requiredDataRetrieved = true;
+            // If the user switched fragments faster than the request is received (e.g. running Android tests),
+            // then this.getContext() will be null. As a result, this if statement is required
+            if (this.getContext() != null) {
+                double latitude = location.getLatitude();
+                double longitude = location.getLongitude();
+                localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(this.getContext(), globalBanners, latitude, longitude);
+                requiredDataRetrieved = true;
+            }
             requiredDataMutex.release();
         }
     }
