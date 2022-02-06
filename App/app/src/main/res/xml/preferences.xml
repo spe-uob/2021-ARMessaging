@@ -1,10 +1,13 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="?attr/bgColor"
+    android:layout_height="0dp">
 
     <PreferenceCategory
         app:key="general_setting"
         app:title="General"
-        app:iconSpaceReserved="false">
+        app:iconSpaceReserved="false"
+        >
 
         <SeekBarPreference
             app:key="text_size"
@@ -19,7 +22,7 @@
             android:defaultValue="0"
             />
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:key="dark_mode"
             app:title="Dark Mode"
             app:iconSpaceReserved="false"
@@ -34,14 +37,16 @@
         android:baselineAligned="false"
         app:key="notification"
         app:title="Notification"
-        app:iconSpaceReserved="false">
+        app:iconSpaceReserved="false"
+        >
 
         <SwitchPreference
             app:key="@string/title_notifications"
             app:title="Enable message notifications"
             app:iconSpaceReserved="false"
             app:summaryOn="On"
-            app:summaryOff="Off"/>
+            app:summaryOff="Off"
+            />
     </PreferenceCategory>
 
 
@@ -49,15 +54,16 @@
     <PreferenceCategory
         app:key="privacy_setting"
         app:title="Privacy"
-        app:iconSpaceReserved="false">
+        app:iconSpaceReserved="false"
+        >
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:key="location"
             app:title="Allow access to your Location"
             app:iconSpaceReserved="false"
             app:summaryOn="On"
             app:summaryOff="Off"
-             />
+            />
 
     </PreferenceCategory>
 
@@ -65,7 +71,8 @@
     <PreferenceCategory
         app:key="about"
         app:title="About"
-        app:iconSpaceReserved="false">
+        app:iconSpaceReserved="false"
+        >
 
         <Preference
             app:key="about_sky_write"
@@ -82,6 +89,7 @@
             app:iconSpaceReserved="false"
             android:id="@+id/send_feedback"
             />
+
     </PreferenceCategory>
 
 

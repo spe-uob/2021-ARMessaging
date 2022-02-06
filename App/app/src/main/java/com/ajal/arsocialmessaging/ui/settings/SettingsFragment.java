@@ -1,39 +1,44 @@
 package com.ajal.arsocialmessaging.ui.settings;
 
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
-import android.preference.Preference;
-import android.view.View;
-import android.widget.SeekBar;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
-import android.os.Bundle;
+import com.ajal.arsocialmessaging.SettingsActivity;
+import com.ajal.arsocialmessaging.databinding.FragmentSettingsBinding;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-//import com.ajal.arsocialmessaging.databinding.FragmentSettingsBinding;
-
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragment;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.SeekBarPreference;
+import androidx.preference.SwitchPreference;
+import androidx.preference.SwitchPreferenceCompat;
 
-import com.ajal.arsocialmessaging.MainActivity;
 import com.ajal.arsocialmessaging.R;
-import com.ajal.arsocialmessaging.SettingActivity;
+
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.preferences, rootKey);
+
+        final SwitchPreferenceCompat darkModeSwitch = findPreference("dark_mode");
+        darkModeSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(@NonNull Preference preference, Object newValue) {
+                if (darkModeSwitch.isChecked()){
+                    Toast.makeText(getContext(), "dark mode off", Toast.LENGTH_SHORT).show();
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                }else{
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                }
+                return true;
+            }
+        });
+
     }
-
-
 }

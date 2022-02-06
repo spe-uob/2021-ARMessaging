@@ -33,7 +33,11 @@ To run tests, run `gradlew test` or navigate to the tests on Android Studio and 
 It is recommended to run the app using the [Android Emulator](https://developer.android.com/studio/run/emulator) but it is also possible to run the app on a [hardware device](https://developer.android.com/studio/run/device).
 
 ### Deployment ###
-The server code is not full set up. When it is, this section will be updated.
+Since the front-end is an Android App, deployment is done via APK release. The CircleCI script includes a `release-build` which updates with every push to the Master branch and produces an APK. If APK creation via IDE is preferred, Android Studio documentation for release builds can be found here: https://developer.android.com/studio/run
+Our website below contains a table of previous APK releases made during development.
+
+Server-side deployment is recommended through IBMCloud and a Kubernetes toolchain, which can be set up using the Dockerfile and shell script provided.
+Alternatively, a local environment can be set up for personal development; the SpringBoot server running on localhost with a connection to a local PostgreSQL server will suffice.
 
 ## Blog ##
 Our [blog](https://sky-write.github.io/) contains all the documentation as well as updates on the development process.
