@@ -1,46 +1,51 @@
 package com.ajal.arsocialmessaging.ui.settings;
 
-
-import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
-import android.widget.CompoundButton;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ajal.arsocialmessaging.SettingsActivity;
+import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentSettingsBinding;
 import com.ajal.arsocialmessaging.util.PermissionHelper;
 import com.ajal.arsocialmessaging.util.PostcodeHelper;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.appcompat.widget.SwitchCompat;
-import androidx.preference.Preference;
-import androidx.preference.PreferenceFragment;
-import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.SwitchPreference;
-import androidx.preference.SwitchPreferenceCompat;
+public class SettingsFragment extends Fragment {
 
-import com.ajal.arsocialmessaging.R;
+    private FragmentSettingsBinding binding;
 
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container, Bundle savedInstanceState) {
 
-public class SettingsFragment extends PreferenceFragmentCompat {
-    @Override
-    public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        setPreferencesFromResource(R.xml.preferences, rootKey);
+        binding = FragmentSettingsBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
 
-        final SwitchPreferenceCompat darkModeSwitch = findPreference("dark_mode");
-        darkModeSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(@NonNull Preference preference, Object newValue) {
-                if (darkModeSwitch.isChecked()){
-                    Toast.makeText(getContext(), "dark mode off", Toast.LENGTH_SHORT).show();
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                }else{
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                }
-                return true;
-            }
-        });
+        // Check that SkyWrite still has the correct permissions and if not, open the permissions page
+        if (!PermissionHelper.hasPermissions(this.getActivity())) {
+            Toast.makeText(this.getContext(), "Permissions are needed to run this application", Toast.LENGTH_LONG).show();
+            PermissionHelper.requestPermissionsIfDenied(this.getActivity());
+            return null;
+        }
 
+        TextView postcodeView = (TextView) root.findViewById(R.id.text_currentPostcode);
+        Location location = PostcodeHelper.getInstance().getLocation();
+        String postcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
+        postcodeView.setText(postcodeView.getText()+postcode);
+
+        return root;
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
+
 }
