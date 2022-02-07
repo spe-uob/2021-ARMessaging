@@ -8,8 +8,6 @@ import android.net.NetworkInfo;
 import com.ajal.arsocialmessaging.MainActivity;
 
 public class ConnectivityHelper {
-    private boolean networkAvailable;
-    private boolean locationAvailable;
     private MainActivity mainActivity;
     private static ConnectivityHelper instance;
 
