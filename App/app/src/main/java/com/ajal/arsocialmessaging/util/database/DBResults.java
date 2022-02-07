@@ -49,6 +49,8 @@ public class DBResults {
             @Override
             public void onFailure(@NonNull Call<List<Message>> call, @NonNull Throwable throwable) {
                 Log.e(TAG, throwable.getMessage());
+                // Sends an empty list of messages to observers
+                DBResults.getInstance().setMessages(new ArrayList<>());
             }
         });
 
@@ -65,6 +67,8 @@ public class DBResults {
             @Override
             public void onFailure(@NonNull Call<List<Banner>> call, @NonNull Throwable throwable) {
                 Log.e(TAG, throwable.getMessage());
+                // Sends an empty array list of banners to observers
+                DBResults.getInstance().setBanners(new ArrayList<>());
             }
         });
     }
