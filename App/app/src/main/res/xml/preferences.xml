@@ -1,0 +1,96 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="?attr/bgColor"
+    android:layout_height="0dp">
+
+    <PreferenceCategory
+        app:key="general_setting"
+        app:title="General"
+        app:iconSpaceReserved="false"
+        >
+
+        <SeekBarPreference
+            app:key="text_size"
+            app:title="Font Size"
+            app:iconSpaceReserved="false"
+            app:showSeekBarValue="true"
+            app:summary="Change font size here"
+            android:id="@+id/text_size"
+            android:key="text_size"
+            android:title="Text Size"
+            android:max="2"
+            android:defaultValue="0"
+            />
+
+        <SwitchPreferenceCompat
+            app:key="dark_mode"
+            app:title="Dark Mode"
+            app:iconSpaceReserved="false"
+            app:summaryOn="On"
+            app:summaryOff="Off"
+            android:id="@+id/dark_mode"
+            />
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+        android:baselineAligned="false"
+        app:key="notification"
+        app:title="Notification"
+        app:iconSpaceReserved="false"
+        >
+
+        <SwitchPreference
+            app:key="@string/title_notifications"
+            app:title="Enable message notifications"
+            app:iconSpaceReserved="false"
+            app:summaryOn="On"
+            app:summaryOff="Off"
+            />
+    </PreferenceCategory>
+
+
+
+    <PreferenceCategory
+        app:key="privacy_setting"
+        app:title="Privacy"
+        app:iconSpaceReserved="false"
+        >
+
+        <SwitchPreferenceCompat
+            app:key="location"
+            app:title="Allow access to your Location"
+            app:iconSpaceReserved="false"
+            app:summaryOn="On"
+            app:summaryOff="Off"
+            />
+
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+        app:key="about"
+        app:title="About"
+        app:iconSpaceReserved="false"
+        >
+
+        <Preference
+            app:key="about_sky_write"
+            app:title="About Sky Write"
+            app:iconSpaceReserved="false"
+            android:id="@+id/about">
+            <intent android:action="android.intent.action.VIEW"
+                    android:data="https://sky-write.github.io/" />
+        </Preference>
+
+        <Preference
+            app:key="send_feedback"
+            app:title="Send feedback"
+            app:iconSpaceReserved="false"
+            android:id="@+id/send_feedback"
+            />
+
+    </PreferenceCategory>
+
+
+</PreferenceScreen>

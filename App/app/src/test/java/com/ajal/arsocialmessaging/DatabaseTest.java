@@ -13,7 +13,7 @@ import java.util.concurrent.Semaphore;
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-public class DatabaseTest implements ApiCallback {
+public class DatabaseTest implements DBObserver {
 
     private List<Message> messages;
     private List<Banner> banners;
@@ -26,8 +26,8 @@ public class DatabaseTest implements ApiCallback {
     public void init() throws InterruptedException {
         // Request the server to load the results from the database
         DBResults dbResults = DBResults.getInstance();
-        DBResults.getInstance().clearCallbacks();
-        dbResults.registerCallback(this);
+        DBResults.getInstance().clearObservers();
+        dbResults.registerObserver(this);
         dbResults.retrieveDBResults();
 
         messageMutex.acquire();

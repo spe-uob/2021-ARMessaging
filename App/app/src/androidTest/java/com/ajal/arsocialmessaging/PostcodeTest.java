@@ -59,7 +59,7 @@ public class PostcodeTest {
     public void test_DisplayCorrectPostcode() {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         onView(withId(R.id.navigation_settings)).perform(click());
-        Location location = PostcodeHelper.getLocation(appContext);
+        Location location = PostcodeHelper.getInstance().getLocation();
         String postcode = PostcodeHelper.getPostCode(appContext, location.getLatitude(), location.getLongitude());
         onView(withId(R.id.text_currentPostcode)).check(matches(withText(containsString(postcode))));
     }
@@ -69,7 +69,7 @@ public class PostcodeTest {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         List<Banner> globalBanners = new ArrayList<>();
         Banner virtualMessage1 = new Banner("BS8 1LN", 1, "2000-01-01 00:00:00.000000"); // Richmond Building (Bristol SU)
-        Banner virtualMessage2 = new Banner("BS8 1LN", 2, "2000-01-01 00:00:00.000000"); // Merchant Venturer's Building (University of Bristol)
+        Banner virtualMessage2 = new Banner("BS8 1LN", 2, "2000-01-01 00:00:00.000000"); // Richmond Building (Bristol SU)
         globalBanners.add(virtualMessage1);
         globalBanners.add(virtualMessage2);
 

@@ -35,7 +35,7 @@ public class SettingsFragment extends Fragment {
         }
 
         TextView postcodeView = (TextView) root.findViewById(R.id.text_currentPostcode);
-        Location location = PostcodeHelper.getLocation(this.getContext());
+        Location location = PostcodeHelper.getInstance().getLocation();
         String postcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
         postcodeView.setText(postcodeView.getText()+postcode);
 
