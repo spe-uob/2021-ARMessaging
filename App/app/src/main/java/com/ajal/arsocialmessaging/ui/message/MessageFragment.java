@@ -17,7 +17,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.ajal.arsocialmessaging.ApiCallback;
+import com.ajal.arsocialmessaging.DBObserver;
 import com.ajal.arsocialmessaging.Banner;
 import com.ajal.arsocialmessaging.DBResults;
 import com.ajal.arsocialmessaging.Message;
@@ -29,7 +29,7 @@ import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MessageFragment extends Fragment implements ApiCallback {
+public class MessageFragment extends Fragment implements DBObserver {
 
     private FragmentMessageBinding binding;
 
@@ -65,15 +65,15 @@ public class MessageFragment extends Fragment implements ApiCallback {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
+        binding = FragmentMessageBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
+
         // Request the server to load the results from the database
         DBResults dbResults = DBResults.getInstance();
         // Need to clear callbacks or else DBResults can try to send a context which no longer exists
-        DBResults.getInstance().clearCallbacks();
-        dbResults.registerCallback(this);
+        DBResults.getInstance().clearObservers();
+        dbResults.registerObserver(this);
         dbResults.retrieveDBResults();
-
-        binding = FragmentMessageBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
 
         /** Postcode button code */
         postCodeInput = root.findViewById(R.id.text_input_postcode);
@@ -137,7 +137,7 @@ public class MessageFragment extends Fragment implements ApiCallback {
 
     @Override
     public void onDestroyView() {
-        DBResults.getInstance().clearCallbacks();
+        DBResults.getInstance().clearObservers();
         super.onDestroyView();
         binding = null;
     }
