@@ -1,12 +1,9 @@
 package com.ajal.arsocialmessaging.ui.home;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
-import android.location.LocationManager;
 import android.media.Image;
 import android.net.Uri;
 import android.opengl.GLES20;
@@ -23,17 +20,17 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
-import com.ajal.arsocialmessaging.DBObserver;
-import com.ajal.arsocialmessaging.Banner;
-import com.ajal.arsocialmessaging.DBResults;
-import com.ajal.arsocialmessaging.Message;
+import com.ajal.arsocialmessaging.util.ConnectivityHelper;
+import com.ajal.arsocialmessaging.util.database.DBObserver;
+import com.ajal.arsocialmessaging.util.database.Banner;
+import com.ajal.arsocialmessaging.util.database.DBHelper;
+import com.ajal.arsocialmessaging.util.database.Message;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
 import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
-import com.ajal.arsocialmessaging.util.GPSObserver;
+import com.ajal.arsocialmessaging.util.location.GPSObserver;
 import com.ajal.arsocialmessaging.util.PermissionHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DepthSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DisplayRotationHelper;
@@ -50,7 +47,7 @@ import com.ajal.arsocialmessaging.ui.home.common.samplerender.VertexBuffer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.arcore.BackgroundRenderer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.arcore.PlaneRenderer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.arcore.SpecularCubemapFilter;
-import com.ajal.arsocialmessaging.util.PostcodeHelper;
+import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
@@ -101,6 +98,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     private static final String FOUND_PLANE_MESSAGE = "Look up to view message!";
     private static final String NO_VIRTUAL_MESSAGES_MESSAGE = "This postcode has no messages";
     private static final String IMG_SAVED_MESSAGE = "Image saved to storage!";
+
+    private static final String NETWORK_ERROR_MESSAGE = "Network error. Please try again";
+    private static final String LOCATION_ERROR_MESSAGE = "Location is unavailable error. Please try again";
 
     // See the definition of updateSphericalHarmonicsCoefficients for an explanation of these
     // constants.
@@ -195,14 +195,13 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+        super.onCreate(savedInstanceState);
+        surfaceView = root.findViewById(R.id.surfaceview);
+        displayRotationHelper = new DisplayRotationHelper(/*context=*/ this.getContext());
 
         // SkyWrite: add bottom navigation view to snackbar helper
         View bottomNavigation = super.getActivity().findViewById(R.id.nav_view);
         this.messageSnackbarHelper.setBottomNavigationView(bottomNavigation);
-
-        super.onCreate(savedInstanceState);
-        surfaceView = root.findViewById(R.id.surfaceview);
-        displayRotationHelper = new DisplayRotationHelper(/*context=*/ this.getContext());
 
         // Set up renderer.
         render = new SampleRender(surfaceView, this, this.getContext().getAssets());
@@ -218,12 +217,18 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             }
         });
 
+        // Check if network and location are available
+        if (!ConnectivityHelper.getInstance().isNetworkAvailable()
+                || !ConnectivityHelper.getInstance().isLocationAvailable()) {
+            return root;
+        }
+
         // Request the server to load the results from the database
-        DBResults dbResults = DBResults.getInstance();
-        // Need to clear callbacks or else DBResults can try to send a context which no longer exists
-        dbResults.clearObservers();
-        dbResults.registerObserver(this);
-        dbResults.retrieveDBResults();
+        DBHelper dbHelper = DBHelper.getInstance();
+        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
+        dbHelper.clearObservers();
+        dbHelper.registerObserver(this);
+        dbHelper.retrieveDBResults();
 
         PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
         postcodeHelper.clearObservers();
@@ -240,8 +245,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
 
     @Override
     public void onDestroyView() {
-        // Need to clear callbacks or else DBResults can try to send a context which no longer exists
-        DBResults.getInstance().clearObservers();
+        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
+        DBHelper.getInstance().clearObservers();
         if (session != null) {
             // Explicitly close ARCore Session to release native resources.
             // Review the API reference for important considerations before calling close() in apps with
@@ -501,18 +506,26 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         }
 
         // Handle the anchors
-        handleAnchor(frame, camera);
+        if (drawTracked) {
+            handleAnchor(frame, camera);
+        }
 
         /* Show a message based on whether:
          * - tracking has failed,
          * - planes are detected and models are drawn
          * - there are no messages in the area
          */
-        String message = null;
+        String message;
         if (capturePicture) {
             // SkyWrite: display message when image is saved
             // needs to be at the top of the if statements as it takes priority
             message = IMG_SAVED_MESSAGE;
+        } else if (!ConnectivityHelper.getInstance().isNetworkAvailable()) {
+            message = NETWORK_ERROR_MESSAGE;
+            drawTracked = false;
+        } else if (!ConnectivityHelper.getInstance().isLocationAvailable()) {
+            message = LOCATION_ERROR_MESSAGE;
+            drawTracked = false;
         } else if (localVirtualMessages.size() == 0) {
             message = NO_VIRTUAL_MESSAGES_MESSAGE;
             drawTracked = false;
@@ -829,6 +842,14 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     }
 
     @Override
+    public void onMessageFailure() {
+        Log.e(TAG, "Error receiving messages");
+        messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve messages. Please try restarting SkyWrite.");
+        messagesRetrieved = true;
+        generateLocalVirtualMessages();
+    }
+
+    @Override
     public void onBannerSuccess(List<Banner> result) {
         Log.d(TAG, "Banners have been received");
         if (result == null) {
@@ -839,6 +860,15 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             bannersRetrieved = true;
             generateLocalVirtualMessages();
         }
+    }
+
+    @Override
+    public void onBannerFailure() {
+        Log.e(TAG, "Error receiving banners");
+        messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve banners. Please try restarting SkyWrite.");
+        globalBanners = new ArrayList<>();
+        bannersRetrieved = true;
+        generateLocalVirtualMessages();
     }
 
     @Override
@@ -856,10 +886,12 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     }
 
     private void generateLocalVirtualMessages() {
-        if (messagesRetrieved && bannersRetrieved && locationRetrieved) {
+        if (messagesRetrieved && bannersRetrieved) {
             // If the user switched fragments faster than the request is received (e.g. running Android tests),
             // then this.getContext() will be null. As a result, this if statement is required
-            if (this.getContext() != null) {
+            if (this.getContext() != null && locationRetrieved) {
+                // moved locationRetrieved here because if it was at the top, requiredDataMutex wouldn't be released
+                // if locationRetrieved == false
                 double latitude = location.getLatitude();
                 double longitude = location.getLongitude();
                 localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(this.getContext(), globalBanners, latitude, longitude);

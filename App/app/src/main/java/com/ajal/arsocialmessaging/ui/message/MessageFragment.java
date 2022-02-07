@@ -17,13 +17,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.ajal.arsocialmessaging.DBObserver;
-import com.ajal.arsocialmessaging.Banner;
-import com.ajal.arsocialmessaging.DBResults;
-import com.ajal.arsocialmessaging.Message;
-import com.ajal.arsocialmessaging.MessageService;
+import com.ajal.arsocialmessaging.util.ConnectivityHelper;
+import com.ajal.arsocialmessaging.util.database.MessageService;
+import com.ajal.arsocialmessaging.util.database.DBObserver;
+import com.ajal.arsocialmessaging.util.database.Banner;
+import com.ajal.arsocialmessaging.util.database.DBHelper;
+import com.ajal.arsocialmessaging.util.database.Message;
+import com.ajal.arsocialmessaging.util.database.MessageService;
 import com.ajal.arsocialmessaging.R;
-import com.ajal.arsocialmessaging.ServiceGenerator;
+import com.ajal.arsocialmessaging.util.database.ServiceGenerator;
 import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 
 import java.util.List;
@@ -68,12 +70,18 @@ public class MessageFragment extends Fragment implements DBObserver {
         binding = FragmentMessageBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+        // Check if network is available
+        if (!ConnectivityHelper.getInstance().isNetworkAvailable()) {
+            Toast.makeText(this.getContext(), "Network error. Please try again", Toast.LENGTH_SHORT);
+            return root;
+        }
+
         // Request the server to load the results from the database
-        DBResults dbResults = DBResults.getInstance();
-        // Need to clear callbacks or else DBResults can try to send a context which no longer exists
-        DBResults.getInstance().clearObservers();
-        dbResults.registerObserver(this);
-        dbResults.retrieveDBResults();
+        DBHelper dbHelper = DBHelper.getInstance();
+        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
+        DBHelper.getInstance().clearObservers();
+        dbHelper.registerObserver(this);
+        dbHelper.retrieveDBResults();
 
         /** Postcode button code */
         postCodeInput = root.findViewById(R.id.text_input_postcode);
@@ -114,7 +122,7 @@ public class MessageFragment extends Fragment implements DBObserver {
         /** ListView code */
         // Fills the ListView with messages
         View root = binding.getRoot();
-        messages = DBResults.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
+        messages = DBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
         listView = root.findViewById(R.id.list_messagesToSend);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, messages);
         listView.setAdapter(adapter);
@@ -131,13 +139,25 @@ public class MessageFragment extends Fragment implements DBObserver {
     }
 
     @Override
+    public void onMessageFailure() {
+        Log.e(TAG, "Error receiving messages");
+        Toast.makeText(this.getContext(), "Error receiving messages", Toast.LENGTH_SHORT);
+    }
+
+    @Override
     public void onBannerSuccess(List<Banner> result) {
         Log.d(TAG, "Banners have been received");
     }
 
     @Override
+    public void onBannerFailure() {
+        Log.e(TAG, "Error receiving messages");
+        Toast.makeText(this.getContext(), "Error receiving banners", Toast.LENGTH_SHORT);
+    }
+
+    @Override
     public void onDestroyView() {
-        DBResults.getInstance().clearObservers();
+        DBHelper.getInstance().clearObservers();
         super.onDestroyView();
         binding = null;
     }

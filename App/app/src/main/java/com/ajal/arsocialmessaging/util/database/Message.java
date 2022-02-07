@@ -1,4 +1,4 @@
-package com.ajal.arsocialmessaging;
+package com.ajal.arsocialmessaging.util.database;
 
 public class Message {
     private Integer id;

@@ -16,9 +16,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
-import com.ajal.arsocialmessaging.util.PostcodeHelper;
+import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
+import com.ajal.arsocialmessaging.util.database.Banner;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,7 +29,7 @@ import java.util.List;
 
 /**
  * Instrumented test, which will execute on an Android device.
- * Note: the Android device needs to be unlocked for it to work
+ * Note: the Android device needs to be unlocked with Network and Location enabled
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  * @see <a href="https://developer.android.com/training/testing/espresso/basics">Espresso Basics</a>

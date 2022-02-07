@@ -1,4 +1,4 @@
-package com.ajal.arsocialmessaging;
+package com.ajal.arsocialmessaging.util.database;
 
 import android.util.Log;
 
@@ -11,22 +11,23 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class DBResults {
+public class DBHelper {
     private static final String TAG = "SkyWrite";
     private List<Message> messages;
     private List<Banner> banners;
     private List<DBObserver> observers = new ArrayList<>();
-    private static volatile DBResults instance = new DBResults();
+    private static DBHelper instance = new DBHelper();
 
-    public static DBResults getInstance() {
+    public static DBHelper getInstance() {
         return instance;
     }
 
     // Private so it cannot be instantiated outside of getInstance
-    private DBResults() {
+    private DBHelper() {
     }
 
     public void retrieveDBResults() {
+
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
 
@@ -38,11 +39,13 @@ public class DBResults {
                 List<Message> allMessages = response.body();
                 // NOTE: use allMessages.get([INDEX]).[ATTRIBUTE] to extract message data, as below
                 assert allMessages != null;
-                DBResults.getInstance().setMessages(allMessages);
+                DBHelper.getInstance().setMessages(true, allMessages);
             }
             @Override
             public void onFailure(@NonNull Call<List<Message>> call, @NonNull Throwable throwable) {
                 Log.e(TAG, throwable.getMessage());
+                // Sends an empty list of messages to observers
+                DBHelper.getInstance().setMessages(false, new ArrayList<>());
             }
         });
 
@@ -53,12 +56,14 @@ public class DBResults {
             public void onResponse(@NonNull Call<List<Banner>> call, @NonNull Response<List<Banner>> response) {
                 List<Banner> allBanners = response.body();
                 assert allBanners != null;
-                DBResults.getInstance().setBanners(allBanners);
+                DBHelper.getInstance().setBanners(true, allBanners);
             }
 
             @Override
             public void onFailure(@NonNull Call<List<Banner>> call, @NonNull Throwable throwable) {
                 Log.e(TAG, throwable.getMessage());
+                // Sends an empty array list of banners to observers
+                DBHelper.getInstance().setBanners(false, new ArrayList<>());
             }
         });
     }
@@ -73,17 +78,31 @@ public class DBResults {
         }
     }
 
-    public void setMessages(List<Message> messages) {
+    public void setMessages(boolean success, List<Message> messages) {
         this.messages = messages;
-        for (DBObserver o : observers) {
-            o.onMessageSuccess(messages);
+        if (success) {
+            for (DBObserver o : observers) {
+                o.onMessageSuccess(messages);
+            }
+        }
+        else {
+            for (DBObserver o : observers) {
+                o.onMessageFailure();
+            }
         }
     }
 
-    public void setBanners(List<Banner> banners) {
+    public void setBanners(boolean success, List<Banner> banners) {
         this.banners = banners;
-        for (DBObserver o : observers) {
-            o.onBannerSuccess(banners);
+        if (success) {
+            for (DBObserver o : observers) {
+                o.onBannerSuccess(banners);
+            }
+        }
+        else {
+            for (DBObserver o : observers) {
+                o.onBannerFailure();
+            }
         }
     }
 

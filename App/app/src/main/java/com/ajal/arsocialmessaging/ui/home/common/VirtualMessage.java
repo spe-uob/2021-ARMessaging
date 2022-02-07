@@ -2,7 +2,7 @@ package com.ajal.arsocialmessaging.ui.home.common;
 
 // Note: this is only temporary and will be removed when the database is fully implemented
 
-import com.ajal.arsocialmessaging.Banner;
+import com.ajal.arsocialmessaging.util.database.Banner;
 
 public class VirtualMessage {
     private String albedoTexture;
