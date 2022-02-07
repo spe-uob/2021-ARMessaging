@@ -840,6 +840,14 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     }
 
     @Override
+    public void onMessageFailure() {
+        Log.e(TAG, "Error receiving messages");
+        messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve messages. Please try restarting SkyWrite.");
+        messagesRetrieved = true;
+        generateLocalVirtualMessages();
+    }
+
+    @Override
     public void onBannerSuccess(List<Banner> result) {
         Log.d(TAG, "Banners have been received");
         if (result == null) {
@@ -850,6 +858,15 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             bannersRetrieved = true;
             generateLocalVirtualMessages();
         }
+    }
+
+    @Override
+    public void onBannerFailure() {
+        Log.e(TAG, "Error receiving banners");
+        messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve banners. Please try restarting SkyWrite.");
+        globalBanners = new ArrayList<>();
+        bannersRetrieved = true;
+        generateLocalVirtualMessages();
     }
 
     @Override
@@ -867,10 +884,12 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     }
 
     private void generateLocalVirtualMessages() {
-        if (messagesRetrieved && bannersRetrieved && locationRetrieved) {
+        if (messagesRetrieved && bannersRetrieved) {
             // If the user switched fragments faster than the request is received (e.g. running Android tests),
             // then this.getContext() will be null. As a result, this if statement is required
-            if (this.getContext() != null) {
+            if (this.getContext() != null && locationRetrieved) {
+                // moved locationRetrieved here because if it was at the top, requiredDataMutex wouldn't be released
+                // if locationRetrieved == false
                 double latitude = location.getLatitude();
                 double longitude = location.getLongitude();
                 localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(this.getContext(), globalBanners, latitude, longitude);
