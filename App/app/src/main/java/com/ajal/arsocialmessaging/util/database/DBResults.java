@@ -1,8 +1,10 @@
-package com.ajal.arsocialmessaging;
+package com.ajal.arsocialmessaging.util.database;
 
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+
+import com.ajal.arsocialmessaging.util.ConnectivityHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +18,7 @@ public class DBResults {
     private List<Message> messages;
     private List<Banner> banners;
     private List<DBObserver> observers = new ArrayList<>();
-    private static volatile DBResults instance = new DBResults();
+    private static DBResults instance = new DBResults();
 
     public static DBResults getInstance() {
         return instance;
@@ -27,6 +29,10 @@ public class DBResults {
     }
 
     public void retrieveDBResults() {
+        if (!ConnectivityHelper.getInstance().isNetworkAvailable()) {
+            // Note: remember to write some code for if network is unavailable
+            return;
+        }
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
 

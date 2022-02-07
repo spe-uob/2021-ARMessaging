@@ -16,18 +16,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.ajal.arsocialmessaging.Banner;
-import com.ajal.arsocialmessaging.MessageService;
+import com.ajal.arsocialmessaging.util.database.MessageService;
 import com.ajal.arsocialmessaging.R;
-import com.ajal.arsocialmessaging.ServiceGenerator;
+import com.ajal.arsocialmessaging.util.database.ServiceGenerator;
 import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 
 import java.util.Arrays;
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MessageFragment extends Fragment {
 

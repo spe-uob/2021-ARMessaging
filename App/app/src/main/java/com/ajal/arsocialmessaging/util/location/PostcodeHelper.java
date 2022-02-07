@@ -1,18 +1,14 @@
-package com.ajal.arsocialmessaging.util;
+package com.ajal.arsocialmessaging.util.location;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
-import android.location.LocationManager;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 
-import com.ajal.arsocialmessaging.Banner;
+import com.ajal.arsocialmessaging.util.database.Banner;
 import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
 
 import java.io.IOException;

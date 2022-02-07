@@ -14,8 +14,9 @@ import android.widget.Toast;
 
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentSettingsBinding;
+import com.ajal.arsocialmessaging.util.ConnectivityHelper;
 import com.ajal.arsocialmessaging.util.PermissionHelper;
-import com.ajal.arsocialmessaging.util.PostcodeHelper;
+import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 
 public class SettingsFragment extends Fragment {
 
@@ -36,7 +37,13 @@ public class SettingsFragment extends Fragment {
 
         TextView postcodeView = (TextView) root.findViewById(R.id.text_currentPostcode);
         Location location = PostcodeHelper.getInstance().getLocation();
-        String postcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
+        String postcode = null;
+        if (!ConnectivityHelper.getInstance().isLocationAvailable() || location == null) {
+            postcode = "Unavailable";
+        }
+        else {
+            postcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
+        }
         postcodeView.setText(postcodeView.getText()+postcode);
 
         return root;

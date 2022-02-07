@@ -5,6 +5,11 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+import com.ajal.arsocialmessaging.util.database.Banner;
+import com.ajal.arsocialmessaging.util.database.DBObserver;
+import com.ajal.arsocialmessaging.util.database.DBResults;
+import com.ajal.arsocialmessaging.util.database.Message;
+
 import java.util.List;
 import java.util.concurrent.Semaphore;
 

@@ -1,4 +1,4 @@
-package com.ajal.arsocialmessaging;
+package com.ajal.arsocialmessaging.util.database;
 
 import java.util.concurrent.TimeUnit;
 

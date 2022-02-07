@@ -1,4 +1,4 @@
-package com.ajal.arsocialmessaging.util;
+package com.ajal.arsocialmessaging.util.location;
 
 import android.location.Location;
 
