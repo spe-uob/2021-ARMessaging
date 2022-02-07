@@ -5,10 +5,9 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-import com.ajal.arsocialmessaging.util.ConnectivityHelper;
 import com.ajal.arsocialmessaging.util.database.Banner;
 import com.ajal.arsocialmessaging.util.database.DBObserver;
-import com.ajal.arsocialmessaging.util.database.DBResults;
+import com.ajal.arsocialmessaging.util.database.DBHelper;
 import com.ajal.arsocialmessaging.util.database.Message;
 
 import java.util.ArrayList;
@@ -32,10 +31,10 @@ public class DatabaseTest implements DBObserver {
     @Before
     public void init() throws InterruptedException {
         // Request the server to load the results from the database
-        DBResults dbResults = DBResults.getInstance();
-        DBResults.getInstance().clearObservers();
-        dbResults.registerObserver(this);
-        dbResults.retrieveDBResults();
+        DBHelper dbHelper = DBHelper.getInstance();
+        DBHelper.getInstance().clearObservers();
+        dbHelper.registerObserver(this);
+        dbHelper.retrieveDBResults();
 
         messageMutex.acquire();
         bannerMutex.acquire();
@@ -86,9 +85,9 @@ public class DatabaseTest implements DBObserver {
         assertEquals("happy birthday", this.messages.get(0).getMessage());
         assertEquals("happy-birthday.obj", this.messages.get(0).getObjfilename());
 
-//        assertEquals("BS8 1UB", this.banners.get(0).getPostcode());
-//        assertEquals(new Integer(2), this.banners.get(0).getMessage());
-//        assertEquals("2022-02-02 18:40:52.476655", this.banners.get(0).getTimestamp());
+        assertEquals("BS8 1UB", this.banners.get(0).getPostcode());
+        assertEquals(new Integer(2), this.banners.get(0).getMessage());
+        assertEquals("2022-02-02 18:40:52.476655", this.banners.get(0).getTimestamp());
 
         messageMutex.release();
         bannerMutex.release();

@@ -25,7 +25,7 @@ import androidx.fragment.app.Fragment;
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
 import com.ajal.arsocialmessaging.util.database.DBObserver;
 import com.ajal.arsocialmessaging.util.database.Banner;
-import com.ajal.arsocialmessaging.util.database.DBResults;
+import com.ajal.arsocialmessaging.util.database.DBHelper;
 import com.ajal.arsocialmessaging.util.database.Message;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
@@ -224,11 +224,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         }
 
         // Request the server to load the results from the database
-        DBResults dbResults = DBResults.getInstance();
-        // Need to clear callbacks or else DBResults can try to send a context which no longer exists
-        dbResults.clearObservers();
-        dbResults.registerObserver(this);
-        dbResults.retrieveDBResults();
+        DBHelper dbHelper = DBHelper.getInstance();
+        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
+        dbHelper.clearObservers();
+        dbHelper.registerObserver(this);
+        dbHelper.retrieveDBResults();
 
         PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
         postcodeHelper.clearObservers();
@@ -245,8 +245,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
 
     @Override
     public void onDestroyView() {
-        // Need to clear callbacks or else DBResults can try to send a context which no longer exists
-        DBResults.getInstance().clearObservers();
+        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
+        DBHelper.getInstance().clearObservers();
         if (session != null) {
             // Explicitly close ARCore Session to release native resources.
             // Review the API reference for important considerations before calling close() in apps with

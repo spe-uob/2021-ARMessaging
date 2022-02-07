@@ -40,18 +40,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         ConnectivityHelper.getInstance().setMainActivity(this);
-        if (ConnectivityHelper.getInstance().isLocationAvailable()) {
-            // Initiate the location updates request if location is available
-            Context ctx = this.getApplicationContext();
-            LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
-            PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
-            // Permissions check
-            if (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-            lm.requestLocationUpdates(LocationManager.FUSED_PROVIDER, 5000, 10, postcodeHelper);
+        // Initiate the location updates request if location is available
+        Context ctx = this.getApplicationContext();
+        LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
+        PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
+        // Permissions check
+        if (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
         }
+        lm.requestLocationUpdates(LocationManager.FUSED_PROVIDER, 5000, 10, postcodeHelper);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
