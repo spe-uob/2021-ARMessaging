@@ -5,11 +5,13 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+import com.ajal.arsocialmessaging.util.ConnectivityHelper;
 import com.ajal.arsocialmessaging.util.database.Banner;
 import com.ajal.arsocialmessaging.util.database.DBObserver;
 import com.ajal.arsocialmessaging.util.database.DBResults;
 import com.ajal.arsocialmessaging.util.database.Message;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -46,8 +48,20 @@ public class DatabaseTest implements DBObserver {
     }
 
     @Override
+    public void onMessageFailure() {
+        this.messages = new ArrayList<>();
+        messageMutex.release();
+    }
+
+    @Override
     public void onBannerSuccess(List<Banner> result) {
         this.banners = result;
+        bannerMutex.release();
+    }
+
+    @Override
+    public void onBannerFailure() {
+        this.banners = new ArrayList<>();
         bannerMutex.release();
     }
 

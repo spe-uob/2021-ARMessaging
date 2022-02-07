@@ -29,7 +29,7 @@ import java.util.List;
 
 /**
  * Instrumented test, which will execute on an Android device.
- * Note: the Android device needs to be unlocked for it to work
+ * Note: the Android device needs to be unlocked with Network and Location enabled
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  * @see <a href="https://developer.android.com/training/testing/espresso/basics">Espresso Basics</a>

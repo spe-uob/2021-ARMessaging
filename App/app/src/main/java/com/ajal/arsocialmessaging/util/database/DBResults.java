@@ -29,10 +29,7 @@ public class DBResults {
     }
 
     public void retrieveDBResults() {
-        if (!ConnectivityHelper.getInstance().isNetworkAvailable()) {
-            // Note: remember to write some code for if network is unavailable
-            return;
-        }
+
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
 

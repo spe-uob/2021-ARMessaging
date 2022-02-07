@@ -217,16 +217,18 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             }
         });
 
+        // Check if network and location are available
+        if (!ConnectivityHelper.getInstance().isNetworkAvailable()
+                || !ConnectivityHelper.getInstance().isLocationAvailable()) {
+            return root;
+        }
+
         // Request the server to load the results from the database
         DBResults dbResults = DBResults.getInstance();
         // Need to clear callbacks or else DBResults can try to send a context which no longer exists
         dbResults.clearObservers();
         dbResults.registerObserver(this);
         dbResults.retrieveDBResults();
-        if (!ConnectivityHelper.getInstance().isNetworkAvailable()
-                || !ConnectivityHelper.getInstance().isLocationAvailable()) {
-            return root;
-        }
 
         PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
         postcodeHelper.clearObservers();
