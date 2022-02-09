@@ -595,29 +595,31 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         // Update lighting parameters in the shader
         updateLightEstimation(frame.getLightEstimate(), viewMatrix);
 
-        // Visualize anchors created by touch.
-        render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
-        for (int i = 0; i < anchors.size(); i++) {
-            Anchor anchor = anchors.get(i);
-            if (anchor.getTrackingState() != TrackingState.TRACKING) {
-                continue;
+        // Visualize models
+        if (virtualObjectShadersList.size() > 0) {
+            render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
+            for (int i = 0; i < anchors.size(); i++) {
+                Anchor anchor = anchors.get(i);
+                if (anchor.getTrackingState() != TrackingState.TRACKING) {
+                    continue;
+                }
+                // Get the current pose of an Anchor in world space. The Anchor pose is updated
+                // during calls to session.update() as ARCore refines its estimate of the world.
+
+                anchor.getPose().makeTranslation(0, 30f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
+
+                // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
+                Matrix.scaleM(modelMatrix, 0, 2f, 2f, 2f);
+
+                // Calculate model/view/projection matrices
+                Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
+                Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
+
+                // Update shader properties and draw
+                virtualObjectShadersList.get(i).setMat4("u_ModelView", modelViewMatrix);
+                virtualObjectShadersList.get(i).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
+                render.draw(virtualObjectMeshesList.get(i), virtualObjectShadersList.get(i), virtualSceneFramebuffer);
             }
-            // Get the current pose of an Anchor in world space. The Anchor pose is updated
-            // during calls to session.update() as ARCore refines its estimate of the world.
-
-            anchor.getPose().makeTranslation(0, 30f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
-
-            // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
-            Matrix.scaleM(modelMatrix, 0, 2f, 2f, 2f);
-
-            // Calculate model/view/projection matrices
-            Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
-            Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
-
-            // Update shader properties and draw
-            virtualObjectShadersList.get(i).setMat4("u_ModelView", modelViewMatrix);
-            virtualObjectShadersList.get(i).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
-            render.draw(virtualObjectMeshesList.get(i), virtualObjectShadersList.get(i), virtualSceneFramebuffer);
         }
 
         // Compose the virtual scene with the background.
