@@ -25,8 +25,7 @@ public class NotificationActivity extends AppCompatActivity {
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
             NotificationChannel channel = new NotificationChannel("Channel1", name, importance);
             channel.setDescription(description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
+
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
@@ -40,12 +39,12 @@ public class NotificationActivity extends AppCompatActivity {
 
         Button notifyBtn = (Button) findViewById(R.id.test_btn);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "Channel1")
-                .setSmallIcon(R.drawable.ic_message_black_24dp)
-                .setContentTitle("Notification!!!")
-                .setContentText("You have successfully sent yourself a notification yayy.")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(this);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(NotificationActivity.this, "Channel1");
+                builder.setSmallIcon(R.drawable.ic_message_black_24dp);
+                builder.setContentTitle("Notification!!!");
+                builder.setContentText("You have successfully sent yourself a notification yayy.");
+                builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(NotificationActivity.this);
 
 
         notifyBtn.setOnClickListener(new View.OnClickListener() {

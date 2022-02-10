@@ -38,11 +38,7 @@
         android:usesCleartextTraffic="true">
         <activity
             android:name=".NotificationActivity"
-            android:exported="false" />
-        <activity
-            android:name=".SettingsActivity"
-            android:exported="true"
-            android:label="@string/title_activity_settings" />
+            android:exported="true" />
 
         <meta-data
             android:name="com.google.ar.core"

@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 
-import com.ajal.arsocialmessaging.SettingsActivity;
+
 import com.ajal.arsocialmessaging.databinding.FragmentSettingsBinding;
 
 import androidx.annotation.NonNull;
