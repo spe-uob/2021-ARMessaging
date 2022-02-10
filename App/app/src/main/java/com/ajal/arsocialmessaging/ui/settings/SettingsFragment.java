@@ -15,6 +15,7 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragment;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.SeekBarPreference;
 import androidx.preference.SwitchPreference;
 import androidx.preference.SwitchPreferenceCompat;
 
@@ -26,7 +27,18 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.preferences, rootKey);
 
+        final SeekBarPreference textSize = findPreference("text_size");
         final SwitchPreferenceCompat darkModeSwitch = findPreference("dark_mode");
+
+        //TODO: Font size change
+//        textSize.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//            @Override
+//            public boolean onPreferenceChange(@NonNull Preference preference, Object newValue) {
+//                return false;
+//            }
+//        });
+
+        //Dark Mode
         darkModeSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(@NonNull Preference preference, Object newValue) {
@@ -39,6 +51,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 return true;
             }
         });
+
+        //TODO: Enable push notification.
 
     }
 }

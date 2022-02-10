@@ -3,7 +3,10 @@ package com.ajal.arsocialmessaging;
 import static com.ajal.arsocialmessaging.R.xml.preferences;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.CompoundButton;
 import android.widget.Toast;
@@ -35,5 +38,6 @@ public class SettingsActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
     }
+
 
 }

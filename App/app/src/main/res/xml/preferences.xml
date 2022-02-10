@@ -1,6 +1,5 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="?attr/bgColor"
     android:layout_height="0dp">
 
     <PreferenceCategory
@@ -42,31 +41,26 @@
 
         <SwitchPreference
             app:key="@string/title_notifications"
-            app:title="Enable message notifications"
+            app:title="Message notifications"
             app:iconSpaceReserved="false"
             app:summaryOn="On"
             app:summaryOff="Off"
             />
-    </PreferenceCategory>
-
-
-
-    <PreferenceCategory
-        app:key="privacy_setting"
-        app:title="Privacy"
-        app:iconSpaceReserved="false"
-        >
-
         <SwitchPreferenceCompat
-            app:key="location"
-            app:title="Allow access to your Location"
+            app:key="sound_notification"
+            app:title="Sound"
             app:iconSpaceReserved="false"
-            app:summaryOn="On"
-            app:summaryOff="Off"
+            app:summaryOn="Sound On"
+            app:summaryOff="Sound Off"
             />
-
+        <SwitchPreferenceCompat
+            app:key="vibrate_notification"
+            app:title="Vibrate"
+            app:iconSpaceReserved="false"
+            app:summaryOn="Vibrate Mode On"
+            app:summaryOff="Vibrate Mode Off"
+            />
     </PreferenceCategory>
-
 
     <PreferenceCategory
         app:key="about"
