@@ -21,6 +21,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.ajal.arsocialmessaging.Banner;
+import com.ajal.arsocialmessaging.Message;
 import com.ajal.arsocialmessaging.MessageService;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.ServiceGenerator;
@@ -28,6 +29,7 @@ import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import retrofit2.Call;
@@ -50,8 +52,24 @@ public class MessageFragment extends Fragment {
     private void addBannerToDatabase(String postcode, String message){
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
+        // TODO: have some way of converting message chosen to messageId, currently just hardcoded to 1
+        HashMap<String, Integer> bannerData = new HashMap<>();
+        bannerData.put(postcode, 1);
+        Call<String> call1 = service.addBanner(bannerData);
+        call1.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
+                //String postResponse = response.body();
+                //Log.d("MYTAG", "Response: "+postResponse);
+                Log.d("MYTAG", "Got a response, error is "+response.errorBody()+" "+response.message());
+            }
 
-        // TODO: Execute POST to add banner to server
+            @Override
+            public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
+                Toast.makeText(getContext(), "onFailure called ", Toast.LENGTH_SHORT).show();
+                call.cancel();
+            }
+        });
     }
 
     /**

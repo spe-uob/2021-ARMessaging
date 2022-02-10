@@ -1,5 +1,6 @@
 package com.ajal.arsocialmessaging;
 
+import java.util.HashMap;
 import java.util.List;
 
 import retrofit2.Call;
@@ -17,6 +18,6 @@ public interface MessageService {
     Call<List<Banner>> getAllBanners();
 
     @POST("/addBanner")
-    Call<Void> addBanner(@Body String postcode, Integer messageId);
+    Call<String> addBanner(@Body HashMap<String, Integer> bannerData);
 
 }
