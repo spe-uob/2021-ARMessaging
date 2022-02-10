@@ -79,6 +79,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Semaphore;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
@@ -606,7 +607,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                 // Get the current pose of an Anchor in world space. The Anchor pose is updated
                 // during calls to session.update() as ARCore refines its estimate of the world.
 
-                anchor.getPose().makeTranslation(0, 30f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
+                anchor.getPose().makeTranslation(0, 30f + i*10f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
 
                 // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
                 Matrix.scaleM(modelMatrix, 0, 2f, 2f, 2f);
@@ -725,17 +726,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                     else {
                         pose = pose.compose(Pose.makeRotation(0, pose.qy(), 0, 1));
                     }
-
-                    // Shift the pose up by 5m for every virtualMessage
-                    pose = pose.compose(Pose.makeTranslation(0, anchors.size()*5f, 0));
+                    
+                    pose = pose.compose(Pose.makeTranslation(0, 0, 0));
                     Anchor anchor = session.createAnchor(pose);
 
-                    // if there are more anchors than messages, remove the first one
-                    // TODO: consider whether this is needed or not
-//                    if (anchors.size() > localVirtualMessages.size() - 1) {
-//                        anchors.get(0).detach();
-//                        anchors.remove(0);
-//                    }
                     anchors.add(anchor);
                 }
             }
