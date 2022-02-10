@@ -82,8 +82,8 @@ public class MainActivity extends AppCompatActivity {
                 List<Banner> allBanners = response.body();
                 assert allBanners != null;
                 // NOTE: use allBanners.get([INDEX]).[ATTRIBUTE] to extract banner data, as below
-                Log.d("MYTAG", "Response: "+allBanners.get(0).id+" "+allBanners.get(0).postcode+" "+allBanners.get(0).message+" "+allBanners.get(0).timestamp);
-                Log.d("MYTAG", "Response: "+allBanners.get(8).id+" "+allBanners.get(8).postcode+" "+allBanners.get(8).message+" "+allBanners.get(8).timestamp);
+                Log.d("MYTAG", "Response: "+allBanners.get(0).postcode+" "+allBanners.get(0).message+" "+allBanners.get(0).timestamp);
+                Log.d("MYTAG", "Response: "+allBanners.get(8).postcode+" "+allBanners.get(8).message+" "+allBanners.get(8).timestamp);
             }
             @Override
             public void onFailure(@NonNull Call<List<Banner>> call, @NonNull Throwable throwable) {

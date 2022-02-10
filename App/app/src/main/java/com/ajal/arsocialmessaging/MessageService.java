@@ -18,6 +18,6 @@ public interface MessageService {
     Call<List<Banner>> getAllBanners();
 
     @POST("/addBanner")
-    Call<String> addBanner(@Body HashMap<String, Integer> bannerData);
+    Call<String> addBanner(@Body Banner bannerData);
 
 }

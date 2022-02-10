@@ -53,9 +53,8 @@ public class MessageFragment extends Fragment {
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
         // TODO: have some way of converting message chosen to messageId, currently just hardcoded to 1
-        HashMap<String, Integer> bannerData = new HashMap<>();
-        bannerData.put(postcode, 1);
-        Call<String> call1 = service.addBanner(bannerData);
+        Banner bannerToSend = new Banner(postcode, 1);
+        Call<String> call1 = service.addBanner(bannerToSend);
         call1.enqueue(new Callback<String>() {
             @Override
             public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
