@@ -1,5 +1,7 @@
 package com.ajal.arsocialmessaging;
 
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.List;
 
@@ -18,6 +20,6 @@ public interface MessageService {
     Call<List<Banner>> getAllBanners();
 
     @POST("/addBanner")
-    Call<String> addBanner(@Body Banner bannerData);
+    Call<String> addBanner(@Body JSONObject bannerData);
 
 }

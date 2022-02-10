@@ -12,9 +12,4 @@ public class Banner {
         this.message = message;
         this.timestamp = timestamp;
     }
-
-    public Banner(String postcode, Integer message){
-        this.postcode = postcode;
-        this.message = message;
-    }
 }

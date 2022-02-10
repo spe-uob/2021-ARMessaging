@@ -27,6 +27,9 @@ import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.ServiceGenerator;
 import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -49,12 +52,14 @@ public class MessageFragment extends Fragment {
     private String postCode;
 
 
-    private void addBannerToDatabase(String postcode, String message){
+    private void addBannerToDatabase(String postcode, String message) throws JSONException {
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
         // TODO: have some way of converting message chosen to messageId, currently just hardcoded to 1
-        Banner bannerToSend = new Banner(postcode, 1);
-        Call<String> call1 = service.addBanner(bannerToSend);
+        JSONObject jsonBanner = new JSONObject();
+        jsonBanner.put("postcode", postcode);
+        jsonBanner.put("messageId", 1);
+        Call<String> call1 = service.addBanner(jsonBanner);
         call1.enqueue(new Callback<String>() {
             @Override
             public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
@@ -130,7 +135,11 @@ public class MessageFragment extends Fragment {
             public void onClick(View view) {
                 postCode = postCodeInput.getText().toString();
                 Toast.makeText(getContext(), postCode+": "+messageSelected, Toast.LENGTH_SHORT).show();
-                addBannerToDatabase(postCode, messageSelected);
+                try {
+                    addBannerToDatabase(postCode, messageSelected);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
