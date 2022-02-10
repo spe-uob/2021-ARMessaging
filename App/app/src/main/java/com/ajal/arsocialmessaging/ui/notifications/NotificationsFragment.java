@@ -2,7 +2,10 @@ package com.ajal.arsocialmessaging.ui.notifications;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -16,6 +19,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.Fragment;
 
+import com.ajal.arsocialmessaging.MainActivity;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentNotificationsBinding;
 
@@ -34,12 +38,21 @@ public class NotificationsFragment extends Fragment {
         createNotificationChannel();
 
         Button notifyBtn = (Button) root.findViewById(R.id.test_btn);
+        Intent intent = new Intent(this.getContext(), MainActivity.class);
+//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//        PendingIntent pendingIntent = PendingIntent.getActivity(this.getContext(), 0, intent, 0);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this.getContext());
+        stackBuilder.addNextIntentWithParentStack(intent);
+        PendingIntent pendingIntent =
+                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this.getContext(), "Channel1");
-        builder.setSmallIcon(R.drawable.ic_message_black_24dp);
-        builder.setContentTitle("Notification!!!");
-        builder.setContentText("You have successfully sent yourself a notification yayy.");
-        builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this.getContext(), "Channel1")
+                .setSmallIcon(R.drawable.ic_message_black_24dp)
+                .setContentTitle("Notification!!!")
+                .setContentText("You have successfully sent yourself a notification yayy.")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
         NotificationManagerCompat managerCompat = NotificationManagerCompat.from(this.getContext());
 
         Context ctx = this.getContext();
