@@ -36,9 +36,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ARSocialMessaging"
         android:usesCleartextTraffic="true">
-        <activity
-            android:name=".NotificationActivity"
-            android:exported="true" />
 
         <meta-data
             android:name="com.google.ar.core"

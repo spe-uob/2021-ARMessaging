@@ -18,7 +18,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import androidx.preference.ListPreference;
 
 import com.ajal.arsocialmessaging.databinding.ActivityMainBinding;
 
