@@ -23,6 +23,7 @@ public class DbServerApplication {
 
 	@RequestMapping("/addBanner")
 	public String addBanner(@RequestBody JSONObject bannerData) throws JSONException {
+		System.out.println("bannerData is "+bannerData);
 		String postcode = bannerData.getString("postcode");
 		Integer messageId = bannerData.getInt("messageId");
 		Banner newBanner = new Banner(postcode, messageId);
