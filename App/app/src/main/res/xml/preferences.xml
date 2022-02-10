@@ -39,19 +39,22 @@
         app:iconSpaceReserved="false"
         >
 
-        <SwitchPreference
-            app:key="@string/title_notifications"
-            app:title="Message notifications"
+        <Preference
+            app:key="manage_notification"
+            app:title="Manage Notifications"
             app:iconSpaceReserved="false"
-            app:summaryOn="On"
-            app:summaryOff="Off"
-            />
+            app:summary="Go to notification settings"
+            android:id="@+id/manage_notification"/>
+<!--            <intent android:action="android.intent.action.VIEW"-->
+<!--                android:data="Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS" />-->
+
+
         <SwitchPreferenceCompat
             app:key="sound_notification"
-            app:title="Sound"
+            app:title="Show preview"
             app:iconSpaceReserved="false"
-            app:summaryOn="Sound On"
-            app:summaryOff="Sound Off"
+            app:summaryOn="Message preview on"
+            app:summaryOff="Click to turn on message preview"
             />
         <SwitchPreferenceCompat
             app:key="vibrate_notification"

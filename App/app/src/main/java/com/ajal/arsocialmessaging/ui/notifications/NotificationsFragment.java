@@ -46,7 +46,7 @@ public class NotificationsFragment extends Fragment {
         PendingIntent pendingIntent =
                 stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this.getContext(), "Channel1")
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this.getContext(), "New Message")
                 .setSmallIcon(R.drawable.ic_message_black_24dp)
                 .setContentTitle("Notification!!!")
                 .setContentText("You have successfully sent yourself a notification yayy.")
@@ -55,14 +55,9 @@ public class NotificationsFragment extends Fragment {
                 .setAutoCancel(true);
         NotificationManagerCompat managerCompat = NotificationManagerCompat.from(this.getContext());
 
-        Context ctx = this.getContext();
 
-        notifyBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(ctx, "Button working", Toast.LENGTH_SHORT).show();
-                managerCompat.notify(1, builder.build());
-            }
+        notifyBtn.setOnClickListener(v -> {
+            managerCompat.notify(1, builder.build());
         });
 
         return root;
@@ -78,10 +73,10 @@ public class NotificationsFragment extends Fragment {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Channel1";
+            CharSequence name = "New Message";
             String description = "test notification";
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel("Channel1", name, importance);
+            NotificationChannel channel = new NotificationChannel("New Message", name, importance);
             channel.setDescription(description);
 
             NotificationManager notificationManager = this.getActivity().getSystemService(NotificationManager.class);
