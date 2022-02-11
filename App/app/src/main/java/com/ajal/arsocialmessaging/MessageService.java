@@ -20,6 +20,6 @@ public interface MessageService {
     Call<List<Banner>> getAllBanners();
 
     @POST("/addBanner")
-    Call<String> addBanner(@Body JSONObject bannerData);
+    Call<String> addBanner(@Body String bannerData);
 
 }
