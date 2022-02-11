@@ -1,7 +1,5 @@
 package ajal.arsocialmessaging.DBServer;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +20,11 @@ public class DbServerApplication {
 	BannersRepository bannersRepo;
 
 	@RequestMapping("/addBanner")
-	public String addBanner(@RequestParam("postcode") String postcode, @RequestParam("messageId") Integer messageId){
+	public String addBanner(@RequestParam("bannerData") String bannerData){
+		System.out.println("bannerData is "+bannerData);
+		int commaIndex = bannerData.indexOf(",");
+		String postcode = bannerData.substring(0 , commaIndex);
+		int messageId = Integer.parseInt(bannerData.substring(commaIndex+1));
 		Banner newBanner = new Banner(postcode, messageId);
 		bannersRepo.save(newBanner);
 		return "OK";

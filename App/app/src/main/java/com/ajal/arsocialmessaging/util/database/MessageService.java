@@ -4,9 +4,9 @@ import com.ajal.arsocialmessaging.util.database.Banner;
 import com.ajal.arsocialmessaging.util.database.Message;
 
 import java.util.List;
-
 import retrofit2.Call;
-import retrofit2.http.Body;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 
@@ -17,7 +17,8 @@ public interface MessageService {
     @GET("/getAllBanners")
     Call<List<Banner>> getAllBanners();
 
+    @FormUrlEncoded
     @POST("/addBanner")
-    Call<Void> addBanner(@Body String postcode, Integer messageId);
+    Call<String> addBanner(@Field("bannerData") String bannerData);
 
 }

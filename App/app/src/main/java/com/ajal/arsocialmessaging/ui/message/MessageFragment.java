@@ -16,20 +16,22 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
-import com.ajal.arsocialmessaging.util.database.MessageService;
 import com.ajal.arsocialmessaging.util.database.DBObserver;
+import com.ajal.arsocialmessaging.util.database.MessageService;
 import com.ajal.arsocialmessaging.util.database.Banner;
 import com.ajal.arsocialmessaging.util.database.DBHelper;
 import com.ajal.arsocialmessaging.util.database.Message;
-import com.ajal.arsocialmessaging.util.database.MessageService;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.util.database.ServiceGenerator;
 import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MessageFragment extends Fragment implements DBObserver {
 
@@ -41,16 +43,30 @@ public class MessageFragment extends Fragment implements DBObserver {
     private TextView postCodeInput;
     private Button sendBtn;
     private String messageSelected = "";
+    private int messageSelectedId = 1;
     private String postCode;
     private static final String TAG = "SkyWrite";
 
 
-
-    private void addBannerToDatabase(String postcode, String message){
+    private void addBannerToDatabase(String postcode){
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
+        String bannerData = postcode + "," + messageSelectedId;
+        Call<String> addBannerCall = service.addBanner(bannerData);
+        addBannerCall.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
+                Log.d("MYTAG", "Got a response, error is "+response.errorBody()+" "+response.message());
+                String postResponse = response.body();
+                Log.d("MYTAG", "Response: "+postResponse);
+            }
 
-        // TODO: Execute POST to add banner to server
+            @Override
+            public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
+                //Toast.makeText(getContext(), "onFailure called ", Toast.LENGTH_SHORT).show();
+                call.cancel();
+            }
+        });
     }
 
     /**
@@ -108,7 +124,7 @@ public class MessageFragment extends Fragment implements DBObserver {
             public void onClick(View view) {
                 postCode = postCodeInput.getText().toString();
                 Toast.makeText(getContext(), postCode+": "+messageSelected, Toast.LENGTH_SHORT).show();
-                addBannerToDatabase(postCode, messageSelected);
+                addBannerToDatabase(postCode);
             }
         });
 
@@ -132,6 +148,8 @@ public class MessageFragment extends Fragment implements DBObserver {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 messageSelected = parent.getItemAtPosition(position).toString();
+                Log.d("MYTAG", "Position in list is: "+position);
+                messageSelectedId = position+1;  // Offset by 1 since DB records start at 1 and positions start at 0
                 String text = postCodeInput.getText().toString();
                 setSendBtnAvailability(text);
             }
@@ -157,7 +175,6 @@ public class MessageFragment extends Fragment implements DBObserver {
 
     @Override
     public void onDestroyView() {
-        DBHelper.getInstance().clearObservers();
         super.onDestroyView();
         binding = null;
     }
