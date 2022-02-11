@@ -22,10 +22,11 @@ public class DbServerApplication {
 	BannersRepository bannersRepo;
 
 	@RequestMapping("/addBanner")
-	public String addBanner(@RequestBody JSONObject bannerData) throws JSONException {
+	public String addBanner(@RequestParam("bannerData") String bannerData){
 		System.out.println("bannerData is "+bannerData);
-		String postcode = bannerData.getString("postcode");
-		Integer messageId = bannerData.getInt("messageId");
+		int commaIndex = bannerData.indexOf(",");
+		String postcode = bannerData.substring(0 , commaIndex);
+		int messageId = Integer.parseInt(bannerData.substring(commaIndex+1));
 		Banner newBanner = new Banner(postcode, messageId);
 		bannersRepo.save(newBanner);
 		return "OK";
