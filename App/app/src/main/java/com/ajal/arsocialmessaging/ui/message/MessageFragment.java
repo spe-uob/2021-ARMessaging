@@ -63,7 +63,7 @@ public class MessageFragment extends Fragment implements DBObserver {
 
             @Override
             public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
-                Toast.makeText(getContext(), "onFailure called ", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getContext(), "onFailure called ", Toast.LENGTH_SHORT).show();
                 call.cancel();
             }
         });
