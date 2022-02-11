@@ -15,31 +15,25 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-
-import com.ajal.arsocialmessaging.Banner;
-import com.ajal.arsocialmessaging.Message;
-import com.ajal.arsocialmessaging.MessageService;
+import com.ajal.arsocialmessaging.util.ConnectivityHelper;
+import com.ajal.arsocialmessaging.util.database.DBObserver;
+import com.ajal.arsocialmessaging.util.database.MessageService;
+import com.ajal.arsocialmessaging.util.database.Banner;
+import com.ajal.arsocialmessaging.util.database.DBHelper;
+import com.ajal.arsocialmessaging.util.database.Message;
 import com.ajal.arsocialmessaging.R;
-import com.ajal.arsocialmessaging.ServiceGenerator;
+import com.ajal.arsocialmessaging.util.database.ServiceGenerator;
 import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MessageFragment extends Fragment {
+public class MessageFragment extends Fragment implements DBObserver {
 
     private FragmentMessageBinding binding;
 
@@ -49,14 +43,15 @@ public class MessageFragment extends Fragment {
     private TextView postCodeInput;
     private Button sendBtn;
     private String messageSelected = "";
+    private int messageSelectedId = 1;
     private String postCode;
+    private static final String TAG = "SkyWrite";
 
 
-    private void addBannerToDatabase(String postcode, String message) throws JSONException {
+    private void addBannerToDatabase(String postcode){
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
-        // TODO: have some way of converting message chosen to messageId, currently just hardcoded to 1
-        String bannerData = postcode + "," + "1";
+        String bannerData = postcode + "," + messageSelectedId;
         Call<String> call1 = service.addBanner(bannerData);
         call1.enqueue(new Callback<String>() {
             @Override
@@ -91,22 +86,18 @@ public class MessageFragment extends Fragment {
         binding = FragmentMessageBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        /** ListView code */
-        // Fills the ListView with messages
-        messages = Arrays.asList(getResources().getStringArray(R.array.messages));
-        listView = root.findViewById(R.id.list_view);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, messages);
-        listView.setAdapter(adapter);
+        // Check if network is available
+        if (!ConnectivityHelper.getInstance().isNetworkAvailable()) {
+            Toast.makeText(this.getContext(), "Network error. Please try again", Toast.LENGTH_SHORT);
+            return root;
+        }
 
-        // Sets a listener to figure out what item was clicked in list view
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                messageSelected = parent.getItemAtPosition(position).toString();
-                String text = postCodeInput.getText().toString();
-                setSendBtnAvailability(text);
-            }
-        });
+        // Request the server to load the results from the database
+        DBHelper dbHelper = DBHelper.getInstance();
+        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
+        DBHelper.getInstance().clearObservers();
+        dbHelper.registerObserver(this);
+        dbHelper.retrieveDBResults();
 
         /** Postcode button code */
         postCodeInput = root.findViewById(R.id.text_input_postcode);
@@ -133,15 +124,53 @@ public class MessageFragment extends Fragment {
             public void onClick(View view) {
                 postCode = postCodeInput.getText().toString();
                 Toast.makeText(getContext(), postCode+": "+messageSelected, Toast.LENGTH_SHORT).show();
-                try {
-                    addBannerToDatabase(postCode, messageSelected);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                addBannerToDatabase(postCode);
             }
         });
 
         return root;
+    }
+
+    @Override
+    public void onMessageSuccess(List<Message> result) {
+        Log.d(TAG, "Messages have been received");
+
+        /** ListView code */
+        // Fills the ListView with messages
+        View root = binding.getRoot();
+        messages = DBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
+        listView = root.findViewById(R.id.list_messagesToSend);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, messages);
+        listView.setAdapter(adapter);
+
+        // Sets a listener to figure out what item was clicked in list view
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                messageSelected = parent.getItemAtPosition(position).toString();
+                Log.d("MYTAG", "Position in list is: "+position);
+                messageSelectedId = position+1;  // Offset by 1 since DB records start at 1 and positions start at 0
+                String text = postCodeInput.getText().toString();
+                setSendBtnAvailability(text);
+            }
+        });
+    }
+
+    @Override
+    public void onMessageFailure() {
+        Log.e(TAG, "Error receiving messages");
+        Toast.makeText(this.getContext(), "Error receiving messages", Toast.LENGTH_SHORT);
+    }
+
+    @Override
+    public void onBannerSuccess(List<Banner> result) {
+        Log.d(TAG, "Banners have been received");
+    }
+
+    @Override
+    public void onBannerFailure() {
+        Log.e(TAG, "Error receiving messages");
+        Toast.makeText(this.getContext(), "Error receiving banners", Toast.LENGTH_SHORT);
     }
 
     @Override

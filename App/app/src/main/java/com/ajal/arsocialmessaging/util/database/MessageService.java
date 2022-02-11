@@ -1,4 +1,7 @@
-package com.ajal.arsocialmessaging;
+package com.ajal.arsocialmessaging.util.database;
+
+import com.ajal.arsocialmessaging.util.database.Banner;
+import com.ajal.arsocialmessaging.util.database.Message;
 
 import java.util.List;
 import retrofit2.Call;

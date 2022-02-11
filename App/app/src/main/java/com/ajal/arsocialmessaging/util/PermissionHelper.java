@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.ajal.arsocialmessaging.ui.home.common.helpers;
+package com.ajal.arsocialmessaging.util;
 
 import android.Manifest;
 import android.app.Activity;
@@ -21,23 +21,33 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.provider.Settings;
+import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-/** Helper to ask camera permission. */
-public final class CameraPermissionHelper {
-  private static final int CAMERA_PERMISSION_CODE = 0;
+import java.util.ArrayList;
+import java.util.List;
+
+/** Helper to ask camera permission.
+ * Needs to be a singleton so that it doesn't close the app if it is asking for permissions for the first time */
+public final class PermissionHelper {
+
+  private static final int PERMISSIONS_CODE = 0;
   private static final String REQUIRED_PERMISSIONS[] = {
           Manifest.permission.WRITE_EXTERNAL_STORAGE,
-          Manifest.permission.CAMERA
+          Manifest.permission.CAMERA,
+          Manifest.permission.ACCESS_FINE_LOCATION,
+          Manifest.permission.ACCESS_COARSE_LOCATION,
+          Manifest.permission.INTERNET
   };
+  private boolean permissionsRequested = false;
+
 
   /** Check to see we have the necessary permissions for this app. */
-  public static boolean hasCameraPermission(Activity activity) {
+  public static boolean hasPermissions(Activity activity) {
     for (String p : REQUIRED_PERMISSIONS) {
-      if (ContextCompat.checkSelfPermission(activity, p) !=
-              PackageManager.PERMISSION_GRANTED) {
+      if (ContextCompat.checkSelfPermission(activity, p) != PackageManager.PERMISSION_GRANTED) {
         return false;
       }
     }
@@ -45,9 +55,9 @@ public final class CameraPermissionHelper {
   }
 
   /** Check to see we have the necessary permissions for this app, and ask for them if we don't. */
-  public static void requestCameraPermission(Activity activity) {
+  public static void requestPermissions(Activity activity) {
     ActivityCompat.requestPermissions(activity, REQUIRED_PERMISSIONS,
-            CAMERA_PERMISSION_CODE);
+            PERMISSIONS_CODE);
   }
 
   /** Check to see if we need to show the rationale for this permission. */
@@ -58,6 +68,13 @@ public final class CameraPermissionHelper {
       }
     }
     return false;
+  }
+
+  public static void requestPermissionsIfDenied(Activity activity){
+    if (shouldShowRequestPermissionRationale(activity)) {
+      launchPermissionSettings(activity);
+      return;
+    }
   }
 
   /** Launch Application Setting to grant permission. */
