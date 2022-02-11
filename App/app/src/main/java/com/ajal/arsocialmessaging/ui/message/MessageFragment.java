@@ -52,8 +52,8 @@ public class MessageFragment extends Fragment implements DBObserver {
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
         String bannerData = postcode + "," + messageSelectedId;
-        Call<String> call1 = service.addBanner(bannerData);
-        call1.enqueue(new Callback<String>() {
+        Call<String> addBannerCall = service.addBanner(bannerData);
+        addBannerCall.enqueue(new Callback<String>() {
             @Override
             public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
                 Log.d("MYTAG", "Got a response, error is "+response.errorBody()+" "+response.message());
