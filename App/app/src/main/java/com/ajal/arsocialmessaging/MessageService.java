@@ -1,16 +1,11 @@
 package com.ajal.arsocialmessaging;
 
-import org.json.JSONObject;
-
-import java.util.HashMap;
 import java.util.List;
-
 import retrofit2.Call;
-import retrofit2.http.Body;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
-import retrofit2.http.Path;
-import retrofit2.http.Query;
 
 public interface MessageService {
     @GET("/getAllMessages")
@@ -19,7 +14,8 @@ public interface MessageService {
     @GET("/getAllBanners")
     Call<List<Banner>> getAllBanners();
 
+    @FormUrlEncoded
     @POST("/addBanner")
-    Call<String> addBanner(@Body String bannerData);
+    Call<String> addBanner(@Field("bannerData") String bannerData);
 
 }
