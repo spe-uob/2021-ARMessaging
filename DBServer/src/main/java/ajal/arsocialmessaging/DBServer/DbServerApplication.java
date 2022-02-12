@@ -1,18 +1,21 @@
 package ajal.arsocialmessaging.DBServer;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
+@EnableScheduling
 @RestController
 
 public class DbServerApplication {
@@ -70,6 +73,18 @@ public class DbServerApplication {
 			response.add(messageData);
 		}
 		return response;
+	}
+
+	@Scheduled(fixedRate = 3600000)
+	public void removeAfter24Hours() {
+		Timestamp now = new Timestamp(System.currentTimeMillis());
+		List<Map<String, String>> banners = getAllBanners();
+		for (Map<String, String> banner : banners) {
+			long difference = now.getTime() - Timestamp.valueOf(banner.get("timestamp")).getTime();
+			if (difference > TimeUnit.DAYS.toMillis(1)) {
+				deleteBanner(Integer.valueOf(banner.get("id")));
+			}
+		}
 	}
 
 	public static void main(String[] args){
