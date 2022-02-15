@@ -29,7 +29,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setPreferencesFromResource(R.xml.preferences, rootKey);
 
         SharedPreferences fontSize = getContext().getSharedPreferences(
-                getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+                getString(R.string.theme_id), Context.MODE_PRIVATE);
+        SharedPreferences darkMode = getContext().getSharedPreferences(
+                getString(R.string.dark_mode), Context.MODE_PRIVATE);
 
         final SeekBarPreference textSize = findPreference("text_size");
         final SwitchPreferenceCompat darkModeSwitch = findPreference("dark_mode");
@@ -54,22 +56,23 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             return true;
         });
 
-
-
-
-
-
-
-
         //Dark Mode
+        //TODO: fix bug -- dark mode should be on if the switch is on when we start the app.
         darkModeSwitch.setOnPreferenceChangeListener((preference, newValue) -> {
-            if (darkModeSwitch.isChecked()){
-                Toast.makeText(getContext(), "Dark mode off", Toast.LENGTH_SHORT).show();
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-            }else{
+            Boolean dm;
+            Boolean newValueBool = (Boolean) newValue;
+            if (newValueBool){
                 Toast.makeText(getContext(), "Dark mode On", Toast.LENGTH_SHORT).show();
+                dm = true;
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            }else{
+                Toast.makeText(getContext(), "Dark mode off", Toast.LENGTH_SHORT).show();
+                dm = false;
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             }
+            SharedPreferences.Editor editor = darkMode.edit();
+            editor.putBoolean("darkMode", dm);
+            editor.apply();
             return true;
         });
 
