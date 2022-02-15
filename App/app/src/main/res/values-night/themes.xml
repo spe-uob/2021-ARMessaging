@@ -12,19 +12,16 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-        <item name="textColor">#ffffff</item>
-        <item name="metaTextColor">#aeaeae</item>
-        <item name="bgColor">#000000</item>
     </style>
 
     <!-- For text change -->
-    <style name="FontSizeSmall">
+    <style name="FontSizeSmall" parent="Theme.Dark">
         <item name="android:textSize">12sp</item>
     </style>
-    <style name="FontSizeMedium">
+    <style name="FontSizeMedium" parent="Theme.Dark">
         <item name="android:textSize">16sp</item>
     </style>
-    <style name="FontSizeLarge">
+    <style name="FontSizeLarge" parent="Theme.Dark">
         <item name="android:textSize">20sp</item>
     </style>
 
