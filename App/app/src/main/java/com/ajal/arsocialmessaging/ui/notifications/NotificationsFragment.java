@@ -39,7 +39,7 @@ public class NotificationsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         createNotificationChannel();
 
-        Button notifyBtn = (Button) root.findViewById(R.id.test_btn);
+//        Button notifyBtn = (Button) root.findViewById(R.id.test_btn);
 
         // Direct to home page when clicking on notification.
         // TODO: Try directing to notification page when clicking.
@@ -60,9 +60,9 @@ public class NotificationsFragment extends Fragment {
         NotificationManagerCompat managerCompat = NotificationManagerCompat.from(this.getContext());
 
 
-        notifyBtn.setOnClickListener(v -> {
-            managerCompat.notify(1, builder.build());
-        });
+//        notifyBtn.setOnClickListener(v -> {
+//            managerCompat.notify(1, builder.build());
+//        });
 
         return root;
     }
