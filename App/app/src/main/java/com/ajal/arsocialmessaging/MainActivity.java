@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
 
-        if (darkM.getBoolean("darkMode", true)) {
+        if (darkM.getString("darkMode", "On") == "On") {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         theme.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                setTheme(theme.getInt("themeID", R.style.FontSizeMedium));
+                setTheme(sharedPreferences.getInt(key, R.style.FontSizeMedium));
             }
         });
 

@@ -57,21 +57,20 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         });
 
         //Dark Mode
-        //TODO: fix bug -- dark mode should be on if the switch is on when we start the app.
         darkModeSwitch.setOnPreferenceChangeListener((preference, newValue) -> {
-            Boolean dm;
+            String dm;
             Boolean newValueBool = (Boolean) newValue;
             if (newValueBool){
                 Toast.makeText(getContext(), "Dark mode On", Toast.LENGTH_SHORT).show();
-                dm = true;
+                dm = "On";
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
             }else{
                 Toast.makeText(getContext(), "Dark mode off", Toast.LENGTH_SHORT).show();
-                dm = false;
+                dm = "Off";
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             }
             SharedPreferences.Editor editor = darkMode.edit();
-            editor.putBoolean("darkMode", dm);
+            editor.putString("darkMode", dm);
             editor.apply();
             return true;
         });
