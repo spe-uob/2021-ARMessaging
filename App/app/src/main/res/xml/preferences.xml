@@ -50,7 +50,7 @@
 
 
         <SwitchPreferenceCompat
-            app:key="sound_notification"
+            app:key="show_preview"
             app:title="Show preview"
             app:iconSpaceReserved="false"
             app:summaryOn="Message preview on"

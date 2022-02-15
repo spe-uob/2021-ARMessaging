@@ -15,13 +15,13 @@
     </style>
 
     <!-- For text change -->
-    <style name="FontSizeSmall">
+    <style name="FontSizeSmall" parent="Theme.ARSocialMessaging">
         <item name="android:textSize">12sp</item>
     </style>
-    <style name="FontSizeMedium">
+    <style name="FontSizeMedium" parent="Theme.ARSocialMessaging">
         <item name="android:textSize">16sp</item>
     </style>
-    <style name="FontSizeLarge">
+    <style name="FontSizeLarge" parent="Theme.ARSocialMessaging">
         <item name="android:textSize">20sp</item>
     </style>
 

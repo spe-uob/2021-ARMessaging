@@ -1,7 +1,9 @@
 package com.ajal.arsocialmessaging.ui.settings;
 
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.CompoundButton;
@@ -26,44 +28,70 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.preferences, rootKey);
 
+        SharedPreferences fontSize = getContext().getSharedPreferences(
+                getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+
         final SeekBarPreference textSize = findPreference("text_size");
         final SwitchPreferenceCompat darkModeSwitch = findPreference("dark_mode");
-        Preference manageNotification = findPreference("manage_notification");
+        final Preference manageNotification = findPreference("manage_notification");
+        final SwitchPreferenceCompat showPreviewSwitch = findPreference("show_preview");
 
         //TODO: Font size change
-//        textSize.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-//            @Override
-//            public boolean onPreferenceChange(@NonNull Preference preference, Object newValue) {
-//                return false;
-//            }
-//        });
+        textSize.setUpdatesContinuously(true);
+        textSize.setOnPreferenceChangeListener((preference, newValue) -> {
+            Integer newValueInt = (Integer) newValue;;
+            int themeId = R.style.FontSizeMedium;
+            if (newValueInt == 0){
+                themeId = R.style.FontSizeSmall;
+            }else if(newValueInt == 1){
+                themeId = R.style.FontSizeMedium;
+            }else if(newValueInt == 2){
+                themeId = R.style.FontSizeLarge;
+            }
+            SharedPreferences.Editor editor = fontSize.edit();
+            editor.putInt("themeID", themeId);
+            editor.apply();
+            return true;
+        });
+
+
+
+
+
+
+
 
         //Dark Mode
-        darkModeSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(@NonNull Preference preference, Object newValue) {
-                if (darkModeSwitch.isChecked()){
-                    Toast.makeText(getContext(), "dark mode off", Toast.LENGTH_SHORT).show();
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                }else{
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                }
-                return true;
+        darkModeSwitch.setOnPreferenceChangeListener((preference, newValue) -> {
+            if (darkModeSwitch.isChecked()){
+                Toast.makeText(getContext(), "Dark mode off", Toast.LENGTH_SHORT).show();
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            }else{
+                Toast.makeText(getContext(), "Dark mode On", Toast.LENGTH_SHORT).show();
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
             }
+            return true;
         });
 
-        //TODO: Direct to system setting page
-        manageNotification.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(@NonNull Preference preference) {
-                Intent intent = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
-                intent.putExtra(Settings.EXTRA_APP_PACKAGE, BuildConfig.APPLICATION_ID);
-                intent.putExtra(Settings.EXTRA_CHANNEL_ID, "New Message");
-                startActivity(intent);
-                Toast.makeText(getContext(),"you clicked", Toast.LENGTH_SHORT).show();
-                return true;
-            }
+        //Direct to system setting page
+        manageNotification.setOnPreferenceClickListener(preference -> {
+            Intent intent = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, BuildConfig.APPLICATION_ID);
+            intent.putExtra(Settings.EXTRA_CHANNEL_ID, "New Message");
+            startActivity(intent);
+            return true;
         });
+
+        //TODO: Notification Preview
+        showPreviewSwitch.setOnPreferenceChangeListener((preference, newValue) -> {
+            if (showPreviewSwitch.isChecked()){
+                Toast.makeText(getContext(), "Message preview off.", Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(getContext(), "Message will be displayed on lock screen.", Toast.LENGTH_SHORT).show();
+            }
+            return true;
+        });
+        //TODO: Vibrate mode.
 
     }
 }
