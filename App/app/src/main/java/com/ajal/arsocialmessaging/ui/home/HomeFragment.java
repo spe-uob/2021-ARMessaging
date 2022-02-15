@@ -1,9 +1,9 @@
 package com.ajal.arsocialmessaging.ui.home;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.location.Location;
 import android.media.Image;
 import android.net.Uri;
 import android.opengl.GLES20;
@@ -22,13 +22,21 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.ajal.arsocialmessaging.util.ConnectivityHelper;
+import com.ajal.arsocialmessaging.util.database.DBObserver;
+import com.ajal.arsocialmessaging.util.database.Banner;
+import com.ajal.arsocialmessaging.util.database.DBHelper;
+import com.ajal.arsocialmessaging.util.database.Message;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
-import com.ajal.arsocialmessaging.ui.home.common.helpers.CameraPermissionHelper;
+import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
+import com.ajal.arsocialmessaging.util.location.GPSObserver;
+import com.ajal.arsocialmessaging.util.PermissionHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DepthSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DisplayRotationHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.SnackbarHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.TrackingStateHelper;
+import com.ajal.arsocialmessaging.ui.home.common.helpers.VirtualObjectRenderHelper;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Framebuffer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.GLError;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Mesh;
@@ -39,6 +47,7 @@ import com.ajal.arsocialmessaging.ui.home.common.samplerender.VertexBuffer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.arcore.BackgroundRenderer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.arcore.PlaneRenderer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.arcore.SpecularCubemapFilter;
+import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
@@ -69,7 +78,9 @@ import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.Semaphore;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
 
@@ -78,7 +89,7 @@ import java.util.HashMap;
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
  * plane to place a 3D model.
  */
-public class HomeFragment extends Fragment implements SampleRender.Renderer{
+public class HomeFragment extends Fragment implements SampleRender.Renderer, DBObserver, GPSObserver {
 
     private FragmentHomeBinding binding;
 
@@ -86,6 +97,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
 
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
     private static final String FOUND_PLANE_MESSAGE = "Look up to view message!";
+    private static final String NO_VIRTUAL_MESSAGES_MESSAGE = "This postcode has no messages";
+    private static final String IMG_SAVED_MESSAGE = "Image saved to storage!";
+
+    private static final String NETWORK_ERROR_MESSAGE = "Network error. Please try again";
+    private static final String LOCATION_ERROR_MESSAGE = "Location is unavailable error. Please try again";
 
     // See the definition of updateSphericalHarmonicsCoefficients for an explanation of these
     // constants.
@@ -133,10 +149,19 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     // was not changed.  Do this using the timestamp since we can't compare PointCloud objects.
     private long lastPointCloudTimestamp = 0;
 
-    // Virtual object (ARCore pawn)
-    private Mesh virtualObjectMesh;
-    private Shader virtualObjectShader;
+    // Virtual object
+    private List<Mesh> virtualObjectMeshesList;
+    private List<Shader> virtualObjectShadersList;
     private final ArrayList<Anchor> anchors = new ArrayList<>();
+    private List<VirtualMessage> localVirtualMessages = new ArrayList<>();
+    private List<Banner> globalBanners = new ArrayList<>();
+
+    // Messages, Banners and Location loading
+    private boolean messagesRetrieved = false;
+    private boolean bannersRetrieved = false;
+    private boolean locationRetrieved = false;
+    private boolean requiredDataRetrieved = false;
+    private Semaphore requiredDataMutex = new Semaphore(1);
 
     // Environmental HDR
     private Texture dfgTexture;
@@ -162,28 +187,27 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     // Boolean to only show tracked points and planes once when it has been found
     private boolean drawTracked = true;
 
+    // Location related attributes
+    private Location location;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+        super.onCreate(savedInstanceState);
+        surfaceView = root.findViewById(R.id.surfaceview);
+        displayRotationHelper = new DisplayRotationHelper(/*context=*/ this.getContext());
 
         // SkyWrite: add bottom navigation view to snackbar helper
         View bottomNavigation = super.getActivity().findViewById(R.id.nav_view);
         this.messageSnackbarHelper.setBottomNavigationView(bottomNavigation);
 
-        super.onCreate(savedInstanceState);
-        surfaceView = root.findViewById(R.id.surfaceview);
-        displayRotationHelper = new DisplayRotationHelper(/*context=*/ this.getContext());
-
         // Set up renderer.
         render = new SampleRender(surfaceView, this, this.getContext().getAssets());
 
         installRequested = false;
-
-        Activity activity = this.getActivity();
-        Context context = this.getContext();
 
         // SkyWrite: Set up button listener to take photo
         Button snapBtn = (Button) root.findViewById(R.id.snap_button);
@@ -194,11 +218,36 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             }
         });
 
+        // Check if network and location are available
+        if (!ConnectivityHelper.getInstance().isNetworkAvailable()
+                || !ConnectivityHelper.getInstance().isLocationAvailable()) {
+            return root;
+        }
+
+        // Request the server to load the results from the database
+        DBHelper dbHelper = DBHelper.getInstance();
+        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
+        dbHelper.clearObservers();
+        dbHelper.registerObserver(this);
+        dbHelper.retrieveDBResults();
+
+        PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
+        postcodeHelper.clearObservers();
+        postcodeHelper.registerObserver(this);
+
+        try {
+            requiredDataMutex.acquire(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         return root;
     }
 
     @Override
     public void onDestroyView() {
+        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
+        DBHelper.getInstance().clearObservers();
         if (session != null) {
             // Explicitly close ARCore Session to release native resources.
             // Review the API reference for important considerations before calling close() in apps with
@@ -207,6 +256,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             session.close();
             session = null;
             hasSetTextureNames = false; // needed to set the camera textures again when back button is pressed
+            virtualObjectMeshesList.clear();
+            virtualObjectShadersList.clear();
         }
 
         super.onDestroyView();
@@ -235,10 +286,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                         break;
                 }
 
-                // ARCore requires camera permissions to operate. If we did not yet obtain runtime
-                // permission on Android M and above, now is a good time to ask the user for it.
-                if (!CameraPermissionHelper.hasCameraPermission(this.getActivity())) {
-                    CameraPermissionHelper.requestCameraPermission(this.getActivity());
+                // Check that SkyWrite still has the correct permissions and if not, open the permissions page
+                if (!PermissionHelper.hasPermissions(this.getActivity())) {
+                    Toast.makeText(this.getContext(), "Permissions are needed to run this application", Toast.LENGTH_LONG).show();
+                    PermissionHelper.requestPermissionsIfDenied(this.getActivity());
                     return;
                 }
 
@@ -305,24 +356,15 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
-        super.onRequestPermissionsResult(requestCode, permissions, results);
-        if (!CameraPermissionHelper.hasCameraPermission(this.getActivity())) {
-            // Use toast instead of snackbar here since the activity will exit.
-            Toast.makeText(this.getContext(), "Camera permission is needed to run this application", Toast.LENGTH_LONG)
-                    .show();
-            if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this.getActivity())) {
-                // Permission denied with checking "Do not ask again".
-                CameraPermissionHelper.launchPermissionSettings(this.getActivity());
-            }
-            this.getActivity().finish();
-        }
-    }
-
-    @Override
     public void onSurfaceCreated(SampleRender render) {
         // Prepare the rendering objects. This involves reading shaders and 3D model files, so may throw
         // an IOException.
+        try {
+            requiredDataMutex.acquire(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         try {
             planeRenderer = new PlaneRenderer(render);
             backgroundRenderer = new BackgroundRenderer(render);
@@ -378,40 +420,21 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                     new Mesh(
                             render, Mesh.PrimitiveMode.POINTS, /*indexBuffer=*/ null, pointCloudVertexBuffers);
 
-            // Virtual object to render (text)
-            Texture virtualObjectAlbedoTexture =
-                    Texture.createFromAsset(
-                            render,
-                            "models/thank-you.png",
-                            Texture.WrapMode.CLAMP_TO_EDGE,
-                            Texture.ColorFormat.SRGB);
-            Texture virtualObjectPbrTexture =
-                    Texture.createFromAsset(
-                            render,
-                            "models/grey-texture.png",
-                            Texture.WrapMode.CLAMP_TO_EDGE,
-                            Texture.ColorFormat.LINEAR);
-            virtualObjectMesh = Mesh.createFromAsset(render, "models/thank-you.obj");
-            virtualObjectShader =
-                    Shader.createFromAssets(
-                            render,
-                            "shaders/environmental_hdr.vert",
-                            "shaders/environmental_hdr.frag",
-                            /*defines=*/ new HashMap<String, String>() {
-                                {
-                                    put(
-                                            "NUMBER_OF_MIPMAP_LEVELS",
-                                            Integer.toString(cubemapFilter.getNumberOfMipmapLevels()));
-                                }
-                            })
-                            .setTexture("u_AlbedoTexture", virtualObjectAlbedoTexture)
-                            .setTexture("u_RoughnessMetallicAmbientOcclusionTexture", virtualObjectPbrTexture)
-                            .setTexture("u_Cubemap", cubemapFilter.getFilteredCubemapTexture())
-                            .setTexture("u_DfgTexture", dfgTexture);
+            // Store the meshes and the shaders of every banner into the respective lists
+            virtualObjectMeshesList = new ArrayList<>();
+            virtualObjectShadersList = new ArrayList<>();
+            for (int i = 0; i < localVirtualMessages.size(); i++) {
+                VirtualMessage virtualMessage = localVirtualMessages.get(i);
+                virtualObjectMeshesList.add(VirtualObjectRenderHelper.renderVirtualObjectMesh(render, virtualMessage));
+                virtualObjectShadersList.add(VirtualObjectRenderHelper.renderVirtualObjectShader(render, virtualMessage, cubemapFilter, dfgTexture));
+            }
+
         } catch (IOException e) {
             Log.e(TAG, "Failed to read a required asset file", e);
             messageSnackbarHelper.showError(this.getActivity(), "Failed to read a required asset file: " + e);
         }
+
+        requiredDataMutex.release();
     }
 
     @Override
@@ -485,19 +508,30 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
             }
         }
 
-        // Handle one tap per frame.
-        handleAnchor(frame, camera);
+        // Handle the anchors
+        if (drawTracked) {
+            handleAnchor(frame, camera);
+        }
 
-        // Keep the screen unlocked while tracking, but allow it to lock when tracking stops.
-//        trackingStateHelper.updateKeepScreenOnFlag(camera.getTrackingState());
-
-        // Show a message based on whether tracking has failed, if planes are detected, and if the user
-        // has placed any objects.
-        String message = null;
+        /* Show a message based on whether:
+         * - tracking has failed,
+         * - planes are detected and models are drawn
+         * - there are no messages in the area
+         */
+        String message;
         if (capturePicture) {
             // SkyWrite: display message when image is saved
             // needs to be at the top of the if statements as it takes priority
-            message = "Image saved to storage!";
+            message = IMG_SAVED_MESSAGE;
+        } else if (!ConnectivityHelper.getInstance().isNetworkAvailable()) {
+            message = NETWORK_ERROR_MESSAGE;
+            drawTracked = false;
+        } else if (!ConnectivityHelper.getInstance().isLocationAvailable()) {
+            message = LOCATION_ERROR_MESSAGE;
+            drawTracked = false;
+        } else if (localVirtualMessages.size() == 0) {
+            message = NO_VIRTUAL_MESSAGES_MESSAGE;
+            drawTracked = false;
         } else if (camera.getTrackingState() == TrackingState.PAUSED) {
             if (camera.getTrackingFailureReason() == TrackingFailureReason.NONE) {
                 message = SEARCHING_PLANE_MESSAGE;
@@ -561,32 +595,33 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
                     projectionMatrix);
         }
 
-        // Update lighting parameters in the shader
-        updateLightEstimation(frame.getLightEstimate(), viewMatrix);
+        // Visualize models
+        if (virtualObjectShadersList.size() > 0) {
+            // Update lighting parameters in the shader
+            updateLightEstimation(frame.getLightEstimate(), viewMatrix);
+            render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
+            for (int i = 0; i < anchors.size(); i++) {
+                Anchor anchor = anchors.get(i);
+                if (anchor.getTrackingState() != TrackingState.TRACKING) {
+                    continue;
+                }
+                // Get the current pose of an Anchor in world space. The Anchor pose is updated
+                // during calls to session.update() as ARCore refines its estimate of the world.
 
-        // Visualize anchors created by touch.
-        render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
-        for (Anchor anchor : anchors) {
-            if (anchor.getTrackingState() != TrackingState.TRACKING) {
-                continue;
+                anchor.getPose().makeTranslation(0, 30f + i*5f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
+
+                // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
+                Matrix.scaleM(modelMatrix, 0, 2f, 2f, 2f);
+
+                // Calculate model/view/projection matrices
+                Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
+                Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
+
+                // Update shader properties and draw
+                virtualObjectShadersList.get(i).setMat4("u_ModelView", modelViewMatrix);
+                virtualObjectShadersList.get(i).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
+                render.draw(virtualObjectMeshesList.get(i), virtualObjectShadersList.get(i), virtualSceneFramebuffer);
             }
-            // Get the current pose of an Anchor in world space. The Anchor pose is updated
-            // during calls to session.update() as ARCore refines its estimate of the world.
-
-            anchor.getPose().makeTranslation(0, 30f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
-
-            // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
-            Matrix.scaleM(modelMatrix, 0, 2f, 2f, 2f);
-
-            // Calculate model/view/projection matrices
-            Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
-            Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
-
-            // Update shader properties and draw
-            virtualObjectShader.setMat4("u_ModelView", modelViewMatrix);
-            virtualObjectShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
-            render.draw(virtualObjectMesh, virtualObjectShader, virtualSceneFramebuffer);
-
         }
 
         // Compose the virtual scene with the background.
@@ -679,22 +714,27 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
      * @param camera
      */
     private void handleAnchor(Frame frame, Camera camera) {
+
         for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
             if (plane.getTrackingState() == TrackingState.TRACKING) {
-                Pose pose = plane.getCenterPose();
-                if (pose.qy() > 0) {
-                    pose = pose.compose(Pose.makeRotation(0, -pose.qy(), 0, 1));
-                } else {
-                    pose = pose.compose(Pose.makeRotation(0, pose.qy(), 0, 1));
+                while (anchors.size() < localVirtualMessages.size()) {
+                    Pose pose = plane.getCenterPose();
+
+                    // Change the rotation of the pose to face the camera
+                    if (pose.qy() > 0) {
+                        pose = pose.compose(Pose.makeRotation(0, -pose.qy(), 0, 1));
+                    }
+                    else {
+                        pose = pose.compose(Pose.makeRotation(0, pose.qy(), 0, 1));
+                    }
+                    
+                    pose = pose.compose(Pose.makeTranslation(0, 0, 0));
+                    Anchor anchor = session.createAnchor(pose);
+
+                    anchors.add(anchor);
                 }
-                Anchor anchor = session.createAnchor(pose);
-                if (anchors.size() > 0) {
-                    anchors.get(0).detach();
-                    anchors.remove(0);
-                }
-                anchors.add(anchor);
-                break;
             }
+            break;
         }
     }
 
@@ -711,14 +751,16 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
     /** Update state based on the current frame's light estimation. */
     private void updateLightEstimation(LightEstimate lightEstimate, float[] viewMatrix) {
         if (lightEstimate.getState() != LightEstimate.State.VALID) {
-            virtualObjectShader.setBool("u_LightEstimateIsValid", false);
+            for (Shader s : virtualObjectShadersList) {
+                s.setBool("u_LightEstimateIsValid", false);
+            }
             return;
         }
-        virtualObjectShader.setBool("u_LightEstimateIsValid", true);
-
-        Matrix.invertM(viewInverseMatrix, 0, viewMatrix, 0);
-        virtualObjectShader.setMat4("u_ViewInverse", viewInverseMatrix);
-
+        for (int i = 0; i < localVirtualMessages.size(); i++) {
+            virtualObjectShadersList.get(i).setBool("u_LightEstimateIsValid", true);
+            Matrix.invertM(viewInverseMatrix, 0, viewMatrix, 0);
+            virtualObjectShadersList.get(i).setMat4("u_ViewInverse", viewInverseMatrix);
+        }
         updateMainLight(
                 lightEstimate.getEnvironmentalHdrMainLightDirection(),
                 lightEstimate.getEnvironmentalHdrMainLightIntensity(),
@@ -734,8 +776,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         worldLightDirection[1] = direction[1];
         worldLightDirection[2] = direction[2];
         Matrix.multiplyMV(viewLightDirection, 0, viewMatrix, 0, worldLightDirection, 0);
-        virtualObjectShader.setVec4("u_ViewLightDirection", viewLightDirection);
-        virtualObjectShader.setVec3("u_LightIntensity", intensity);
+        for (Shader s : virtualObjectShadersList) {
+            s.setVec4("u_ViewLightDirection", viewLightDirection);
+            s.setVec3("u_LightIntensity", intensity);
+        }
     }
 
     private void updateSphericalHarmonicsCoefficients(float[] coefficients) {
@@ -762,8 +806,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         for (int i = 0; i < 9 * 3; ++i) {
             sphericalHarmonicsCoefficients[i] = coefficients[i] * sphericalHarmonicFactors[i / 3];
         }
-        virtualObjectShader.setVec3Array(
-                "u_SphericalHarmonicsCoefficients", sphericalHarmonicsCoefficients);
+        for (Shader s : virtualObjectShadersList) {
+            s.setVec3Array(
+                    "u_SphericalHarmonicsCoefficients", sphericalHarmonicsCoefficients);
+        }
     }
 
     /** Configures the session with feature settings. */
@@ -773,5 +819,82 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer{
         config.setDepthMode(Config.DepthMode.DISABLED);
         config.setInstantPlacementMode(Config.InstantPlacementMode.DISABLED);
         session.configure(config);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+    }
+
+    @Override
+    public void onMessageSuccess(List<Message> result) {
+        Log.d(TAG, "Messages have been received");
+        if (result == null) {
+            messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve messages. Please try restarting SkyWrite.");
+        }
+        else {
+            messagesRetrieved = true;
+            generateLocalVirtualMessages();
+        }
+    }
+
+    @Override
+    public void onMessageFailure() {
+        Log.e(TAG, "Error receiving messages");
+        messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve messages. Please try restarting SkyWrite.");
+        messagesRetrieved = true;
+        generateLocalVirtualMessages();
+    }
+
+    @Override
+    public void onBannerSuccess(List<Banner> result) {
+        Log.d(TAG, "Banners have been received");
+        if (result == null) {
+            messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve banners. Please try restarting SkyWrite.");
+        }
+        else {
+            globalBanners = result;
+            bannersRetrieved = true;
+            generateLocalVirtualMessages();
+        }
+    }
+
+    @Override
+    public void onBannerFailure() {
+        Log.e(TAG, "Error receiving banners");
+        messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve banners. Please try restarting SkyWrite.");
+        globalBanners = new ArrayList<>();
+        bannersRetrieved = true;
+        generateLocalVirtualMessages();
+    }
+
+    @Override
+    public void onLocationSuccess(Location location) {
+        this.location = location;
+        Log.d(TAG, "Location has been received");
+
+        if (location == null) {
+            messageSnackbarHelper.showError(this.getActivity(), "Cannot find location. Please try restarting SkyWrite.");
+        }
+        else {
+            locationRetrieved = true;
+            generateLocalVirtualMessages();
+        }
+    }
+
+    private void generateLocalVirtualMessages() {
+        if (messagesRetrieved && bannersRetrieved) {
+            // If the user switched fragments faster than the request is received (e.g. running Android tests),
+            // then this.getContext() will be null. As a result, this if statement is required
+            if (this.getContext() != null && locationRetrieved) {
+                // moved locationRetrieved here because if it was at the top, requiredDataMutex wouldn't be released
+                // if locationRetrieved == false
+                double latitude = location.getLatitude();
+                double longitude = location.getLongitude();
+                localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(this.getContext(), globalBanners, latitude, longitude);
+                requiredDataRetrieved = true;
+            }
+            requiredDataMutex.release();
+        }
     }
 }

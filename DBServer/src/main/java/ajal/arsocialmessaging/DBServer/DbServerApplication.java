@@ -1,18 +1,21 @@
 package ajal.arsocialmessaging.DBServer;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
+@EnableScheduling
 @RestController
 
 public class DbServerApplication {
@@ -22,7 +25,11 @@ public class DbServerApplication {
 	BannersRepository bannersRepo;
 
 	@RequestMapping("/addBanner")
-	public String addBanner(@RequestParam("postcode") String postcode, @RequestParam("messageId") Integer messageId){
+	public String addBanner(@RequestParam("bannerData") String bannerData){
+		System.out.println("bannerData is "+bannerData);
+		int commaIndex = bannerData.indexOf(",");
+		String postcode = bannerData.substring(0 , commaIndex);
+		int messageId = Integer.parseInt(bannerData.substring(commaIndex+1));
 		Banner newBanner = new Banner(postcode, messageId);
 		bannersRepo.save(newBanner);
 		return "OK";
@@ -44,7 +51,6 @@ public class DbServerApplication {
 		List<Map<String, String>> response = new ArrayList<>();
 		for(Banner banner: banners) {
 			HashMap<String, String> bannerData = new HashMap<>();
-			bannerData.put("id", banner.getId().toString());
 			bannerData.put("postcode", banner.getPostcode());
 			bannerData.put("message", banner.getMessage().toString());
 			bannerData.put("timestamp", banner.getTimestamp().toString());
@@ -52,7 +58,6 @@ public class DbServerApplication {
 		}
 		return response;
 	}
-
 
 	@RequestMapping(value = "/getAllMessages", method = RequestMethod.GET)
 	@ResponseBody
@@ -70,27 +75,17 @@ public class DbServerApplication {
 		return response;
 	}
 
-
-
-	/*
-	@RequestMapping(value = "/getAllMessages", method = RequestMethod.GET)
-	@ResponseBody
-	public String getAllMessages() throws JSONException {
-		System.out.println("received call to getMessages");
-		JSONObject response = new JSONObject();
-		Iterable<Message> messages = messagesRepo.findAll();
-		for(Message message: messages){
-			System.out.println("adding a new message to the json object");
-			response.put("Message", new JSONObject()
-					.put("id", message.getId().toString())
-					.put("message", message.getMessage())
-					.put("objfilename", message.getObjfilename()));
+	@Scheduled(fixedRate = 3600000)
+	public void removeAfter24Hours() {
+		Timestamp now = new Timestamp(System.currentTimeMillis());
+		List<Map<String, String>> banners = getAllBanners();
+		for (Map<String, String> banner : banners) {
+			long difference = now.getTime() - Timestamp.valueOf(banner.get("timestamp")).getTime();
+			if (difference > TimeUnit.DAYS.toMillis(1)) {
+				deleteBanner(Integer.valueOf(banner.get("id")));
+			}
 		}
-		return response.toString();
 	}
-
-	 */
-
 
 	public static void main(String[] args){
 		SpringApplication.run(DbServerApplication.class, args);

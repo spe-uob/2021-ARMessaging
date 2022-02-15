@@ -6,19 +6,6 @@
     <string name="title_settings">Settings</string>
     <string name="title_gallery">Gallery</string>
 
-    <!-- Messages to be displayed -->
-    <string-array name="messages">
-        <item>Hello, World!</item>
-        <item>Happy Birthday!</item>
-        <item>Merry Christmas!</item>
-        <item>Happy New Year!</item>
-        <item>Congratulations!</item>
-        <item>Good Luck!</item>
-        <item>Hope you feel better soon</item>
-        <item>Thank you!</item>
-        <item>Happy Halloween!</item>
-        <item>Happy Easter!</item>
-    </string-array>
     <string name="title_activity_settings">SettingsActivity</string>
 
     <!-- Preference Titles -->
@@ -35,6 +22,7 @@
     <string name="attachment_summary_on">Automatically download attachments for incoming emails
     </string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    
     <!-- Settings -->
     <string name="theme_id">themeID</string>
     <string name="dark_mode">darkMode</string>

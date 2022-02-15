@@ -1,7 +1,6 @@
-package com.ajal.arsocialmessaging.ui.gallery;
+package com.ajal.arsocialmessaging.util;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -10,6 +9,7 @@ import android.view.View;
 
 /**
  * Detects left and right swipes and single-tap on a view
+ * TODO: consider whether this class is still needed
  */
 public class OnSwipeTouchListener implements View.OnTouchListener {
 

@@ -1,5 +1,7 @@
 package com.ajal.arsocialmessaging.ui.settings;
 
+import android.location.Location;
+import android.os.Bundle;
 
 import android.content.Context;
 import android.content.Intent;
@@ -22,11 +24,11 @@ import androidx.preference.SwitchPreferenceCompat;
 import com.ajal.arsocialmessaging.BuildConfig;
 import com.ajal.arsocialmessaging.R;
 
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container, Bundle savedInstanceState) {
 
-public class SettingsFragment extends PreferenceFragmentCompat {
-    @Override
-    public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        setPreferencesFromResource(R.xml.preferences, rootKey);
+        binding = FragmentSettingsBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
 
         SharedPreferences fontSize = getContext().getSharedPreferences(
                 getString(R.string.theme_id), Context.MODE_PRIVATE);
@@ -96,4 +98,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         //TODO: Vibrate mode.
 
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
+
 }
