@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.ARSocialMessaging" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Theme.Dark" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">#5F95C1</item>
         <item name="colorPrimaryVariant">#4587BC</item>
@@ -13,4 +13,16 @@
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+
+    <!-- For text change -->
+    <style name="FontSizeSmall" parent="Theme.Dark">
+        <item name="android:textSize">12sp</item>
+    </style>
+    <style name="FontSizeMedium" parent="Theme.Dark">
+        <item name="android:textSize">16sp</item>
+    </style>
+    <style name="FontSizeLarge" parent="Theme.Dark">
+        <item name="android:textSize">20sp</item>
+    </style>
+
 </resources>

@@ -4,6 +4,31 @@ orbs:
   android: circleci/android@1.0.3
 
 jobs:
+  android-test:
+    working_directory: ~/repo/App
+    parameters:
+      system-image:
+        type: string
+        default: system-images;android-30;google_apis;x86
+    executor:
+      name: android/android-machine
+      resource-class: xlarge
+    steps:
+      - checkout
+      - android/start-emulator-and-run-tests:
+          test-command: ./gradlew connectedDebugAndroidTest
+          system-image: << parameters.system-image >>
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/build/outputs/androidTest-results/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit
+
   build:
     working_directory: ~/repo/App
     docker:
@@ -13,6 +38,8 @@ jobs:
     steps:
       - checkout:
           path: ~/repo
+      - android/restore-gradle-cache
+      - android/restore-build-cache
       - restore_cache:
           key: jars-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}
       - run:
