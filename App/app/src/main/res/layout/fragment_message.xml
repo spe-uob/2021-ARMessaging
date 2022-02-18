@@ -45,7 +45,7 @@
             android:id="@+id/text_input_postcode"
             android:layout_width="200dp"
             android:layout_height="60dp"
-            android:hint="Enter postcode here"
+            android:hint="Enter UK postcode"
             android:inputType="text" />
 
         <Button
