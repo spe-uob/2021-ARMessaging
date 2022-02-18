@@ -150,8 +150,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     private long lastPointCloudTimestamp = 0;
 
     // Virtual object
-    private List<Mesh> virtualObjectMeshesList;
-    private List<Shader> virtualObjectShadersList;
+    private List<Mesh> virtualObjectMeshesList = new ArrayList<>();
+    private List<Shader> virtualObjectShadersList = new ArrayList<>();
     private final ArrayList<Anchor> anchors = new ArrayList<>();
     private List<VirtualMessage> localVirtualMessages = new ArrayList<>();
     private List<Banner> globalBanners = new ArrayList<>();
