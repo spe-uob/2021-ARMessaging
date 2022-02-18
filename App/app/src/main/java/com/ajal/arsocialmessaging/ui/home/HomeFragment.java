@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -880,6 +881,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             locationRetrieved = true;
             generateLocalVirtualMessages();
         }
+
+        View root = binding.getRoot();
+        TextView postcodeTextView = root.findViewById(R.id.postcode_text_view);
+        String postcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
+        postcodeTextView.setText(postcodeTextView.getText() + postcode);
     }
 
     private void generateLocalVirtualMessages() {
