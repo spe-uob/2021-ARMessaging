@@ -249,6 +249,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     public void onDestroyView() {
         // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
         DBHelper.getInstance().clearObservers();
+        PostcodeHelper.getInstance().clearObservers();
         if (session != null) {
             // Explicitly close ARCore Session to release native resources.
             // Review the API reference for important considerations before calling close() in apps with
@@ -885,7 +886,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         View root = binding.getRoot();
         TextView postcodeTextView = root.findViewById(R.id.postcode_text_view);
         String postcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
-        postcodeTextView.setText(postcodeTextView.getText() + postcode);
+        postcodeTextView.setText("Postcode: "+postcode);
     }
 
     private void generateLocalVirtualMessages() {
