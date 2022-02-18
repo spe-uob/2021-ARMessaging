@@ -92,7 +92,7 @@ public class MessageFragment extends Fragment implements DBObserver {
             public void onClick(View view) {
                 String input = postCodeInput.getText().toString();
                 String formattedInput = PostcodeHelper.formatPostcode(postCodeInput.getText().toString());
-                if (PostcodeHelper.checkPostcodeValid(input)) {
+                if (PostcodeHelper.checkPostcodeValid(formattedInput)) {
                     postCode = formattedInput;
                     Toast.makeText(getContext(), "Sent \""+messageSelected+"\" to: "+postCode, Toast.LENGTH_SHORT).show();
                     addBannerToDatabase(postCode);
