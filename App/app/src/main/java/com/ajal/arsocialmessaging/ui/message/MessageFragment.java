@@ -25,6 +25,7 @@ import com.ajal.arsocialmessaging.util.database.Message;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.util.database.ServiceGenerator;
 import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
+import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,39 +47,6 @@ public class MessageFragment extends Fragment implements DBObserver {
     private int messageSelectedId = 1;
     private String postCode;
     private static final String TAG = "SkyWrite";
-
-
-    private void addBannerToDatabase(String postcode){
-        // Set up connection for app to talk to database via rest controller
-        MessageService service = ServiceGenerator.createService(MessageService.class);
-        String bannerData = postcode + "," + messageSelectedId;
-        Call<String> addBannerCall = service.addBanner(bannerData);
-        addBannerCall.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
-                Log.d("MYTAG", "Got a response, error is "+response.errorBody()+" "+response.message());
-                String postResponse = response.body();
-                Log.d("MYTAG", "Response: "+postResponse);
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
-                //Toast.makeText(getContext(), "onFailure called ", Toast.LENGTH_SHORT).show();
-                call.cancel();
-            }
-        });
-    }
-
-    /**
-     * Enables/disables the send button, depending on postCode and messageSelected
-     */
-    private void setSendBtnAvailability(String text) {
-        if(!text.isEmpty() && !messageSelected.isEmpty()){
-            sendBtn.setEnabled(true);
-        } else {
-            sendBtn.setEnabled(false);
-        }
-    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -122,13 +90,52 @@ public class MessageFragment extends Fragment implements DBObserver {
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                postCode = postCodeInput.getText().toString();
-                Toast.makeText(getContext(), postCode+": "+messageSelected, Toast.LENGTH_SHORT).show();
-                addBannerToDatabase(postCode);
+                String input = postCodeInput.getText().toString();
+                String formattedInput = PostcodeHelper.formatPostcode(postCodeInput.getText().toString());
+                if (PostcodeHelper.checkPostcodeValid(input)) {
+                    postCode = formattedInput;
+                    Toast.makeText(getContext(), "Sent \""+messageSelected+"\" to: "+postCode, Toast.LENGTH_SHORT).show();
+                    addBannerToDatabase(postCode);
+                }
+                else {
+                    Toast.makeText(getContext(), "Invalid postcode: "+input, Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
         return root;
+    }
+
+    /**
+     * Enables/disables the send button, depending on postCode and messageSelected
+     */
+    private void setSendBtnAvailability(String text) {
+        if(!text.isEmpty() && !messageSelected.isEmpty()){
+            sendBtn.setEnabled(true);
+        } else {
+            sendBtn.setEnabled(false);
+        }
+    }
+
+    private void addBannerToDatabase(String postcode){
+        // Set up connection for app to talk to database via rest controller
+        MessageService service = ServiceGenerator.createService(MessageService.class);
+        String bannerData = postcode + "," + messageSelectedId;
+        Call<String> addBannerCall = service.addBanner(bannerData);
+        addBannerCall.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
+                Log.d("MYTAG", "Got a response, error is "+response.errorBody()+" "+response.message());
+                String postResponse = response.body();
+                Log.d("MYTAG", "Response: "+postResponse);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
+                //Toast.makeText(getContext(), "onFailure called ", Toast.LENGTH_SHORT).show();
+                call.cancel();
+            }
+        });
     }
 
     @Override
