@@ -3,16 +3,15 @@ package com.ajal.arsocialmessaging.ui.home.common;
 // Note: this is only temporary and will be removed when the database is fully implemented
 
 import com.ajal.arsocialmessaging.util.database.Banner;
+import com.ajal.arsocialmessaging.util.database.Message;
 
 public class VirtualMessage {
     private String albedoTexture;
     private String pbrTexture;
     private String objfilename;
-    private String postcode;
 
-    public VirtualMessage(Banner b) {
-        this.postcode = b.getPostcode();
-        setFiles(b.getMessage());
+    public VirtualMessage(Message message) {
+        setFiles(message.getId());
     }
 
     public void setFiles(int messageId) {
@@ -60,9 +59,5 @@ public class VirtualMessage {
 
     public String getObjfilename() {
         return this.objfilename;
-    }
-
-    public String getPostCode() {
-        return this.postcode;
     }
 }

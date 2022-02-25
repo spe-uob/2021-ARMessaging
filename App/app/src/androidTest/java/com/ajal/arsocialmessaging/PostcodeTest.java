@@ -58,13 +58,14 @@ public class PostcodeTest {
     @Test
     public void test_ReturnsZeroLocalBanners() {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        String postcode = "BS8 1DS";
         List<Banner> globalBanners = new ArrayList<>();
         Banner virtualMessage1 = new Banner("BS8 1LN", 1, "2000-01-01 00:00:00.000000"); // Richmond Building (Bristol SU)
         Banner virtualMessage2 = new Banner("BS8 1LN", 2, "2000-01-01 00:00:00.000000"); // Richmond Building (Bristol SU)
         globalBanners.add(virtualMessage1);
         globalBanners.add(virtualMessage2);
 
-        List<VirtualMessage> localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(appContext, globalBanners, 51.4559275, -2.6031669);
+        List<VirtualMessage> localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(appContext, globalBanners, postcode);
         assertEquals(0, localVirtualMessages.size());
     }
 
@@ -78,7 +79,7 @@ public class PostcodeTest {
         globalBanners.add(banner1);
         globalBanners.add(banner2);
 
-        List<VirtualMessage> localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(appContext, globalBanners, 51.4559275, -2.6031669);
+        List<VirtualMessage> localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(appContext, globalBanners, postcode);
         assertEquals(1, localVirtualMessages.size());
         assertEquals(postcode, localVirtualMessages.get(0).getPostCode());
     }
@@ -95,7 +96,7 @@ public class PostcodeTest {
         globalBanners.add(banner2);
         globalBanners.add(banner3);
 
-        List<VirtualMessage> localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(appContext, globalBanners, 51.4559275, -2.6031669);
+        List<VirtualMessage> localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(appContext, globalBanners, postcode);
         assertEquals(2, localVirtualMessages.size());
         assertEquals(postcode, localVirtualMessages.get(0).getPostCode());
         assertEquals(postcode, localVirtualMessages.get(1).getPostCode());

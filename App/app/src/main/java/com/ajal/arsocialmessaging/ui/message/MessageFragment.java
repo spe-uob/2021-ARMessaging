@@ -117,7 +117,7 @@ public class MessageFragment extends Fragment implements DBObserver {
         }
     }
 
-    private void addBannerToDatabase(String postcode){
+    private void addBannerToDatabase(String postcode) {
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
         String bannerData = postcode + "," + messageSelectedId;

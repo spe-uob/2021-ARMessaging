@@ -79,6 +79,7 @@ import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
@@ -154,10 +155,12 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     private List<Mesh> virtualObjectMeshesList = new ArrayList<>();
     private List<Shader> virtualObjectShadersList = new ArrayList<>();
     private final ArrayList<Anchor> anchors = new ArrayList<>();
-    private List<VirtualMessage> localVirtualMessages = new ArrayList<>();
+    private List<VirtualMessage> virtualMessages = new ArrayList<>();
+    private List<Integer> localVirtualMessages = new ArrayList<>();
     private List<Banner> globalBanners = new ArrayList<>();
 
     // Messages, Banners and Location loading
+    private List<Message> messages;
     private boolean messagesRetrieved = false;
     private boolean bannersRetrieved = false;
     private boolean locationRetrieved = false;
@@ -190,6 +193,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
 
     // Location related attributes
     private Location location;
+    private String postcode;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -422,11 +426,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                     new Mesh(
                             render, Mesh.PrimitiveMode.POINTS, /*indexBuffer=*/ null, pointCloudVertexBuffers);
 
-            // Store the meshes and the shaders of every banner into the respective lists
+            // Store the meshes and the shaders of every message into the respective lists
             virtualObjectMeshesList = new ArrayList<>();
             virtualObjectShadersList = new ArrayList<>();
-            for (int i = 0; i < localVirtualMessages.size(); i++) {
-                VirtualMessage virtualMessage = localVirtualMessages.get(i);
+            for (int i = 0; i < messages.size(); i++) {
+                VirtualMessage virtualMessage = new VirtualMessage(messages.get(i));
                 virtualObjectMeshesList.add(VirtualObjectRenderHelper.renderVirtualObjectMesh(render, virtualMessage));
                 virtualObjectShadersList.add(VirtualObjectRenderHelper.renderVirtualObjectShader(render, virtualMessage, cubemapFilter, dfgTexture));
             }
@@ -542,8 +546,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             } else {
                 message = TrackingStateHelper.getTrackingFailureReasonString(camera);
             }
-        } else if (hasTrackingPlane()) {
+        } else if (hasTrackingPlane() && requiredDataRetrieved) {
             message = FOUND_PLANE_MESSAGE;
+            Log.d(TAG, virtualObjectShadersList.size()+","+anchors.size());
             drawTracked = false;
         } else {
             message = SEARCHING_PLANE_MESSAGE;
@@ -598,7 +603,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         }
 
         // Visualize models
-        if (virtualObjectShadersList.size() > 0) {
+        if (localVirtualMessages.size() > 0) {
             // Update lighting parameters in the shader
             updateLightEstimation(frame.getLightEstimate(), viewMatrix);
             render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
@@ -620,9 +625,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                 Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
 
                 // Update shader properties and draw
-                virtualObjectShadersList.get(i).setMat4("u_ModelView", modelViewMatrix);
-                virtualObjectShadersList.get(i).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
-                render.draw(virtualObjectMeshesList.get(i), virtualObjectShadersList.get(i), virtualSceneFramebuffer);
+                int objectId = localVirtualMessages.get(i);
+                virtualObjectShadersList.get(objectId).setMat4("u_ModelView", modelViewMatrix);
+                virtualObjectShadersList.get(objectId).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
+                render.draw(virtualObjectMeshesList.get(objectId), virtualObjectShadersList.get(objectId), virtualSceneFramebuffer);
             }
         }
 
@@ -759,9 +765,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             return;
         }
         for (int i = 0; i < localVirtualMessages.size(); i++) {
-            virtualObjectShadersList.get(i).setBool("u_LightEstimateIsValid", true);
+            int objectId = localVirtualMessages.get(i);
+            virtualObjectShadersList.get(objectId).setBool("u_LightEstimateIsValid", true);
             Matrix.invertM(viewInverseMatrix, 0, viewMatrix, 0);
-            virtualObjectShadersList.get(i).setMat4("u_ViewInverse", viewInverseMatrix);
+            virtualObjectShadersList.get(objectId).setMat4("u_ViewInverse", viewInverseMatrix);
         }
         updateMainLight(
                 lightEstimate.getEnvironmentalHdrMainLightDirection(),
@@ -836,6 +843,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         }
         else {
             messagesRetrieved = true;
+            messages = result; // used to generate virtualObject lists
             generateLocalVirtualMessages();
         }
     }
@@ -879,13 +887,13 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             messageSnackbarHelper.showError(this.getActivity(), "Cannot find location. Please try restarting SkyWrite.");
         }
         else {
+            postcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
             locationRetrieved = true;
             generateLocalVirtualMessages();
         }
 
         View root = binding.getRoot();
         TextView postcodeTextView = root.findViewById(R.id.postcode_text_view);
-        String postcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
         postcodeTextView.setText("Postcode: "+postcode);
     }
 
@@ -894,11 +902,14 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             // If the user switched fragments faster than the request is received (e.g. running Android tests),
             // then this.getContext() will be null. As a result, this if statement is required
             if (this.getContext() != null && locationRetrieved) {
-                // moved locationRetrieved here because if it was at the top, requiredDataMutex wouldn't be released
-                // if locationRetrieved == false
-                double latitude = location.getLatitude();
-                double longitude = location.getLongitude();
-                localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(this.getContext(), globalBanners, latitude, longitude);
+                // moved locationRetrieved into inner if statement because if it was at the to
+                // requiredDataMutex wouldn't be released if locationRetrieved == false
+                localVirtualMessages.clear();
+                for (Banner b : globalBanners) {
+                    if (b.getPostcode().equals(postcode)) {
+                        localVirtualMessages.add(b.getMessage() - 1);
+                    }
+                }
                 requiredDataRetrieved = true;
             }
             requiredDataMutex.release();

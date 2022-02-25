@@ -81,18 +81,6 @@ public class PostcodeHelper implements LocationListener {
         }
     }
 
-    public static List<VirtualMessage> getLocalVirtualMessages(Context ctx, List<Banner> globalBanners, double latitude, double longitude) {
-        List<VirtualMessage> result = new ArrayList<>();
-        String currentPostcode = PostcodeHelper.getPostCode(ctx, latitude, longitude);
-        for (Banner b : globalBanners) {
-            if (b.getPostcode().equals(currentPostcode)) {
-                VirtualMessage virtualMessage = new VirtualMessage(b);
-                result.add(virtualMessage);
-            }
-        }
-        return result;
-    }
-
     public static String formatPostcode(String input) {
         String postcode = input.toUpperCase(Locale.ROOT);
         postcode = postcode.replace(" ", ""); // removes any spaces
