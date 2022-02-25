@@ -1,15 +1,15 @@
 package com.ajal.arsocialmessaging;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Toast;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
 import com.ajal.arsocialmessaging.util.PermissionHelper;
@@ -42,6 +42,11 @@ public class MainActivity extends AppCompatActivity {
             PermissionHelper.requestPermissions(this);
         }
         else {
+            // Setting up Notification service
+            if (!isMyServiceRunning(NotificationService.class)) {
+                startService(new Intent(this, NotificationService.class));
+            }
+
             ConnectivityHelper.getInstance().setMainActivity(this);
             // Initiate the location updates request if location is available
             Context ctx = this.getApplicationContext();
@@ -176,6 +181,16 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
+    }
+
+    private boolean isMyServiceRunning(Class serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

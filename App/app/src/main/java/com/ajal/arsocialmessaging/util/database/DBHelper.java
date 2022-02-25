@@ -16,6 +16,7 @@ public class DBHelper {
     private List<Message> messages;
     private List<Banner> banners;
     private List<DBObserver> observers = new ArrayList<>();
+    private DBObserver notificationObserver;
     private static DBHelper instance = new DBHelper();
 
     public static DBHelper getInstance() {
@@ -78,6 +79,11 @@ public class DBHelper {
         }
     }
 
+    public void setNotificationObserver(DBObserver observer) {
+        this.notificationObserver = observer;
+        this.observers.add(notificationObserver);
+    }
+
     public void setMessages(boolean success, List<Message> messages) {
         this.messages = messages;
         if (success) {
@@ -118,5 +124,12 @@ public class DBHelper {
     // you switch between fragments that implement ApiCallback
     public void clearObservers() {
         this.observers.clear();
+        if (notificationObserver != null) {
+            this.observers.add(notificationObserver); // will always need the notification observer
+        }
+    }
+
+    public int getNumOfObservers() {
+        return this.observers.size();
     }
 }

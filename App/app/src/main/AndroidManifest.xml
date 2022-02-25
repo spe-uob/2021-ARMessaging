@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:required="true"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:required="true"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" android:required="true"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" android:required="true"/>
     <uses-feature android:name="android.hardware.location.gps" />
     <uses-feature android:glEsVersion="0x00020000" android:required="true" />
 
@@ -25,6 +26,12 @@
         android:hardwareAccelerated="false"
         android:largeHeap="true"
         android:usesCleartextTraffic="true">
+        <service android:name=".NotificationService"/> <!-- allows you to run the notification service -->
+        <receiver
+            android:name=".RestartNotificationService"
+
+            >
+        </receiver>
 
         <meta-data android:name="com.google.ar.core" android:value="required" />
 
