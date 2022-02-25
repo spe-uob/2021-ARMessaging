@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PostcodeHelper implements LocationListener {
 
@@ -89,5 +91,25 @@ public class PostcodeHelper implements LocationListener {
             }
         }
         return result;
+    }
+
+    public static String formatPostcode(String input) {
+        String postcode = input.toUpperCase(Locale.ROOT);
+        postcode = postcode.replace(" ", ""); // removes any spaces
+
+        int x = postcode.length() - 3;
+        String outcode = postcode.substring(0, x);
+        String incode = postcode.substring(x);
+        postcode = outcode + " " + incode;
+
+        return postcode;
+    }
+
+    public static boolean checkPostcodeValid(String input) {
+        // REFERENCE: https://howtodoinjava.com/java/regex/uk-postcode-validation/ 18/02/2022 16:46
+        String regex = "^[A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][ABD-HJLNP-UW-Z]{2}$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(input);
+        return matcher.matches();
     }
 }
