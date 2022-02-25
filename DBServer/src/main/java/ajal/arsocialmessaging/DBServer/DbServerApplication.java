@@ -82,6 +82,7 @@ public class DbServerApplication {
 		for (Map<String, String> banner : banners) {
 			long difference = now.getTime() - Timestamp.valueOf(banner.get("timestamp")).getTime();
 			if (difference > TimeUnit.DAYS.toMillis(1)) {
+				System.out.println(banner.get("id"));
 				deleteBanner(Integer.valueOf(banner.get("id")));
 			}
 		}
