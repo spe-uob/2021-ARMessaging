@@ -150,8 +150,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     private long lastPointCloudTimestamp = 0;
 
     // Virtual object
-    private List<Mesh> virtualObjectMeshesList;
-    private List<Shader> virtualObjectShadersList;
+    private List<Mesh> virtualObjectMeshesList = new ArrayList<>();
+    private List<Shader> virtualObjectShadersList = new ArrayList<>();
     private final ArrayList<Anchor> anchors = new ArrayList<>();
     private List<VirtualMessage> localVirtualMessages = new ArrayList<>();
     private List<Banner> globalBanners = new ArrayList<>();
@@ -256,6 +256,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             session.close();
             session = null;
             hasSetTextureNames = false; // needed to set the camera textures again when back button is pressed
+            virtualObjectMeshesList.clear();
+            virtualObjectShadersList.clear();
         }
 
         super.onDestroyView();
@@ -593,11 +595,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                     projectionMatrix);
         }
 
-        // Update lighting parameters in the shader
-        updateLightEstimation(frame.getLightEstimate(), viewMatrix);
-
         // Visualize models
         if (virtualObjectShadersList.size() > 0) {
+            // Update lighting parameters in the shader
+            updateLightEstimation(frame.getLightEstimate(), viewMatrix);
             render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
             for (int i = 0; i < anchors.size(); i++) {
                 Anchor anchor = anchors.get(i);
@@ -607,7 +608,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                 // Get the current pose of an Anchor in world space. The Anchor pose is updated
                 // during calls to session.update() as ARCore refines its estimate of the world.
 
-                anchor.getPose().makeTranslation(0, 30f + i*10f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
+                anchor.getPose().makeTranslation(0, 30f + i*5f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
 
                 // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
                 Matrix.scaleM(modelMatrix, 0, 2f, 2f, 2f);
