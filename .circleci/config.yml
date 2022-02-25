@@ -12,7 +12,7 @@ jobs:
         default: system-images;android-30;google_apis;x86
     executor:
       name: android/android-machine
-      resource-class: xlarge
+      resource-class: medium
     steps:
       - checkout
       - android/start-emulator-and-run-tests:
