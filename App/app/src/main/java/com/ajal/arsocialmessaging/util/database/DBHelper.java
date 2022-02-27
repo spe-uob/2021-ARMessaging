@@ -81,7 +81,9 @@ public class DBHelper {
 
     public void setNotificationObserver(DBObserver observer) {
         this.notificationObserver = observer;
-        this.observers.add(notificationObserver);
+        if (observer != null) {
+            this.observers.add(notificationObserver);
+        }
     }
 
     public void setMessages(boolean success, List<Message> messages) {
