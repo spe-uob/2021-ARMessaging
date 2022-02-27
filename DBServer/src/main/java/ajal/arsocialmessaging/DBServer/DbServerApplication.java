@@ -1,8 +1,10 @@
 package ajal.arsocialmessaging.DBServer;
 
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
@@ -85,6 +87,33 @@ public class DbServerApplication {
 				deleteBanner(Integer.valueOf(banner.get("id")));
 			}
 		}
+	}
+
+	/**
+	 * Sets up the Messages repository with messages
+	 * @return
+	 * @throws Exception
+	 */
+	@Bean
+	public CommandLineRunner run() throws Exception {
+		return (String[] args) -> {
+			messagesRepo.deleteAll();
+
+			List<Map<String, String>> messagesInServer = getAllMessages();
+			int x = messagesInServer.size();
+			Message msg1 = new Message(x+1, "Happy Birthday", "happy-birthday.obj");
+			Message msg2 = new Message(x+2, "Merry Christmas", "merry-christmas.obj");
+			Message msg3 = new Message(x+3, "Congratulations", "congratulations.obj");
+			Message msg4 = new Message(x+4, "Good luck", "good-luck.obj");
+			Message msg5 = new Message(x+5, "Hope you feel better soon!", "feel-better.obj");
+			Message msg6 = new Message(x+6, "Thank you", "thank-you.obj");
+			Message[] messages = {msg1, msg2, msg3, msg4, msg5, msg6};
+
+			for (Message msg : messages) {
+				messagesRepo.save(msg);
+			}
+			messagesRepo.findAll().forEach(msg -> System.out.println(msg));
+		};
 	}
 
 	public static void main(String[] args){

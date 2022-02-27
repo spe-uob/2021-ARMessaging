@@ -12,7 +12,7 @@
 	<artifactId>DBServer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>DBServer</name>
-	<description>Spring Boot application for skyWriteDB</description>
+	<description>Spring Boot application for SkyWriteDB</description>
 	<properties>
 		<java.version>11</java.version>
 	</properties>
