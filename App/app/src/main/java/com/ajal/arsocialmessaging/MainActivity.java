@@ -43,9 +43,7 @@ public class MainActivity extends AppCompatActivity {
         }
         else {
             // Setting up Notification service
-            if (!isMyServiceRunning(NotificationService.class)) {
-                startService(new Intent(this, NotificationService.class));
-            }
+            // TODO: set up Firebase Client here
 
             ConnectivityHelper.getInstance().setMainActivity(this);
             // Initiate the location updates request if location is available
