@@ -47,8 +47,6 @@ public class DbServerApplication {
 		bannersRepo.save(newBanner);
 
 		// Send a notification to every user
-		// TODO: switch to send a message so that the client can check whether to display notification or not
-		// https://firebase.google.com/docs/cloud-messaging/send-message
 		try {
 			sendNotification(postcode);
 		} catch (FirebaseMessagingException e) {
@@ -176,11 +174,8 @@ public class DbServerApplication {
 		return registrationTokens;
 	}
 
-	/**
-	 * Sets up the Messages repository with messages
-	 * @return
-	 * @throws Exception
-	 */
+
+	// Sets up the Messages repository with messages
 	@Bean
 	public CommandLineRunner run() throws Exception {
 		setupNotifications();
