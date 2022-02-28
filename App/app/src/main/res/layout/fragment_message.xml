@@ -13,6 +13,7 @@
         android:layout_height="wrap_content"
         android:text="Choose a message:"
         android:textSize="20sp"
+        android:layout_marginTop="70dp"
         app:layout_constraintBottom_toTopOf="@+id/list_messagesToSend"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
