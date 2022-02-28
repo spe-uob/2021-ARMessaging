@@ -1,9 +1,9 @@
 package com.ajal.arsocialmessaging;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -11,15 +11,15 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
-import com.ajal.arsocialmessaging.util.database.MessageService;
-import com.ajal.arsocialmessaging.util.database.ServiceGenerator;
+import com.ajal.arsocialmessaging.util.database.Banner;
+import com.ajal.arsocialmessaging.util.database.client.ClientDBHelper;
+import com.ajal.arsocialmessaging.util.database.server.MessageService;
+import com.ajal.arsocialmessaging.util.database.server.ServiceGenerator;
 import com.ajal.arsocialmessaging.util.location.GPSObserver;
 import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -29,6 +29,7 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import retrofit2.Call;
@@ -42,8 +43,11 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
     private String postcode;
     private Semaphore postcodeMutex = new Semaphore(1); // used to ensure that the postcode is retrieved before checking postcode
 
+    private ClientDBHelper clientDBHelper;
+
     @Override
     public void onCreate() {
+        this.clientDBHelper = new ClientDBHelper(this);
         boolean sendToServer = true;
         retrieveToken(sendToServer);
     }
@@ -73,6 +77,8 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
         }
     }
 
+    // Note: if the user has the app open then it will filter the notifications to only their postcode,
+    // otherwise the user will receive every notification, which is why there are different notification titles and bodies
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         // If no location is available, return
@@ -100,9 +106,12 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
                 } catch (InterruptedException exception) {
                     exception.printStackTrace();
                 }
-                // if the user is in the postcode of the newly added message, display a notification
+                // if the user is in the postcode of the newly added message:
+                // display a notification and store it in a database to be displayed in the Notification Fragment
+                Log.d(TAG, postcode+","+this.postcode);
                 if (postcode.equals(this.postcode)) {
-                    sendNotification(remoteMessage.getNotification());
+                    sendNotification(remoteMessage.getData());
+                    saveNotification(remoteMessage.getData());
                 }
                 postcodeMutex.release();
             }
@@ -159,9 +168,10 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
         });
     }
 
-    private void sendNotification(RemoteMessage.Notification notification) {
-        String title = notification.getTitle();
-        String body = notification.getBody();
+    // Displays the Notification - sends it down the FCM default notification channel
+    private void sendNotification(Map<String, String> remoteMessageData) {
+        String title = "You have a new message in your area: " + remoteMessageData.get("postcode");
+        String body = "Click here to open the app";
 
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -170,15 +180,15 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
 
         // Note: FCM comes with a default notification channel
         String channelId = getString(R.string.default_notification_channel_id);
-        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(this, channelId)
                         .setSmallIcon(R.drawable.ic_skywrite_logo_vector)
                         .setContentTitle(title)
                         .setContentText(body)
-                        .setAutoCancel(true)
-                        .setSound(defaultSoundUri)
-                        .setContentIntent(pendingIntent);
+                        .setDefaults(Notification.DEFAULT_ALL)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setContentIntent(pendingIntent)
+                        .setAutoCancel(true);
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -186,12 +196,22 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
         // Since android Oreo notification channel is needed.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(channelId,
-                    "Channel human readable title",
-                    NotificationManager.IMPORTANCE_DEFAULT);
+                    "SkyWrite Notification Title",
+                    NotificationManager.IMPORTANCE_HIGH);
             notificationManager.createNotificationChannel(channel);
         }
 
         notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+    }
+
+    // Saves the notification to into the local SQLite Database on the Android device
+    private void saveNotification(Map<String, String> remoteMessageData) {
+        String postcode = remoteMessageData.get("postcode");
+        int messageId = Integer.parseInt(remoteMessageData.get("message"));
+        String timestamp = remoteMessageData.get("timestamp");
+        Banner banner = new Banner(postcode, messageId, timestamp);
+
+        clientDBHelper.insertNewBanner(banner);
     }
 
     @Override

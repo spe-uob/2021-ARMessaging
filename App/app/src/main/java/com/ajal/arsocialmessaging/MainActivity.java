@@ -14,6 +14,7 @@ import android.view.View;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
 import com.ajal.arsocialmessaging.util.PermissionHelper;
+import com.ajal.arsocialmessaging.util.database.client.ClientDBHelper;
 import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -121,6 +122,13 @@ public class MainActivity extends AppCompatActivity {
         else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        ClientDBHelper clientDBHelper = new ClientDBHelper(this);
+        clientDBHelper.resetTable(); // reset the table after the user has left the app
+        super.onDestroy();
     }
 
     @Override

@@ -1,8 +1,11 @@
-package com.ajal.arsocialmessaging.util.database;
+package com.ajal.arsocialmessaging.util.database.server;
 
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+
+import com.ajal.arsocialmessaging.util.database.Banner;
+import com.ajal.arsocialmessaging.util.database.Message;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,20 +14,20 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class DBHelper {
+public class ServerDBHelper {
     private static final String TAG = "SkyWrite";
     private List<Message> messages;
     private List<Banner> banners;
-    private List<DBObserver> observers = new ArrayList<>();
-    private DBObserver notificationObserver;
-    private static DBHelper instance = new DBHelper();
+    private List<ServerDBObserver> observers = new ArrayList<>();
+    private ServerDBObserver notificationObserver;
+    private static ServerDBHelper instance = new ServerDBHelper();
 
-    public static DBHelper getInstance() {
+    public static ServerDBHelper getInstance() {
         return instance;
     }
 
     // Private so it cannot be instantiated outside of getInstance
-    private DBHelper() {
+    private ServerDBHelper() {
     }
 
     public void retrieveDBResults() {
@@ -40,13 +43,13 @@ public class DBHelper {
                 List<Message> allMessages = response.body();
                 // NOTE: use allMessages.get([INDEX]).[ATTRIBUTE] to extract message data, as below
                 assert allMessages != null;
-                DBHelper.getInstance().setMessages(true, allMessages);
+                ServerDBHelper.getInstance().setMessages(true, allMessages);
             }
             @Override
             public void onFailure(@NonNull Call<List<Message>> call, @NonNull Throwable throwable) {
                 Log.e(TAG, throwable.getMessage());
                 // Sends an empty list of messages to observers
-                DBHelper.getInstance().setMessages(false, new ArrayList<>());
+                ServerDBHelper.getInstance().setMessages(false, new ArrayList<>());
             }
         });
 
@@ -57,19 +60,19 @@ public class DBHelper {
             public void onResponse(@NonNull Call<List<Banner>> call, @NonNull Response<List<Banner>> response) {
                 List<Banner> allBanners = response.body();
                 assert allBanners != null;
-                DBHelper.getInstance().setBanners(true, allBanners);
+                ServerDBHelper.getInstance().setBanners(true, allBanners);
             }
 
             @Override
             public void onFailure(@NonNull Call<List<Banner>> call, @NonNull Throwable throwable) {
                 Log.e(TAG, throwable.getMessage());
                 // Sends an empty array list of banners to observers
-                DBHelper.getInstance().setBanners(false, new ArrayList<>());
+                ServerDBHelper.getInstance().setBanners(false, new ArrayList<>());
             }
         });
     }
 
-    public void registerObserver(DBObserver observer) {
+    public void registerObserver(ServerDBObserver observer) {
         observers.add(observer);
         if (this.messages != null) {
             observer.onMessageSuccess(messages);
@@ -79,7 +82,7 @@ public class DBHelper {
         }
     }
 
-    public void setNotificationObserver(DBObserver observer) {
+    public void setNotificationObserver(ServerDBObserver observer) {
         this.notificationObserver = observer;
         if (observer != null) {
             this.observers.add(notificationObserver);
@@ -89,12 +92,12 @@ public class DBHelper {
     public void setMessages(boolean success, List<Message> messages) {
         this.messages = messages;
         if (success) {
-            for (DBObserver o : observers) {
+            for (ServerDBObserver o : observers) {
                 o.onMessageSuccess(messages);
             }
         }
         else {
-            for (DBObserver o : observers) {
+            for (ServerDBObserver o : observers) {
                 o.onMessageFailure();
             }
         }
@@ -103,12 +106,12 @@ public class DBHelper {
     public void setBanners(boolean success, List<Banner> banners) {
         this.banners = banners;
         if (success) {
-            for (DBObserver o : observers) {
+            for (ServerDBObserver o : observers) {
                 o.onBannerSuccess(banners);
             }
         }
         else {
-            for (DBObserver o : observers) {
+            for (ServerDBObserver o : observers) {
                 o.onBannerFailure();
             }
         }
@@ -122,8 +125,8 @@ public class DBHelper {
         return banners;
     }
 
-    // Note: in theory, this should be safe as you register one GPSObserver and remove it every time
-    // you switch between fragments that implement ApiCallback
+    // Note: in theory, this should be safe as you register one observer and remove it every time
+    // you switch between fragments that implement ServerDBObserver
     public void clearObservers() {
         this.observers.clear();
         if (notificationObserver != null) {
@@ -131,7 +134,7 @@ public class DBHelper {
         }
     }
 
-    public void removeObserver(DBObserver observer) {
+    public void removeObserver(ServerDBObserver observer) {
         this.observers.remove(observer);
     }
 

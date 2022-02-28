@@ -17,13 +17,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
-import com.ajal.arsocialmessaging.util.database.DBObserver;
-import com.ajal.arsocialmessaging.util.database.MessageService;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBObserver;
+import com.ajal.arsocialmessaging.util.database.server.MessageService;
 import com.ajal.arsocialmessaging.util.database.Banner;
-import com.ajal.arsocialmessaging.util.database.DBHelper;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBHelper;
 import com.ajal.arsocialmessaging.util.database.Message;
 import com.ajal.arsocialmessaging.R;
-import com.ajal.arsocialmessaging.util.database.ServiceGenerator;
+import com.ajal.arsocialmessaging.util.database.server.ServiceGenerator;
 import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 
@@ -34,7 +34,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MessageFragment extends Fragment implements DBObserver {
+public class MessageFragment extends Fragment implements ServerDBObserver {
 
     private FragmentMessageBinding binding;
 
@@ -61,11 +61,11 @@ public class MessageFragment extends Fragment implements DBObserver {
         }
 
         // Request the server to load the results from the database
-        DBHelper dbHelper = DBHelper.getInstance();
-        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
-        DBHelper.getInstance().clearObservers();
-        dbHelper.registerObserver(this);
-        dbHelper.retrieveDBResults();
+        ServerDBHelper serverDbHelper = ServerDBHelper.getInstance();
+        // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
+        ServerDBHelper.getInstance().clearObservers();
+        serverDbHelper.registerObserver(this);
+        serverDbHelper.retrieveDBResults();
 
         /** Postcode button code */
         postCodeInput = root.findViewById(R.id.text_input_postcode);
@@ -145,7 +145,7 @@ public class MessageFragment extends Fragment implements DBObserver {
         /** ListView code */
         // Fills the ListView with messages
         View root = binding.getRoot();
-        messages = DBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
+        messages = ServerDBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
         listView = root.findViewById(R.id.list_messagesToSend);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, messages);
         listView.setAdapter(adapter);

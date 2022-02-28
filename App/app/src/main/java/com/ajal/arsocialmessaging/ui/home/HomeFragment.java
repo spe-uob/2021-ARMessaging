@@ -24,9 +24,9 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
-import com.ajal.arsocialmessaging.util.database.DBObserver;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBObserver;
 import com.ajal.arsocialmessaging.util.database.Banner;
-import com.ajal.arsocialmessaging.util.database.DBHelper;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBHelper;
 import com.ajal.arsocialmessaging.util.database.Message;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
@@ -79,9 +79,7 @@ import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.Semaphore;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
@@ -91,7 +89,7 @@ import java.util.concurrent.Semaphore;
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
  * plane to place a 3D model.
  */
-public class HomeFragment extends Fragment implements SampleRender.Renderer, DBObserver, GPSObserver {
+public class HomeFragment extends Fragment implements SampleRender.Renderer, ServerDBObserver, GPSObserver {
 
     private FragmentHomeBinding binding;
 
@@ -230,11 +228,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         }
 
         // Request the server to load the results from the database
-        DBHelper dbHelper = DBHelper.getInstance();
-        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
-        dbHelper.clearObservers();
-        dbHelper.registerObserver(this);
-        dbHelper.retrieveDBResults();
+        ServerDBHelper serverDbHelper = ServerDBHelper.getInstance();
+        // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
+        serverDbHelper.clearObservers();
+        serverDbHelper.registerObserver(this);
+        serverDbHelper.retrieveDBResults();
 
         PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
         postcodeHelper.clearObservers();
@@ -251,8 +249,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
 
     @Override
     public void onDestroyView() {
-        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
-        DBHelper.getInstance().clearObservers();
+        // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
+        ServerDBHelper.getInstance().clearObservers();
         PostcodeHelper.getInstance().clearObservers();
         if (session != null) {
             // Explicitly close ARCore Session to release native resources.

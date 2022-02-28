@@ -8,9 +8,6 @@ import android.location.LocationListener;
 
 import androidx.annotation.NonNull;
 
-import com.ajal.arsocialmessaging.util.database.Banner;
-import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

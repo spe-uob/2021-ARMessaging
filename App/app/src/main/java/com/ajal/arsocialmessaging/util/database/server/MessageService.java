@@ -1,4 +1,4 @@
-package com.ajal.arsocialmessaging.util.database;
+package com.ajal.arsocialmessaging.util.database.server;
 
 import com.ajal.arsocialmessaging.util.database.Banner;
 import com.ajal.arsocialmessaging.util.database.Message;

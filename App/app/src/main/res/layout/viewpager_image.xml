@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- image viwer to view the images -->
+    <!-- image viewer to view the images -->
     <ImageView
         android:id="@+id/imageViewMain"
         android:layout_width="match_parent"

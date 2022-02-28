@@ -48,7 +48,7 @@ public class DbServerApplication {
 
 		// Send a notification to every user
 		try {
-			sendNotification(postcode);
+			sendNotification(newBanner);
 		} catch (FirebaseMessagingException e) {
 			e.printStackTrace();
 		}
@@ -143,20 +143,28 @@ public class DbServerApplication {
 	}
 
 	// Sends a notification to all users
-	private void sendNotification(String postcode) throws FirebaseMessagingException {
+	private void sendNotification(Banner banner) throws FirebaseMessagingException {
 		List<String> registrationTokens = getRegistrationTokens();
 		if (registrationTokens.size() == 0) {
 			return;
 		}
 
-		String title = "You have a new message in your area: "+postcode;
-		String body = "Click here to view it!";
+		String postcode = banner.getPostcode();
+		int messageId = banner.getMessage();
+		Timestamp timestamp = banner.getTimestamp();
+
+		// Note: this notification will be sent to everyone, if the user has the app open
+		// then it will filter the notifications to only their postcode, otherwise the user will receive every notification
+		String title = "New message in postcode: "+postcode;
+		String body = "Click here to open the app";
 		MulticastMessage message = MulticastMessage.builder()
 				.setNotification(Notification.builder()
 						.setTitle(title)
 						.setBody(body)
 						.build())
 				.putData("postcode", postcode)
+				.putData("message", String.valueOf(messageId))
+				.putData("timestamp", timestamp.toString())
 				.addAllTokens(registrationTokens)
 				.build();
 
@@ -182,7 +190,7 @@ public class DbServerApplication {
 		return (String[] args) -> {
 			messagesRepo.truncate();
 
-			Message msg1 = new Message(1, "Happy Birthday", "happy-birthday.obj");
+			Message msg1 = new Message(1, "Happy birthday", "happy-birthday.obj");
 			Message msg2 = new Message(2, "Merry Christmas", "merry-christmas.obj");
 			Message msg3 = new Message(3, "Congratulations", "congratulations.obj");
 			Message msg4 = new Message(4, "Good luck", "good-luck.obj");

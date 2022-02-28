@@ -3,18 +3,9 @@ package com.ajal.arsocialmessaging;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-import com.ajal.arsocialmessaging.util.database.Banner;
-import com.ajal.arsocialmessaging.util.database.DBHelper;
-import com.ajal.arsocialmessaging.util.database.DBObserver;
-import com.ajal.arsocialmessaging.util.database.Message;
 import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 
-import org.junit.Before;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Semaphore;
 
 /**
  * Database tests
