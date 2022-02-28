@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
@@ -30,6 +31,7 @@ import com.ajal.arsocialmessaging.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "SkyWrite";
     private ActivityMainBinding binding;
 
     @Override
@@ -42,8 +44,9 @@ public class MainActivity extends AppCompatActivity {
             PermissionHelper.requestPermissions(this);
         }
         else {
-            // Setting up Notification service
-            // TODO: set up Firebase Client here
+            // Start the FCM notification service
+            Intent intent = new Intent(this, NotificationFCMService.class);
+            startService(intent);
 
             ConnectivityHelper.getInstance().setMainActivity(this);
             // Initiate the location updates request if location is available
@@ -79,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
             binding = ActivityMainBinding.inflate(getLayoutInflater());
             setContentView(binding.getRoot());
 
+            // Set up navbar
             BottomNavigationView navView = findViewById(R.id.nav_view);
             // Passing each menu ID as a set of Ids because each
             // menu should be considered as top level destinations.
@@ -178,16 +182,6 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
-    }
-
-    private boolean isMyServiceRunning(Class serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }

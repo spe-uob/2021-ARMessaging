@@ -131,6 +131,10 @@ public class DBHelper {
         }
     }
 
+    public void removeObserver(DBObserver observer) {
+        this.observers.remove(observer);
+    }
+
     public int getNumOfObservers() {
         return this.observers.size();
     }

@@ -8,8 +8,18 @@ import java.util.List;
 
 @Entity
 @Table(name = "messages")
+@SequenceGenerator(
+        name = "seqid-gen",
+        sequenceName = "messages_id_seq",
+        initialValue = 1,
+        allocationSize = 1
+)
 public class Message {
-    @Id @GeneratedValue @Column(name = "id") @Getter @Setter
+
+    // REFERENCE: https://stackoverflow.com/questions/38316680/creating-sequence-id-in-hibernate 27/02/2022 23:05
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqid-gen")
+    @Column(name = "id") @Getter @Setter
     Integer id;
 
     @Column(name = "message") @Getter @Setter

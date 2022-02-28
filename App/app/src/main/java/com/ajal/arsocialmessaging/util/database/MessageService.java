@@ -21,4 +21,7 @@ public interface MessageService {
     @POST("/addBanner")
     Call<String> addBanner(@Field("bannerData") String bannerData);
 
+    @FormUrlEncoded
+    @POST("/addToken")
+    Call<String> addToken(@Field("tokenData") String tokenData);
 }

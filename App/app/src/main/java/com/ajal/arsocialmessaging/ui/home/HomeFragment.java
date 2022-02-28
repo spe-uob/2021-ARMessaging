@@ -160,7 +160,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     private List<Banner> globalBanners = new ArrayList<>();
 
     // Messages, Banners and Location loading
-    private List<Message> messages;
+    private List<Message> messages = new ArrayList<>();
     private boolean messagesRetrieved = false;
     private boolean bannersRetrieved = false;
     private boolean locationRetrieved = false;
@@ -548,7 +548,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             }
         } else if (hasTrackingPlane() && requiredDataRetrieved) {
             message = FOUND_PLANE_MESSAGE;
-            Log.d(TAG, virtualObjectShadersList.size()+","+anchors.size());
             drawTracked = false;
         } else {
             message = SEARCHING_PLANE_MESSAGE;
@@ -911,8 +910,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                     }
                 }
                 requiredDataRetrieved = true;
+                requiredDataMutex.release();
+            } else if (this.getContext() == null) { // releases if the context is null
+                requiredDataMutex.release();
             }
-            requiredDataMutex.release();
         }
     }
 }

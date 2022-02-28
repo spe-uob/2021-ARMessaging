@@ -53,6 +53,10 @@ public class PostcodeHelper implements LocationListener {
         this.observers.clear();
     }
 
+    public void removeObserver(GPSObserver observer) {
+        this.observers.remove(observer);
+    }
+
     /**
      * getLocation returns the current location, which can extract the latitude and longitude to be used for getting a postcode
      * @return
