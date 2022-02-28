@@ -25,6 +25,9 @@
         android:largeHeap="true"
         android:usesCleartextTraffic="true">
         <meta-data android:name="com.google.ar.core" android:value="required" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_skywrite_logo_vector" />
 
         <service
             android:name=".NotificationFCMService"
@@ -32,9 +35,6 @@
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
-            <meta-data
-                android:name="com.google.firebase.messaging.default_notification_icon"
-                android:resource="@drawable/ic_skywrite_logo_vector" />
         </service>
 
         <activity
