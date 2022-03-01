@@ -88,8 +88,9 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
         }
 
         // Check if message contains a data payload.
-        // Note: Server does not send a notification payload, as onMessageReceived will never be called,
-        // and a default notification is sent to ALL users
+        // NOTE: Server does not send a notification payload, because when app is in background state
+        // onMessageReceived will never be called, and so the notification payload is sent straight to the system tray
+        // rather than going through onMessageReceived()
         if (remoteMessage.getData().size() > 0) {
             Log.d(TAG, "Message data payload: " + remoteMessage.getData());
             String postcode = remoteMessage.getData().get("postcode");

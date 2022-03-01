@@ -143,6 +143,7 @@ public class DbServerApplication {
 	}
 
 	// Sends a notification to all users
+	// REFERENCE: https://firebase.google.com/docs/cloud-messaging/send-message 28/02/2002 00:20
 	private void sendNotification(Banner banner) throws FirebaseMessagingException {
 		List<String> registrationTokens = getRegistrationTokens();
 		if (registrationTokens.size() == 0) {
@@ -153,8 +154,9 @@ public class DbServerApplication {
 		int messageId = banner.getMessage();
 		Timestamp timestamp = banner.getTimestamp();
 
-		// Note: this notification will be sent to everyone, if the user has the app open
-		// then it will filter the notifications to only their postcode, otherwise the user will receive every notification
+		// NOTE: Server does not send a notification payload, because when app is in background state
+		// onMessageReceived will never be called, and so the notification payload is sent straight to the system tray
+		// rather than going through onMessageReceived()
 		MulticastMessage message = MulticastMessage.builder()
 				.putData("postcode", postcode)
 				.putData("message", String.valueOf(messageId))
