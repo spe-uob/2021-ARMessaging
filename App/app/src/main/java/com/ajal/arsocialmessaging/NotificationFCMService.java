@@ -6,10 +6,12 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.Settings;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -40,7 +42,7 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
 
     private static final String TAG = "SkyWrite";
     private String token;
-    private String postcode;
+    private String postcode = "";
     private Semaphore postcodeMutex = new Semaphore(1); // used to ensure that the postcode is retrieved before checking postcode
 
     private ClientDBHelper clientDBHelper;
@@ -71,21 +73,13 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
     public void onNewToken(String token) {
         Log.d(TAG, "Refreshed token: " + token);
         this.token = token;
-        // Check if network is available
-        if (ConnectivityHelper.getInstance().isNetworkAvailable()) {
-            sendRegistrationToServer(token);
-        }
+        sendRegistrationToServer(token);
     }
 
     // Note: if the user has the app open then it will filter the notifications to only their postcode,
     // otherwise the user will receive every notification, which is why there are different notification titles and bodies
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        // If no location is available, return
-        if (!ConnectivityHelper.getInstance().isLocationAvailable()) {
-            return;
-        }
-
         PostcodeHelper.getInstance().registerObserver(this);
         try {
             postcodeMutex.acquire();
@@ -93,28 +87,26 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
             exception.printStackTrace();
         }
 
-        // Check if message contains a notification payload.
-        if (remoteMessage.getNotification() != null) {
-            Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
-            // Check if message contains a data payload.
-            if (remoteMessage.getData().size() > 0) {
-                Log.d(TAG, "Message data payload: " + remoteMessage.getData());
-                String postcode = remoteMessage.getData().get("postcode");
+        // Check if message contains a data payload.
+        // Note: Server does not send a notification payload, as onMessageReceived will never be called,
+        // and a default notification is sent to ALL users
+        if (remoteMessage.getData().size() > 0) {
+            Log.d(TAG, "Message data payload: " + remoteMessage.getData());
+            String postcode = remoteMessage.getData().get("postcode");
 
-                try {
-                    postcodeMutex.acquire();
-                } catch (InterruptedException exception) {
-                    exception.printStackTrace();
-                }
-                // if the user is in the postcode of the newly added message:
-                // display a notification and store it in a database to be displayed in the Notification Fragment
-                Log.d(TAG, postcode+","+this.postcode);
-                if (postcode.equals(this.postcode)) {
-                    sendNotification(remoteMessage.getData());
-                    saveNotification(remoteMessage.getData());
-                }
-                postcodeMutex.release();
+            try {
+                postcodeMutex.acquire();
+            } catch (InterruptedException exception) {
+                exception.printStackTrace();
             }
+            // if the user is in the postcode of the newly added message:
+            // display a notification and store it in a database to be displayed in the Notification Fragment
+            Log.d(TAG, postcode+","+this.postcode);
+            if (postcode.equals(this.postcode)) {
+                sendNotification(remoteMessage.getData());
+                saveNotification(remoteMessage.getData());
+            }
+            postcodeMutex.release();
         }
 
         PostcodeHelper.getInstance().removeObserver(this);
@@ -170,16 +162,30 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
 
     // Displays the Notification - sends it down the FCM default notification channel
     private void sendNotification(Map<String, String> remoteMessageData) {
-        String title = "You have a new message in your area: " + remoteMessageData.get("postcode");
+        String title = "New message at: " + remoteMessageData.get("postcode");
         String body = "Click here to open the app";
-
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-                PendingIntent.FLAG_ONE_SHOT);
-
         // Note: FCM comes with a default notification channel
         String channelId = getString(R.string.default_notification_channel_id);
+
+        // Set up notification channel
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        // Since android Oreo notification channel is needed.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(channelId,
+                    "SkyWrite Notification Title",
+                    NotificationManager.IMPORTANCE_HIGH);
+            channel.setShowBadge(true);
+            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        // Set up notification
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
+                PendingIntent.FLAG_ONE_SHOT);
+
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(this, channelId)
                         .setSmallIcon(R.drawable.ic_skywrite_logo_vector)
@@ -190,18 +196,8 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
                         .setContentIntent(pendingIntent)
                         .setAutoCancel(true);
 
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        // Since android Oreo notification channel is needed.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(channelId,
-                    "SkyWrite Notification Title",
-                    NotificationManager.IMPORTANCE_HIGH);
-            notificationManager.createNotificationChannel(channel);
-        }
-
-        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+        // Send notification down channel
+        notificationManager.notify(0 , notificationBuilder.build());
     }
 
     // Saves the notification to into the local SQLite Database on the Android device

@@ -155,13 +155,7 @@ public class DbServerApplication {
 
 		// Note: this notification will be sent to everyone, if the user has the app open
 		// then it will filter the notifications to only their postcode, otherwise the user will receive every notification
-		String title = "New message in postcode: "+postcode;
-		String body = "Click here to open the app";
 		MulticastMessage message = MulticastMessage.builder()
-				.setNotification(Notification.builder()
-						.setTitle(title)
-						.setBody(body)
-						.build())
 				.putData("postcode", postcode)
 				.putData("message", String.valueOf(messageId))
 				.putData("timestamp", timestamp.toString())
