@@ -44,7 +44,7 @@ If you want to build an APK from the command line, use one of the following comm
 - Mac/Linux: `./gradlew TASK-NAME`
 
 Common build tasks are:
-- `assembleRelease` - for release builds
+- `assembleRelease` - for release builds (NOTE: To create a release build, you will need to sign your app with your private key. This can be done by following the instructions [here](https://developer.android.com/studio/build/building-cmdline#sign_cmdline)
 - `assembleDebug` - for debug builds
 
 More information can be found here: https://developer.android.com/studio/build/building-cmdline
@@ -56,15 +56,15 @@ Alternatively, a local environment can be set up for personal development; the S
 
 To use your own database, update the current `BASE_URL` found in `App/app/src/main/java/.../util/database/ServiceGenerator`
 
-### Firebase Cloud Messaging (FCM) ###
+## Firebase Cloud Messaging (FCM) #
 [Firebase Cloud Messaging (FCM)](https://firebase.google.com/docs/cloud-messaging) is a Push Notification service that allows a server to send notifications to the users.
 
 If you want to set up Firebase Cloud Messaging for personal use, read the following:
 
-#### Client-side ####
+### Client-side Set Up ###
 SkyWrite has the `NotificationFCMService` class which handles incoming messages from the server and displays the relevant notifications, and so you do not need to modify any code. However, if you use a different package name to `com.ajal.arsocialmessaging` you will need to connect Firebase to your app. To do this, follow the instructions here: https://firebase.google.com/docs/android/setup
 
-#### Server-side ####
+### Server-side Set Up ###
 To set up server-side you will need to first need to create a project on Firebase, if you haven't already done so.
 
 The follow the steps to retrieve your configuration file with your service account's credentials:
