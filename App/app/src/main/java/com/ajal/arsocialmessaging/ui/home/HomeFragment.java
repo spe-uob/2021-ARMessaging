@@ -163,7 +163,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     private boolean bannersRetrieved = false;
     private boolean locationRetrieved = false;
     private boolean requiredDataRetrieved = false;
-    private Semaphore requiredDataMutex = new Semaphore(1);
 
     // Environmental HDR
     private Texture dfgTexture;
@@ -237,12 +236,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
         postcodeHelper.clearObservers();
         postcodeHelper.registerObserver(this);
-
-        try {
-            requiredDataMutex.acquire(1);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         return root;
     }
@@ -363,11 +356,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     public void onSurfaceCreated(SampleRender render) {
         // Prepare the rendering objects. This involves reading shaders and 3D model files, so may throw
         // an IOException.
-        try {
-            requiredDataMutex.acquire(1);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         try {
             planeRenderer = new PlaneRenderer(render);
@@ -438,7 +426,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             messageSnackbarHelper.showError(this.getActivity(), "Failed to read a required asset file: " + e);
         }
 
-        requiredDataMutex.release();
     }
 
     @Override
@@ -850,7 +837,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         Log.e(TAG, "Error receiving messages");
         messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve messages. Please try restarting SkyWrite.");
         messagesRetrieved = true;
-        generateLocalVirtualMessages();
     }
 
     @Override
@@ -872,7 +858,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve banners. Please try restarting SkyWrite.");
         globalBanners = new ArrayList<>();
         bannersRetrieved = true;
-        generateLocalVirtualMessages();
+        localVirtualMessages.clear();
     }
 
     @Override
@@ -895,12 +881,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     }
 
     private void generateLocalVirtualMessages() {
-        if (messagesRetrieved && bannersRetrieved) {
+        if (messagesRetrieved && bannersRetrieved && locationRetrieved) {
             // If the user switched fragments faster than the request is received (e.g. running Android tests),
             // then this.getContext() will be null. As a result, this if statement is required
-            if (this.getContext() != null && locationRetrieved) {
-                // moved locationRetrieved into inner if statement because if it was at the to
-                // requiredDataMutex wouldn't be released if locationRetrieved == false
+            if (this.getContext() != null) {
                 localVirtualMessages.clear();
                 for (Banner b : globalBanners) {
                     if (b.getPostcode().equals(postcode)) {
@@ -908,9 +892,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                     }
                 }
                 requiredDataRetrieved = true;
-                requiredDataMutex.release();
-            } else if (this.getContext() == null) { // releases if the context is null
-                requiredDataMutex.release();
             }
         }
     }
