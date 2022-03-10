@@ -8,9 +8,6 @@ import android.location.LocationListener;
 
 import androidx.annotation.NonNull;
 
-import com.ajal.arsocialmessaging.util.database.Banner;
-import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +50,10 @@ public class PostcodeHelper implements LocationListener {
         this.observers.clear();
     }
 
+    public void removeObserver(GPSObserver observer) {
+        this.observers.remove(observer);
+    }
+
     /**
      * getLocation returns the current location, which can extract the latitude and longitude to be used for getting a postcode
      * @return
@@ -79,18 +80,6 @@ public class PostcodeHelper implements LocationListener {
         catch (IOException e) {
             return null;
         }
-    }
-
-    public static List<VirtualMessage> getLocalVirtualMessages(Context ctx, List<Banner> globalBanners, double latitude, double longitude) {
-        List<VirtualMessage> result = new ArrayList<>();
-        String currentPostcode = PostcodeHelper.getPostCode(ctx, latitude, longitude);
-        for (Banner b : globalBanners) {
-            if (b.getPostcode().equals(currentPostcode)) {
-                VirtualMessage virtualMessage = new VirtualMessage(b);
-                result.add(virtualMessage);
-            }
-        }
-        return result;
     }
 
     public static String formatPostcode(String input) {

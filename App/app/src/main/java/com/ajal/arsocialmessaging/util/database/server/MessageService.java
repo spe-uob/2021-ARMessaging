@@ -1,4 +1,4 @@
-package com.ajal.arsocialmessaging.util.database;
+package com.ajal.arsocialmessaging.util.database.server;
 
 import com.ajal.arsocialmessaging.util.database.Banner;
 import com.ajal.arsocialmessaging.util.database.Message;
@@ -21,4 +21,7 @@ public interface MessageService {
     @POST("/addBanner")
     Call<String> addBanner(@Field("bannerData") String bannerData);
 
+    @FormUrlEncoded
+    @POST("/addToken")
+    Call<String> addToken(@Field("tokenData") String tokenData);
 }

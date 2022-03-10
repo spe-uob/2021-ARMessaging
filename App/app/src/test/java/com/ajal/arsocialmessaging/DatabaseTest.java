@@ -6,8 +6,8 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import com.ajal.arsocialmessaging.util.database.Banner;
-import com.ajal.arsocialmessaging.util.database.DBObserver;
-import com.ajal.arsocialmessaging.util.database.DBHelper;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBObserver;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBHelper;
 import com.ajal.arsocialmessaging.util.database.Message;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.concurrent.Semaphore;
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-public class DatabaseTest implements DBObserver {
+public class DatabaseTest implements ServerDBObserver {
 
     private List<Message> messages;
     private List<Banner> banners;
@@ -31,10 +31,10 @@ public class DatabaseTest implements DBObserver {
     @Before
     public void init() throws InterruptedException {
         // Request the server to load the results from the database
-        DBHelper dbHelper = DBHelper.getInstance();
-        DBHelper.getInstance().clearObservers();
-        dbHelper.registerObserver(this);
-        dbHelper.retrieveDBResults();
+        ServerDBHelper serverDbHelper = ServerDBHelper.getInstance();
+        ServerDBHelper.getInstance().clearObservers();
+        serverDbHelper.registerObserver(this);
+        serverDbHelper.retrieveDBResults();
 
         messageMutex.acquire();
         bannerMutex.acquire();
