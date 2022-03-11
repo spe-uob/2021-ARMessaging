@@ -51,6 +51,9 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation "androidx.preference:preference:1.2.0"
 
+    // Splash screen dependency
+    implementation 'androidx.core:core-splashscreen:1.0.0-beta01'
+
     // ARCore related dependencies
     implementation 'com.google.ar:core:1.28.0'
     // Obj - a simple Wavefront OBJ file loader
