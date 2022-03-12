@@ -44,21 +44,21 @@ SkyWrite uses Watson Text-to-Speech (Lisa voice). To create your own audio files
 7. Use the following command in your terminal, and replace the API key and the URL with the ones you copied previously:
    1. On Windows:
    
-            `curl -X POST -u "apikey:{apikey}" ^
+            curl -X POST -u "apikey:{apikey}" ^
             --header "Content-Type: application/json" ^
             --header "Accept: audio/wav" ^
             --data "{\"text\":\"hello world\"}" ^
             --output hello_world.wav ^
-            "{url}/v1/synthesize?voice=en-US_MichaelV3Voice"`
+            "{url}/v1/synthesize?voice=en-US_MichaelV3Voice"
 
    1. On Mac/Linux:
    
-            `curl -X POST -u "apikey:{apikey}" \
+            curl -X POST -u "apikey:{apikey}" \
             --header "Content-Type: application/json" \
             --header "Accept: audio/wav" \
             --data "{\"text\":\"hello world\"}" \
             --output hello_world.wav \
-            "{url}/v1/synthesize?voice=en-US_MichaelV3Voice"`
+            "{url}/v1/synthesize?voice=en-US_MichaelV3Voice"
 
 For more information, refer to the guide found in `Getting Started`
 
