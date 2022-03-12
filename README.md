@@ -99,10 +99,13 @@ To set up server-side you will need to first need to create a project on Firebas
 
 The follow the steps to retrieve your configuration file with your service account's credentials:
 1. In your project overview, look at the top-right corner, select the cog next to `Project Overview`, then click on `Project Settings`.
+   
    ![Firebase Project Settings](./assets/fcm-settings.png)
 2. Click on `Service Accounts` at the top
+   
    ![Firebase Service Accounts](./assets/fcm-service-accounts.png)
 3. Click `Generate new private key` to retrieve your service account key
+   
    ![Firebase Generate Key](./assets/fcm-generate-key.png)
 
 Once you have acquired the service account key file, update the current `service-account-file.json` to the new json file that you have acquired.
