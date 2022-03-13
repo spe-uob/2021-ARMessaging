@@ -2,9 +2,11 @@ package com.ajal.arsocialmessaging.ui.home;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.media.Image;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
@@ -80,7 +82,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
 
@@ -153,8 +154,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     private List<Mesh> virtualObjectMeshesList = new ArrayList<>();
     private List<Shader> virtualObjectShadersList = new ArrayList<>();
     private final ArrayList<Anchor> anchors = new ArrayList<>();
-    private List<VirtualMessage> virtualMessages = new ArrayList<>();
-    private List<Integer> localVirtualMessages = new ArrayList<>();
+    private List<VirtualMessage> localVirtualMessages = new ArrayList<>();
+    private List<Integer> localBannersId = new ArrayList<>(); // stores Id of the banners
     private List<Banner> globalBanners = new ArrayList<>();
 
     // Messages, Banners and Location loading
@@ -192,6 +193,15 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     private Location location;
     private String postcode;
 
+    // MediaPlayer to play audio files
+    private boolean audioPlaying;
+    private int audioNumber;
+    private MediaPlayer mediaPlayer;
+
+    // Preferences
+    private SharedPreferences sharedPref;
+    private boolean playAudio;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -220,6 +230,15 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             }
         });
 
+        // Retrieve Shared Preferences
+        sharedPref = getActivity().getSharedPreferences(getString(R.string.toggle_audio), Context.MODE_PRIVATE);
+        if (sharedPref.getString(getString(R.string.toggle_audio), "Off").equals("On")) {
+            playAudio = true;
+        }
+        else {
+            playAudio = false;
+        }
+
         // Check if network and location are available
         if (!ConnectivityHelper.getInstance().isNetworkAvailable()
                 || !ConnectivityHelper.getInstance().isLocationAvailable()) {
@@ -245,6 +264,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
         ServerDBHelper.getInstance().clearObservers();
         PostcodeHelper.getInstance().clearObservers();
+
+        if (mediaPlayer != null) mediaPlayer.release();
         if (session != null) {
             // Explicitly close ARCore Session to release native resources.
             // Review the API reference for important considerations before calling close() in apps with
@@ -520,7 +541,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         } else if (!ConnectivityHelper.getInstance().isLocationAvailable()) {
             message = LOCATION_ERROR_MESSAGE;
             drawTracked = false;
-        } else if (localVirtualMessages.size() == 0) {
+        } else if (localBannersId.size() == 0) {
             message = NO_VIRTUAL_MESSAGES_MESSAGE;
             drawTracked = false;
         } else if (camera.getTrackingState() == TrackingState.PAUSED) {
@@ -585,9 +606,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                     camera.getDisplayOrientedPose(),
                     projectionMatrix);
         }
-
-        // Visualize models
-        if (localVirtualMessages.size() > 0) {
+        if (localBannersId.size() > 0) {
+            // Visualize models
             // Update lighting parameters in the shader
             updateLightEstimation(frame.getLightEstimate(), viewMatrix);
             render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
@@ -609,10 +629,17 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                 Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
 
                 // Update shader properties and draw
-                int objectId = localVirtualMessages.get(i);
+                int objectId = localBannersId.get(i);
                 virtualObjectShadersList.get(objectId).setMat4("u_ModelView", modelViewMatrix);
                 virtualObjectShadersList.get(objectId).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
                 render.draw(virtualObjectMeshesList.get(objectId), virtualObjectShadersList.get(objectId), virtualSceneFramebuffer);
+            }
+
+            // Play audio files
+            if (hasTrackingPlane() && playAudio && !audioPlaying && audioNumber <= localBannersId.size() - 1) {
+                int audioFile = localVirtualMessages.get(audioNumber).getAudioFile();
+                playAudioFile(this.getContext(), audioFile);
+                audioNumber++;
             }
         }
 
@@ -709,7 +736,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
 
         for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
             if (plane.getTrackingState() == TrackingState.TRACKING) {
-                while (anchors.size() < localVirtualMessages.size()) {
+                while (anchors.size() < localBannersId.size()) {
                     Pose pose = plane.getCenterPose();
 
                     // Change the rotation of the pose to face the camera
@@ -748,8 +775,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             }
             return;
         }
-        for (int i = 0; i < localVirtualMessages.size(); i++) {
-            int objectId = localVirtualMessages.get(i);
+        for (int i = 0; i < localBannersId.size(); i++) {
+            int objectId = localBannersId.get(i);
             virtualObjectShadersList.get(objectId).setBool("u_LightEstimateIsValid", true);
             Matrix.invertM(viewInverseMatrix, 0, viewMatrix, 0);
             virtualObjectShadersList.get(objectId).setMat4("u_ViewInverse", viewInverseMatrix);
@@ -814,6 +841,20 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         session.configure(config);
     }
 
+    /** Plays audio track */
+    private void playAudioFile(Context context, int audioFile) {
+        if (mediaPlayer != null) mediaPlayer.release();
+        mediaPlayer = MediaPlayer.create(context, audioFile);
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                audioPlaying = false;
+            }
+        });
+        mediaPlayer.start();
+        audioPlaying = true;
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -858,7 +899,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve banners. Please try restarting SkyWrite.");
         globalBanners = new ArrayList<>();
         bannersRetrieved = true;
-        localVirtualMessages.clear();
+        localBannersId.clear();
     }
 
     @Override
@@ -885,10 +926,13 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             // If the user switched fragments faster than the request is received (e.g. running Android tests),
             // then this.getContext() will be null. As a result, this if statement is required
             if (this.getContext() != null) {
-                localVirtualMessages.clear();
+                localBannersId.clear();
                 for (Banner b : globalBanners) {
                     if (b.getPostcode().equals(postcode)) {
-                        localVirtualMessages.add(b.getMessage() - 1);
+                        int id = b.getMessage() - 1;
+                        localBannersId.add(id);
+                        VirtualMessage virtualMessage = new VirtualMessage(messages.get(id));
+                        localVirtualMessages.add(virtualMessage);
                     }
                 }
                 requiredDataRetrieved = true;

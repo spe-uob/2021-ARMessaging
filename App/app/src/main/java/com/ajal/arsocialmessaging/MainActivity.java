@@ -49,58 +49,7 @@ public class MainActivity extends AppCompatActivity {
             PermissionHelper.requestPermissions(this);
         }
         else {
-            // Start the FCM notification service
-            Intent intent = new Intent(this, NotificationFCMService.class);
-            startService(intent);
-
-            ConnectivityHelper.getInstance().setMainActivity(this);
-            // Initiate the location updates request if location is available
-            Context ctx = this.getApplicationContext();
-            LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
-            PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
-            // Permissions check
-            if (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-            lm.requestLocationUpdates(LocationManager.FUSED_PROVIDER, 5000, 10, postcodeHelper);
-
-            // Preferences
-            SharedPreferences theme = getSharedPreferences(getString(R.string.theme_id), Context.MODE_PRIVATE);
-            SharedPreferences darkM = getSharedPreferences(getString(R.string.dark_mode), Context.MODE_PRIVATE);
-
-            // Dark mode
-            if (darkM.getString("darkMode", "On").equals("On")) {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-            } else {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                setTheme(theme.getInt("themeID", R.style.FontSizeMedium));
-            }
-
-            theme.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
-                @Override
-                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                    setTheme(sharedPreferences.getInt(key, R.style.FontSizeMedium));
-                }
-            });
-            
-            binding = ActivityMainBinding.inflate(getLayoutInflater());
-            setContentView(binding.getRoot());
-
-            // Set up navbar
-            BottomNavigationView navView = findViewById(R.id.nav_view);
-            // Passing each menu ID as a set of Ids because each
-            // menu should be considered as top level destinations.
-            AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                    R.id.navigation_home,
-                    R.id.navigation_message,
-                    R.id.navigation_notifications,
-                    R.id.navigation_settings,
-                    R.id.navigation_gallery)
-                    .build();
-            NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
-            NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-            NavigationUI.setupWithNavController(binding.navView, navController);
+            loadApp();
         }
 
         return;
@@ -145,14 +94,20 @@ public class MainActivity extends AppCompatActivity {
             PermissionHelper.requestPermissionsIfDenied(this);
             return;
         }
+        loadApp();
+    }
 
-        // Set up app once permissions have been granted
+    public void loadApp() {
+        // Start the FCM notification service
+        Intent intent = new Intent(this, NotificationFCMService.class);
+        startService(intent);
+
         ConnectivityHelper.getInstance().setMainActivity(this);
         // Initiate the location updates request if location is available
         Context ctx = this.getApplicationContext();
         LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
         PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
-        // Permissions check - required for lm.requestLocationUpdates
+        // Permissions check
         if (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -178,9 +133,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        binding = ActivityMainBinding.inflate(getLayoutInflater());
-//        setContentView(binding.getRoot());
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
+        // Set up navbar
         BottomNavigationView navView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
@@ -194,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
-    }
 
+        return;
+    }
 }

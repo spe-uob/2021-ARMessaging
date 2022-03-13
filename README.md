@@ -32,6 +32,36 @@ To run tests, run `gradlew test` or navigate to the tests on Android Studio and 
 
 It is recommended to run the app using the [Android Emulator](https://developer.android.com/studio/run/emulator) but it is also possible to run the app on a [hardware device](https://developer.android.com/studio/run/device).
 
+## Watson Text-to-Speech ##
+SkyWrite uses Watson Text-to-Speech (Lisa voice). To create your own audio files using Watson Text-to-Speech, make sure you have [curl](https://github.com/curl/curl) installed and follow the instructions below:
+
+1. Navigate to the IBM Cloud Catalogue and click on the menu in the top-left corner
+2. Scroll down until you see `Watson` and click on it
+3. Scroll down until you see `Watson Text-to-Speech` and click on it
+4. Configure and create your resource
+5. You will be directed to the `Getting Started` page. On there, click on the `Manage` tab on the left column
+6. Copy your API key and the URL
+7. Use the following command in your terminal, and replace the API key and the URL with the ones you copied previously:
+   1. On Windows:
+   
+            curl -X POST -u "apikey:{apikey}" ^
+            --header "Content-Type: application/json" ^
+            --header "Accept: audio/wav" ^
+            --data "{\"text\":\"hello world\"}" ^
+            --output hello_world.wav ^
+            "{url}/v1/synthesize?voice=en-US_MichaelV3Voice"
+
+   1. On Mac/Linux:
+   
+            curl -X POST -u "apikey:{apikey}" \
+            --header "Content-Type: application/json" \
+            --header "Accept: audio/wav" \
+            --data "{\"text\":\"hello world\"}" \
+            --output hello_world.wav \
+            "{url}/v1/synthesize?voice=en-US_MichaelV3Voice"
+
+For more information, refer to the guide found in `Getting Started`
+
 ## Deployment ##
 ### Client-side Deployment ###
 Since the front-end is an Android App, deployment is done via APK release. The CircleCI script includes a `release-build` which updates with every push to the `master` branch and produces an APK. Our website below contains a table of previous APK releases made during development.
@@ -68,9 +98,15 @@ SkyWrite has the `NotificationFCMService` class which handles incoming messages 
 To set up server-side you will need to first need to create a project on Firebase, if you haven't already done so.
 
 The follow the steps to retrieve your configuration file with your service account's credentials:
-1. In your project overview, look at the top-right corner, select the cog next to `Project Overview`, then click on `Project Settings`. ![Firebase Project Settings](./assets/fcm-settings.png)
-2. Click on `Service Accounts` at the top ![Firebase Service Accounts](./assets/fcm-service-accounts.png)
-3. Click `Generate new private key` to retrieve your service account key ![Firebase Generate Key](./assets/fcm-generate-key.png)
+1. In your project overview, look at the top-right corner, select the cog next to `Project Overview`, then click on `Project Settings`.
+   
+   ![Firebase Project Settings](./assets/fcm-settings.png)
+2. Click on `Service Accounts` at the top
+   
+   ![Firebase Service Accounts](./assets/fcm-service-accounts.png)
+3. Click `Generate new private key` to retrieve your service account key
+   
+   ![Firebase Generate Key](./assets/fcm-generate-key.png)
 
 Once you have acquired the service account key file, update the current `service-account-file.json` to the new json file that you have acquired.
 
