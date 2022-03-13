@@ -232,7 +232,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
 
         // Retrieve Shared Preferences
         sharedPref = getActivity().getSharedPreferences(getString(R.string.toggle_audio), Context.MODE_PRIVATE);
-        if (sharedPref.getString(getString(R.string.toggle_audio), "Off") == "On") {
+        if (sharedPref.getString(getString(R.string.toggle_audio), "Off").equals("On")) {
             playAudio = true;
         }
         else {
@@ -636,7 +636,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             }
 
             // Play audio files
-            if (hasTrackingPlane() && playAudio && !audioPlaying && audioNumber < localBannersId.size() - 1) {
+            if (hasTrackingPlane() && playAudio && !audioPlaying && audioNumber <= localBannersId.size() - 1) {
                 int audioFile = localVirtualMessages.get(audioNumber).getAudioFile();
                 playAudioFile(this.getContext(), audioFile);
                 audioNumber++;
