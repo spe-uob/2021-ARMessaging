@@ -2,6 +2,7 @@ package com.ajal.arsocialmessaging.ui.home;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.media.Image;
@@ -197,6 +198,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     private int audioNumber;
     private MediaPlayer mediaPlayer;
 
+    // Preferences
+    private SharedPreferences sharedPref;
+    private boolean playAudio;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -225,6 +230,15 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             }
         });
 
+        // Retrieve Shared Preferences
+        sharedPref = getActivity().getSharedPreferences(getString(R.string.toggle_audio), Context.MODE_PRIVATE);
+        if (sharedPref.getString(getString(R.string.toggle_audio), "Off") == "On") {
+            playAudio = true;
+        }
+        else {
+            playAudio = false;
+        }
+
         // Check if network and location are available
         if (!ConnectivityHelper.getInstance().isNetworkAvailable()
                 || !ConnectivityHelper.getInstance().isLocationAvailable()) {
@@ -251,7 +265,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         ServerDBHelper.getInstance().clearObservers();
         PostcodeHelper.getInstance().clearObservers();
 
-        mediaPlayer.release();
+        if (mediaPlayer != null) mediaPlayer.release();
         if (session != null) {
             // Explicitly close ARCore Session to release native resources.
             // Review the API reference for important considerations before calling close() in apps with
@@ -622,7 +636,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             }
 
             // Play audio files
-            if (hasTrackingPlane() && !audioPlaying && audioNumber < localBannersId.size() - 1) {
+            if (hasTrackingPlane() && playAudio && !audioPlaying && audioNumber < localBannersId.size() - 1) {
                 int audioFile = localVirtualMessages.get(audioNumber).getAudioFile();
                 playAudioFile(this.getContext(), audioFile);
                 audioNumber++;

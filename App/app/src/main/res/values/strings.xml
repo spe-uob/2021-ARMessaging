@@ -26,6 +26,7 @@
     <!-- Settings -->
     <string name="theme_id">themeID</string>
     <string name="dark_mode">darkMode</string>
+    <string name="toggle_audio">toggleAudio</string>
     <string name="enter_uk_postcode">Enter UK postcode</string>
     <string name="send">Send</string>
     <string name="choose_a_message">Choose a message:</string>
