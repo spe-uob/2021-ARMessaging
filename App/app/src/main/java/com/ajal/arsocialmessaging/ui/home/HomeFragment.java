@@ -622,7 +622,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             }
 
             // Play audio files
-            if (!audioPlaying && audioNumber < localBannersId.size() - 1) {
+            if (hasTrackingPlane() && !audioPlaying && audioNumber < localBannersId.size() - 1) {
                 int audioFile = localVirtualMessages.get(audioNumber).getAudioFile();
                 playAudioFile(this.getContext(), audioFile);
                 audioNumber++;
