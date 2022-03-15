@@ -12,19 +12,29 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-        <item name="textColor">#000000</item>
-        <item name="metaTextColor">#606060</item>
-        <item name="bgColor">#ffffff</item>
     </style>
 
+
+    <!-- Splash screen -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        // Set the splash screen background, animated icon, and animation duration.
+        <item name="windowSplashScreenBackground">@color/teal_700</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="windowSplashScreenAnimationDuration">200</item>  # Required for animated icons
+
+        // Set the theme of the Activity that directly follows your splash screen.
+        <item name="postSplashScreenTheme">@style/Theme.ARSocialMessaging</item>  # Required.
+    </style>
+
+
     <!-- For text change -->
-    <style name="FontSizeSmall">
+    <style name="FontSizeSmall" parent="Theme.ARSocialMessaging">
         <item name="android:textSize">12sp</item>
     </style>
-    <style name="FontSizeMedium">
+    <style name="FontSizeMedium" parent="Theme.ARSocialMessaging">
         <item name="android:textSize">16sp</item>
     </style>
-    <style name="FontSizeLarge">
+    <style name="FontSizeLarge" parent="Theme.ARSocialMessaging">
         <item name="android:textSize">20sp</item>
     </style>
 

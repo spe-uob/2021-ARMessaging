@@ -5,6 +5,12 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+import com.ajal.arsocialmessaging.util.database.Banner;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBObserver;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBHelper;
+import com.ajal.arsocialmessaging.util.database.Message;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -13,7 +19,7 @@ import java.util.concurrent.Semaphore;
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-public class DatabaseTest implements DBObserver {
+public class DatabaseTest implements ServerDBObserver {
 
     private List<Message> messages;
     private List<Banner> banners;
@@ -25,10 +31,10 @@ public class DatabaseTest implements DBObserver {
     @Before
     public void init() throws InterruptedException {
         // Request the server to load the results from the database
-        DBResults dbResults = DBResults.getInstance();
-        DBResults.getInstance().clearObservers();
-        dbResults.registerObserver(this);
-        dbResults.retrieveDBResults();
+        ServerDBHelper serverDbHelper = ServerDBHelper.getInstance();
+        ServerDBHelper.getInstance().clearObservers();
+        serverDbHelper.registerObserver(this);
+        serverDbHelper.retrieveDBResults();
 
         messageMutex.acquire();
         bannerMutex.acquire();
@@ -41,8 +47,20 @@ public class DatabaseTest implements DBObserver {
     }
 
     @Override
+    public void onMessageFailure() {
+        this.messages = new ArrayList<>();
+        messageMutex.release();
+    }
+
+    @Override
     public void onBannerSuccess(List<Banner> result) {
         this.banners = result;
+        bannerMutex.release();
+    }
+
+    @Override
+    public void onBannerFailure() {
+        this.banners = new ArrayList<>();
         bannerMutex.release();
     }
 
@@ -64,12 +82,10 @@ public class DatabaseTest implements DBObserver {
         bannerMutex.acquire();
 
         assertEquals(new Integer(1), this.messages.get(0).getId());
-        assertEquals("happy birthday", this.messages.get(0).getMessage());
+        assertEquals("Happy birthday", this.messages.get(0).getMessage());
         assertEquals("happy-birthday.obj", this.messages.get(0).getObjfilename());
 
-//        assertEquals("BS8 1UB", this.banners.get(0).getPostcode());
-//        assertEquals(new Integer(2), this.banners.get(0).getMessage());
-//        assertEquals("2022-02-02 18:40:52.476655", this.banners.get(0).getTimestamp());
+        // Note: not testing the other two values as the database will remove banners after a day
 
         messageMutex.release();
         bannerMutex.release();

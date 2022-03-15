@@ -1,13 +1,12 @@
 package com.ajal.arsocialmessaging.ui.home;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.location.Location;
-import android.location.LocationManager;
 import android.media.Image;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
@@ -20,20 +19,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
-import com.ajal.arsocialmessaging.DBObserver;
-import com.ajal.arsocialmessaging.Banner;
-import com.ajal.arsocialmessaging.DBResults;
-import com.ajal.arsocialmessaging.Message;
+import com.ajal.arsocialmessaging.util.ConnectivityHelper;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBObserver;
+import com.ajal.arsocialmessaging.util.database.Banner;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBHelper;
+import com.ajal.arsocialmessaging.util.database.Message;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
 import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
-import com.ajal.arsocialmessaging.util.GPSObserver;
+import com.ajal.arsocialmessaging.util.location.GPSObserver;
 import com.ajal.arsocialmessaging.util.PermissionHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DepthSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DisplayRotationHelper;
@@ -50,7 +50,7 @@ import com.ajal.arsocialmessaging.ui.home.common.samplerender.VertexBuffer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.arcore.BackgroundRenderer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.arcore.PlaneRenderer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.arcore.SpecularCubemapFilter;
-import com.ajal.arsocialmessaging.util.PostcodeHelper;
+import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
@@ -82,7 +82,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
 
@@ -91,7 +90,7 @@ import java.util.concurrent.Semaphore;
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
  * plane to place a 3D model.
  */
-public class HomeFragment extends Fragment implements SampleRender.Renderer, DBObserver, GPSObserver {
+public class HomeFragment extends Fragment implements SampleRender.Renderer, ServerDBObserver, GPSObserver {
 
     private FragmentHomeBinding binding;
 
@@ -101,6 +100,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     private static final String FOUND_PLANE_MESSAGE = "Look up to view message!";
     private static final String NO_VIRTUAL_MESSAGES_MESSAGE = "This postcode has no messages";
     private static final String IMG_SAVED_MESSAGE = "Image saved to storage!";
+
+    private static final String NETWORK_ERROR_MESSAGE = "Network error. Please try again";
+    private static final String LOCATION_ERROR_MESSAGE = "Location is unavailable error. Please try again";
 
     // See the definition of updateSphericalHarmonicsCoefficients for an explanation of these
     // constants.
@@ -149,18 +151,19 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     private long lastPointCloudTimestamp = 0;
 
     // Virtual object
-    private List<Mesh> virtualObjectMeshesList;
-    private List<Shader> virtualObjectShadersList;
+    private List<Mesh> virtualObjectMeshesList = new ArrayList<>();
+    private List<Shader> virtualObjectShadersList = new ArrayList<>();
     private final ArrayList<Anchor> anchors = new ArrayList<>();
     private List<VirtualMessage> localVirtualMessages = new ArrayList<>();
+    private List<Integer> localBannersId = new ArrayList<>(); // stores Id of the banners
     private List<Banner> globalBanners = new ArrayList<>();
 
     // Messages, Banners and Location loading
+    private List<Message> messages = new ArrayList<>();
     private boolean messagesRetrieved = false;
     private boolean bannersRetrieved = false;
     private boolean locationRetrieved = false;
     private boolean requiredDataRetrieved = false;
-    private Semaphore requiredDataMutex = new Semaphore(1);
 
     // Environmental HDR
     private Texture dfgTexture;
@@ -188,6 +191,16 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
 
     // Location related attributes
     private Location location;
+    private String postcode;
+
+    // MediaPlayer to play audio files
+    private boolean audioPlaying;
+    private int audioNumber;
+    private MediaPlayer mediaPlayer;
+
+    // Preferences
+    private SharedPreferences sharedPref;
+    private boolean playAudio;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -195,14 +208,13 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+        super.onCreate(savedInstanceState);
+        surfaceView = root.findViewById(R.id.surfaceview);
+        displayRotationHelper = new DisplayRotationHelper(/*context=*/ this.getContext());
 
         // SkyWrite: add bottom navigation view to snackbar helper
         View bottomNavigation = super.getActivity().findViewById(R.id.nav_view);
         this.messageSnackbarHelper.setBottomNavigationView(bottomNavigation);
-
-        super.onCreate(savedInstanceState);
-        surfaceView = root.findViewById(R.id.surfaceview);
-        displayRotationHelper = new DisplayRotationHelper(/*context=*/ this.getContext());
 
         // Set up renderer.
         render = new SampleRender(surfaceView, this, this.getContext().getAssets());
@@ -218,30 +230,42 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             }
         });
 
+        // Retrieve Shared Preferences
+        sharedPref = getActivity().getSharedPreferences(getString(R.string.toggle_audio), Context.MODE_PRIVATE);
+        if (sharedPref.getString(getString(R.string.toggle_audio), "Off").equals("On")) {
+            playAudio = true;
+        }
+        else {
+            playAudio = false;
+        }
+
+        // Check if network and location are available
+        if (!ConnectivityHelper.getInstance().isNetworkAvailable()
+                || !ConnectivityHelper.getInstance().isLocationAvailable()) {
+            return root;
+        }
+
         // Request the server to load the results from the database
-        DBResults dbResults = DBResults.getInstance();
-        // Need to clear callbacks or else DBResults can try to send a context which no longer exists
-        dbResults.clearObservers();
-        dbResults.registerObserver(this);
-        dbResults.retrieveDBResults();
+        ServerDBHelper serverDbHelper = ServerDBHelper.getInstance();
+        // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
+        serverDbHelper.clearObservers();
+        serverDbHelper.registerObserver(this);
+        serverDbHelper.retrieveDBResults();
 
         PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
         postcodeHelper.clearObservers();
         postcodeHelper.registerObserver(this);
-
-        try {
-            requiredDataMutex.acquire(1);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         return root;
     }
 
     @Override
     public void onDestroyView() {
-        // Need to clear callbacks or else DBResults can try to send a context which no longer exists
-        DBResults.getInstance().clearObservers();
+        // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
+        ServerDBHelper.getInstance().clearObservers();
+        PostcodeHelper.getInstance().clearObservers();
+
+        if (mediaPlayer != null) mediaPlayer.release();
         if (session != null) {
             // Explicitly close ARCore Session to release native resources.
             // Review the API reference for important considerations before calling close() in apps with
@@ -250,6 +274,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             session.close();
             session = null;
             hasSetTextureNames = false; // needed to set the camera textures again when back button is pressed
+            virtualObjectMeshesList.clear();
+            virtualObjectShadersList.clear();
         }
 
         super.onDestroyView();
@@ -351,11 +377,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     public void onSurfaceCreated(SampleRender render) {
         // Prepare the rendering objects. This involves reading shaders and 3D model files, so may throw
         // an IOException.
-        try {
-            requiredDataMutex.acquire(1);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         try {
             planeRenderer = new PlaneRenderer(render);
@@ -412,11 +433,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                     new Mesh(
                             render, Mesh.PrimitiveMode.POINTS, /*indexBuffer=*/ null, pointCloudVertexBuffers);
 
-            // Store the meshes and the shaders of every banner into the respective lists
+            // Store the meshes and the shaders of every message into the respective lists
             virtualObjectMeshesList = new ArrayList<>();
             virtualObjectShadersList = new ArrayList<>();
-            for (int i = 0; i < localVirtualMessages.size(); i++) {
-                VirtualMessage virtualMessage = localVirtualMessages.get(i);
+            for (int i = 0; i < messages.size(); i++) {
+                VirtualMessage virtualMessage = new VirtualMessage(messages.get(i));
                 virtualObjectMeshesList.add(VirtualObjectRenderHelper.renderVirtualObjectMesh(render, virtualMessage));
                 virtualObjectShadersList.add(VirtualObjectRenderHelper.renderVirtualObjectShader(render, virtualMessage, cubemapFilter, dfgTexture));
             }
@@ -426,7 +447,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             messageSnackbarHelper.showError(this.getActivity(), "Failed to read a required asset file: " + e);
         }
 
-        requiredDataMutex.release();
     }
 
     @Override
@@ -501,19 +521,27 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         }
 
         // Handle the anchors
-        handleAnchor(frame, camera);
+        if (drawTracked) {
+            handleAnchor(frame, camera);
+        }
 
         /* Show a message based on whether:
          * - tracking has failed,
          * - planes are detected and models are drawn
          * - there are no messages in the area
          */
-        String message = null;
+        String message;
         if (capturePicture) {
             // SkyWrite: display message when image is saved
             // needs to be at the top of the if statements as it takes priority
             message = IMG_SAVED_MESSAGE;
-        } else if (localVirtualMessages.size() == 0) {
+        } else if (!ConnectivityHelper.getInstance().isNetworkAvailable()) {
+            message = NETWORK_ERROR_MESSAGE;
+            drawTracked = false;
+        } else if (!ConnectivityHelper.getInstance().isLocationAvailable()) {
+            message = LOCATION_ERROR_MESSAGE;
+            drawTracked = false;
+        } else if (localBannersId.size() == 0) {
             message = NO_VIRTUAL_MESSAGES_MESSAGE;
             drawTracked = false;
         } else if (camera.getTrackingState() == TrackingState.PAUSED) {
@@ -524,7 +552,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             } else {
                 message = TrackingStateHelper.getTrackingFailureReasonString(camera);
             }
-        } else if (hasTrackingPlane()) {
+        } else if (hasTrackingPlane() && requiredDataRetrieved) {
             message = FOUND_PLANE_MESSAGE;
             drawTracked = false;
         } else {
@@ -578,33 +606,41 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                     camera.getDisplayOrientedPose(),
                     projectionMatrix);
         }
+        if (localBannersId.size() > 0) {
+            // Visualize models
+            // Update lighting parameters in the shader
+            updateLightEstimation(frame.getLightEstimate(), viewMatrix);
+            render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
+            for (int i = 0; i < anchors.size(); i++) {
+                Anchor anchor = anchors.get(i);
+                if (anchor.getTrackingState() != TrackingState.TRACKING) {
+                    continue;
+                }
+                // Get the current pose of an Anchor in world space. The Anchor pose is updated
+                // during calls to session.update() as ARCore refines its estimate of the world.
 
-        // Update lighting parameters in the shader
-        updateLightEstimation(frame.getLightEstimate(), viewMatrix);
+                anchor.getPose().makeTranslation(0, 30f + i*5f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
 
-        // Visualize anchors created by touch.
-        render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
-        for (int i = 0; i < anchors.size(); i++) {
-            Anchor anchor = anchors.get(i);
-            if (anchor.getTrackingState() != TrackingState.TRACKING) {
-                continue;
+                // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
+                Matrix.scaleM(modelMatrix, 0, 2f, 2f, 2f);
+
+                // Calculate model/view/projection matrices
+                Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
+                Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
+
+                // Update shader properties and draw
+                int objectId = localBannersId.get(i);
+                virtualObjectShadersList.get(objectId).setMat4("u_ModelView", modelViewMatrix);
+                virtualObjectShadersList.get(objectId).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
+                render.draw(virtualObjectMeshesList.get(objectId), virtualObjectShadersList.get(objectId), virtualSceneFramebuffer);
             }
-            // Get the current pose of an Anchor in world space. The Anchor pose is updated
-            // during calls to session.update() as ARCore refines its estimate of the world.
 
-            anchor.getPose().makeTranslation(0, 30f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
-
-            // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
-            Matrix.scaleM(modelMatrix, 0, 2f, 2f, 2f);
-
-            // Calculate model/view/projection matrices
-            Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
-            Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
-
-            // Update shader properties and draw
-            virtualObjectShadersList.get(i).setMat4("u_ModelView", modelViewMatrix);
-            virtualObjectShadersList.get(i).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
-            render.draw(virtualObjectMeshesList.get(i), virtualObjectShadersList.get(i), virtualSceneFramebuffer);
+            // Play audio files
+            if (hasTrackingPlane() && playAudio && !audioPlaying && audioNumber <= localBannersId.size() - 1) {
+                int audioFile = localVirtualMessages.get(audioNumber).getAudioFile();
+                playAudioFile(this.getContext(), audioFile);
+                audioNumber++;
+            }
         }
 
         // Compose the virtual scene with the background.
@@ -700,7 +736,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
 
         for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
             if (plane.getTrackingState() == TrackingState.TRACKING) {
-                while (anchors.size() < localVirtualMessages.size()) {
+                while (anchors.size() < localBannersId.size()) {
                     Pose pose = plane.getCenterPose();
 
                     // Change the rotation of the pose to face the camera
@@ -710,17 +746,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                     else {
                         pose = pose.compose(Pose.makeRotation(0, pose.qy(), 0, 1));
                     }
-
-                    // Shift the pose up by 5m for every virtualMessage
-                    pose = pose.compose(Pose.makeTranslation(0, anchors.size()*5f, 0));
+                    
+                    pose = pose.compose(Pose.makeTranslation(0, 0, 0));
                     Anchor anchor = session.createAnchor(pose);
 
-                    // if there are more anchors than messages, remove the first one
-                    // TODO: consider whether this is needed or not
-//                    if (anchors.size() > localVirtualMessages.size() - 1) {
-//                        anchors.get(0).detach();
-//                        anchors.remove(0);
-//                    }
                     anchors.add(anchor);
                 }
             }
@@ -746,10 +775,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             }
             return;
         }
-        for (int i = 0; i < localVirtualMessages.size(); i++) {
-            virtualObjectShadersList.get(i).setBool("u_LightEstimateIsValid", true);
+        for (int i = 0; i < localBannersId.size(); i++) {
+            int objectId = localBannersId.get(i);
+            virtualObjectShadersList.get(objectId).setBool("u_LightEstimateIsValid", true);
             Matrix.invertM(viewInverseMatrix, 0, viewMatrix, 0);
-            virtualObjectShadersList.get(i).setMat4("u_ViewInverse", viewInverseMatrix);
+            virtualObjectShadersList.get(objectId).setMat4("u_ViewInverse", viewInverseMatrix);
         }
         updateMainLight(
                 lightEstimate.getEnvironmentalHdrMainLightDirection(),
@@ -811,6 +841,20 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         session.configure(config);
     }
 
+    /** Plays audio track */
+    private void playAudioFile(Context context, int audioFile) {
+        if (mediaPlayer != null) mediaPlayer.release();
+        mediaPlayer = MediaPlayer.create(context, audioFile);
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                audioPlaying = false;
+            }
+        });
+        mediaPlayer.start();
+        audioPlaying = true;
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -824,8 +868,16 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         }
         else {
             messagesRetrieved = true;
+            messages = result; // used to generate virtualObject lists
             generateLocalVirtualMessages();
         }
+    }
+
+    @Override
+    public void onMessageFailure() {
+        Log.e(TAG, "Error receiving messages");
+        messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve messages. Please try restarting SkyWrite.");
+        messagesRetrieved = true;
     }
 
     @Override
@@ -842,6 +894,15 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     }
 
     @Override
+    public void onBannerFailure() {
+        Log.e(TAG, "Error receiving banners");
+        messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve banners. Please try restarting SkyWrite.");
+        globalBanners = new ArrayList<>();
+        bannersRetrieved = true;
+        localBannersId.clear();
+    }
+
+    @Override
     public void onLocationSuccess(Location location) {
         this.location = location;
         Log.d(TAG, "Location has been received");
@@ -850,9 +911,14 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             messageSnackbarHelper.showError(this.getActivity(), "Cannot find location. Please try restarting SkyWrite.");
         }
         else {
+            postcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
             locationRetrieved = true;
             generateLocalVirtualMessages();
         }
+
+        View root = binding.getRoot();
+        TextView postcodeTextView = root.findViewById(R.id.postcode_text_view);
+        postcodeTextView.setText("Postcode: "+postcode);
     }
 
     private void generateLocalVirtualMessages() {
@@ -860,12 +926,17 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             // If the user switched fragments faster than the request is received (e.g. running Android tests),
             // then this.getContext() will be null. As a result, this if statement is required
             if (this.getContext() != null) {
-                double latitude = location.getLatitude();
-                double longitude = location.getLongitude();
-                localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(this.getContext(), globalBanners, latitude, longitude);
+                localBannersId.clear();
+                for (Banner b : globalBanners) {
+                    if (b.getPostcode().equals(postcode)) {
+                        int id = b.getMessage() - 1;
+                        localBannersId.add(id);
+                        VirtualMessage virtualMessage = new VirtualMessage(messages.get(id));
+                        localVirtualMessages.add(virtualMessage);
+                    }
+                }
                 requiredDataRetrieved = true;
             }
-            requiredDataMutex.release();
         }
     }
 }

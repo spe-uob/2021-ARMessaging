@@ -69,10 +69,11 @@ jobs:
       - android/restore-build-cache
       - run:
           name: Assemble release build
+          # using the command ./gradlew assembleDebug instead of assembleRelease as assembleRelease has issues
           command: |
-            ./gradlew assembleRelease
+            ./gradlew assembleDebug
       - store_artifacts:
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          path: app/build/outputs/apk/release/SkyWrite_Build.apk
 
 workflows:  
   build_and_save:

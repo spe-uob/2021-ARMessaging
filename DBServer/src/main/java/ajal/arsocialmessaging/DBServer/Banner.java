@@ -2,6 +2,7 @@ package ajal.arsocialmessaging.DBServer;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.mapping.Table;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
