@@ -1,15 +1,15 @@
 package ajal.arsocialmessaging.DBServer;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.sql.Timestamp;
-import javax.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.*;
+import java.sql.Timestamp;
+import java.util.Date;
+
 @Entity @Table(name = "banners")
-@IdClass(Banner.class)
-public class Banner implements Serializable {
+@IdClass(BannerId.class)
+public class Banner {
 
     @Id
     @Column(name = "postcode") @Getter @Setter
