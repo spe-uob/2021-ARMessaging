@@ -8,7 +8,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -77,7 +76,7 @@ public class DbServerApplication {
 	}
 
 	@Scheduled(fixedRate = 3600000)
-	public void removeAfter24Hours() throws ParseException {
+	public void removeAfter24Hours() {
 		Timestamp now = new Timestamp(System.currentTimeMillis());
 		Iterable<Banner> banners = bannersRepo.findAll();
 		for (Banner banner : banners) {

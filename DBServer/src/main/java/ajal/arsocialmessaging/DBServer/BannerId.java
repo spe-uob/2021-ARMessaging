@@ -21,7 +21,7 @@ public class BannerId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BannerId otherId = (BannerId) o;
-        if (postcode != otherId.postcode) return false;
+        if (!Objects.equals(postcode, otherId.postcode)) return false;
         return timestamp == otherId.timestamp;
     }
 
