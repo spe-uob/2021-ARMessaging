@@ -15,3 +15,4 @@ public interface BannersRepository extends CrudRepository<Banner, Integer>{
     @Transactional
     void deleteByPostcodeAndTimestamp(@Param("postcode") String postcode, @Param("timestamp") Timestamp timestamp);
 }
+
