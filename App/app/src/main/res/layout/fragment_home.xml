@@ -35,7 +35,7 @@
         android:layout_height="100dp"
         android:layout_alignStart="@+id/surfaceview"
         android:layout_alignTop="@+id/surfaceview"
-        android:layout_marginBottom="120dp"
+        android:layout_marginBottom="60dp"
         android:background="@drawable/rounded_button"
         app:backgroundTint="@null"
         app:layout_constraintBottom_toBottomOf="parent"

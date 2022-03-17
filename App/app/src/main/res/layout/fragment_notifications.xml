@@ -22,7 +22,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:drawSelectorOnTop="false"
-        android:layout_marginBottom="60dp"
         android:listSelector="@android:color/darker_gray"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
