@@ -1,9 +1,15 @@
 package ajal.arsocialmessaging.DBServer;
 
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import java.sql.Timestamp;
 
 public interface BannersRepository extends CrudRepository<Banner, Integer>{
-    long deleteByPostcodeAndTimestamp(String postcode, Timestamp timestamp);
+
+    @Modifying
+    @Query("DELETE FROM Banner b WHERE b.postcode = :postcode AND b.timestamp = :timestamp")
+    long deleteByPostcodeAndTimestamp(@Param("postcode") String postcode, @Param("timestamp") Timestamp timestamp);
 }

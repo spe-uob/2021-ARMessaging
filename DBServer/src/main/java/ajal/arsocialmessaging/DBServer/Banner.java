@@ -2,13 +2,13 @@ package ajal.arsocialmessaging.DBServer;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.mapping.Table;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Date;
 
-@Entity @Table(name = "banners")
+@Entity
+@Table(name = "banners")
 @IdClass(BannerId.class)
 public class Banner {
 
