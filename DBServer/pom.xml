@@ -12,7 +12,7 @@
 	<artifactId>DBServer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>DBServer</name>
-	<description>Spring Boot application for skyWriteDB</description>
+	<description>Spring Boot application for SkyWriteDB</description>
 	<properties>
 		<java.version>11</java.version>
 	</properties>
@@ -51,7 +51,13 @@
             <version>0.0.20131108.vaadin1</version>
             <scope>compile</scope>
         </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>com.google.firebase</groupId>
+			<artifactId>firebase-admin</artifactId>
+			<version>8.1.0</version>
+		</dependency>
+
+	</dependencies>
 
 	<build>
 		<plugins>

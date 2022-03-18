@@ -22,4 +22,17 @@ public class Banner {
     public String getTimestamp() {
         return timestamp;
     }
+
+    public String getMessageAsString() {
+        String msg = "";
+        switch (this.message) {
+            case 1: msg = "Happy birthday"; break;
+            case 2: msg = "Merry Christmas"; break;
+            case 3: msg = "Congratulations"; break;
+            case 4: msg = "Good luck"; break;
+            case 5: msg = "Hope you feel better soon!"; break;
+            case 6: msg = "Thank you"; break;
+        }
+        return msg;
+    }
 }
