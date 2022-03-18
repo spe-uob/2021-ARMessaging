@@ -15,7 +15,6 @@ REFERENCE: https://www.geeksforgeeks.org/image-slider-in-android-using-viewpager
         android:id="@+id/rv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="60dp"
         android:scrollbars="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
