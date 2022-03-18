@@ -99,13 +99,13 @@ public class DbServerApplication {
 		return response;
 	}
 
-	@Scheduled(fixedRate = 1000)
+	@Scheduled(fixedRate = 3600000)
 	public void removeAfter24Hours() {
 		Timestamp now = new Timestamp(System.currentTimeMillis());
 		Iterable<Banner> banners = bannersRepo.findAll();
 		for (Banner banner : banners) {
 			long difference = now.getTime() - banner.getTimestamp().getTime();
-			if (difference > TimeUnit.SECONDS.toMillis(20)) {
+			if (difference > TimeUnit.DAYS.toMillis(1)) {
 				bannersRepo.deleteByPostcodeAndTimestamp(banner.getPostcode(), banner.getTimestamp());
 				System.out.println("Deleted banner at postcode " + banner.getPostcode() + " with timestamp " + banner.getTimestamp());
 			}
