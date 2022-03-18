@@ -40,7 +40,7 @@ public class DbServerApplication {
 	@Autowired
 	TokensRepository tokenRepo;
 
-	private InputStream GOOGLE_APPLICATION_CREDENTIALS;
+	private FileInputStream GOOGLE_APPLICATION_CREDENTIALS;
 
 	@RequestMapping("/addBanner")
 	public String addBanner(@RequestParam("bannerData") String bannerData){
@@ -142,13 +142,12 @@ public class DbServerApplication {
 	private void setupNotifications() throws IOException {
 		String dir = new File(".").getAbsolutePath();
 		String path = dir.substring(0, dir.length() - 1)+"service-account-file.json";
-		System.out.println(path);
-		FileInputStream serviceAccount =
+		FileInputStream GOOGLE_APPLICATION_CREDENTIALS =
 				new FileInputStream(path);
-		assert serviceAccount != null;
+		assert GOOGLE_APPLICATION_CREDENTIALS != null;
 
 		FirebaseOptions options = FirebaseOptions.builder()
-				.setCredentials(GoogleCredentials.fromStream(serviceAccount))
+				.setCredentials(GoogleCredentials.fromStream(GOOGLE_APPLICATION_CREDENTIALS))
 				.build();
 		FirebaseApp.initializeApp(options);
 	}
