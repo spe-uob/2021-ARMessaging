@@ -16,6 +16,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Timestamp;
@@ -99,13 +101,13 @@ public class DbServerApplication {
 		return response;
 	}
 
-	@Scheduled(fixedRate = 3600000)
+	@Scheduled(fixedRate = 1000)
 	public void removeAfter24Hours() {
 		Timestamp now = new Timestamp(System.currentTimeMillis());
 		Iterable<Banner> banners = bannersRepo.findAll();
 		for (Banner banner : banners) {
 			long difference = now.getTime() - banner.getTimestamp().getTime();
-			if (difference > TimeUnit.DAYS.toMillis(1)) {
+			if (difference > TimeUnit.SECONDS.toMillis(20)) {
 				bannersRepo.deleteByPostcodeAndTimestamp(banner.getPostcode(), banner.getTimestamp());
 				System.out.println("Deleted banner at postcode " + banner.getPostcode() + " with timestamp " + banner.getTimestamp());
 			}
@@ -138,10 +140,15 @@ public class DbServerApplication {
 
 	// Sets up Firebase Cloud Messaging for Notifications
 	private void setupNotifications() throws IOException {
-		GOOGLE_APPLICATION_CREDENTIALS = getClass().getClassLoader().getResourceAsStream("./service-account-file.json");
+		String dir = new File(".").getAbsolutePath();
+		String path = dir.substring(0, dir.length() - 1)+"service-account-file.json";
+		System.out.println(path);
+		FileInputStream serviceAccount =
+				new FileInputStream(path);
+		assert serviceAccount != null;
 
 		FirebaseOptions options = FirebaseOptions.builder()
-				.setCredentials(GoogleCredentials.fromStream(GOOGLE_APPLICATION_CREDENTIALS))
+				.setCredentials(GoogleCredentials.fromStream(serviceAccount))
 				.build();
 		FirebaseApp.initializeApp(options);
 	}
