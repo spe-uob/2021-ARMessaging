@@ -767,9 +767,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                         if (d % 2 == 0) { // diamond shape
                             switch (p) {
                                 case 1 : pose = pose.makeTranslation(0f, d*5f, 0).compose(pose); p += 1; break; // up
-                                case 2 : pose = pose.makeTranslation(d*10f, 0, 0).compose(pose); p += 1; break; // right
+                                case 2 : pose = pose.makeTranslation(d*5f, 0, 0).compose(pose); p += 1; break; // right
                                 case 3 : pose = pose.makeTranslation(0, -d*5f, 0).compose(pose); p += 1; break; // down
-                                case 4 : pose = pose.makeTranslation(-d*10f, 0, 0).compose(pose); p = 1; d += 1; break; // right
+                                case 4 : pose = pose.makeTranslation(-d*5f, 0, 0).compose(pose); p = 1; d += 1; break; // right
                             }
                         }
                         else { // square shape
