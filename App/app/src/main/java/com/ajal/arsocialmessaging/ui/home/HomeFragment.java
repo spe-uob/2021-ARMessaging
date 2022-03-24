@@ -733,7 +733,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
      * @param camera
      */
     private void handleAnchor(Frame frame, Camera camera) {
-
+        int d = 0; // d is the distance from the first message
+        int p = 1; // p is the position around the first message, there will be only 4 positions
         for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
             if (plane.getTrackingState() == TrackingState.TRACKING) {
                 while (anchors.size() < localBannersId.size()) {
@@ -747,8 +748,42 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                     else {
                         pose.makeRotation(0, -pose.qy(), 0, 1).compose(pose);
                     }
-                    
-                    pose = pose.makeTranslation(0, 30f - i*5f, -30f);
+
+                    // Calculate where to place anchor
+                    // e.g. for 17 banners, draw the banners out like in the comment below, from 1 to 17:
+                    /**
+                     *         14
+                     *     10      11
+                     *         6
+                     *       2   3
+                     * 17  9   1   7  15
+                     *       5   4
+                     *         8
+                     *     13      12
+                     *         16
+                     */
+                    pose = pose.makeTranslation(0, 30f, -30f);
+                    if (d > 0) {
+                        if (d % 2 == 0) { // diamond shape
+                            switch (p) {
+                                case 1 : pose = pose.makeTranslation(0f, d*5f, 0).compose(pose); p += 1; break; // up
+                                case 2 : pose = pose.makeTranslation(d*10f, 0, 0).compose(pose); p += 1; break; // right
+                                case 3 : pose = pose.makeTranslation(0, -d*5f, 0).compose(pose); p += 1; break; // down
+                                case 4 : pose = pose.makeTranslation(-d*10f, 0, 0).compose(pose); p = 1; d += 1; break; // right
+                            }
+                        }
+                        else { // square shape
+                            switch (p) {
+                                case 1 : pose = pose.makeTranslation(-d*5f, d*5f, 0).compose(pose); p += 1; break; // up-left
+                                case 2 : pose = pose.makeTranslation(d*5f, d*5f, 0).compose(pose); p += 1; break; // up-right
+                                case 3 : pose = pose.makeTranslation(d*5f, -d*5f, 0).compose(pose); p += 1; break; // down-right
+                                case 4 : pose = pose.makeTranslation(-d*5f, -d*5f, 0).compose(pose); p = 1; d += 1; break; // down-left
+                            }
+                        }
+                    }
+                    else { // just increase distance if d == 0
+                        d += 1;
+                    }
                     Anchor anchor = session.createAnchor(pose);
 
                     anchors.add(anchor);
