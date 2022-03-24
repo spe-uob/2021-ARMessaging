@@ -29,8 +29,8 @@ public class CustomArrayAdapter extends ArrayAdapter {
             LayoutInflater inflater = context.getLayoutInflater();
             if(convertView==null)
                 row = inflater.inflate(R.layout.row_item, null, true);
-            TextView textViewCountry = (TextView) row.findViewById(R.id.textViewCountry);
-            ImageView imageFlag = (ImageView) row.findViewById(R.id.imageViewFlag);
+            TextView textViewCountry = (TextView) row.findViewById(R.id.textViewMessage);
+            ImageView imageFlag = (ImageView) row.findViewById(R.id.imageViewMessage);
 
             textViewCountry.setText(messages.get(position));
             imageFlag.setImageResource(imageid.get(position));
