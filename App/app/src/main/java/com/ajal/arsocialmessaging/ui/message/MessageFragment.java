@@ -16,6 +16,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+
+import com.ajal.arsocialmessaging.CustomArrayAdapter;
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
 import com.ajal.arsocialmessaging.util.database.DBObserver;
 import com.ajal.arsocialmessaging.util.database.MessageService;
@@ -142,7 +144,7 @@ public class MessageFragment extends Fragment implements DBObserver {
     public void onMessageSuccess(List<Message> result) {
         Log.d(TAG, "Messages have been received");
 
-        /** ListView code */
+        /** Old ListView
         // Fills the ListView with messages
         View root = binding.getRoot();
         messages = DBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
@@ -161,6 +163,26 @@ public class MessageFragment extends Fragment implements DBObserver {
                 setSendBtnAvailability(text);
             }
         });
+         */
+
+        /** New ListView */
+        View root = binding.getRoot();
+        messages = DBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
+        listView = root.findViewById(R.id.list_messagesToSend);
+        CustomArrayAdapter adapter = new CustomArrayAdapter(getActivity(), messages, messages);
+        listView.setAdapter(adapter);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                messageSelected = parent.getItemAtPosition(position).toString();
+                Log.d("MYTAG", "Position in list is: "+position);
+                messageSelectedId = position+1;  // Offset by 1 since DB records start at 1 and positions start at 0
+                String text = postCodeInput.getText().toString();
+                setSendBtnAvailability(text);
+            }
+        });
+
     }
 
     @Override

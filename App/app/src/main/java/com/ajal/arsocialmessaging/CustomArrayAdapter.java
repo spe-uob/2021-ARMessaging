@@ -8,20 +8,21 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.List;
+
 public class CustomArrayAdapter extends ArrayAdapter {
 
-        private String[] countryNames;
-        private String[] capitalNames;
+        private List<String> countryNames;
+        private List<String> capitalNames;
         private Integer[] imageid;
         private Activity context;
 
-        public CustomArrayAdapter(Activity context, String[] countryNames, String[] capitalNames, Integer[] imageid) {
+        public CustomArrayAdapter(Activity context, List<String> countryNames, List<String> capitalNames) {
             super(context, R.layout.row_item, countryNames);
             this.context = context;
             this.countryNames = countryNames;
             this.capitalNames = capitalNames;
             this.imageid = imageid;
-
         }
 
         @Override
@@ -34,8 +35,8 @@ public class CustomArrayAdapter extends ArrayAdapter {
             TextView textViewCapital = (TextView) row.findViewById(R.id.textViewCapital);
             ImageView imageFlag = (ImageView) row.findViewById(R.id.imageViewFlag);
 
-            textViewCountry.setText(countryNames[position]);
-            textViewCapital.setText(capitalNames[position]);
+            textViewCountry.setText(countryNames.get(position));
+            textViewCapital.setText(capitalNames.get(position));
             imageFlag.setImageResource(imageid[position]);
             return  row;
         }
