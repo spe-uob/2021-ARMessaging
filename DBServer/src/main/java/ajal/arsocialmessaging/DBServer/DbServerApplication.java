@@ -177,27 +177,11 @@ public class DbServerApplication {
 		}
 		return registrationTokens;
 	}
-
-
-	// Sets up the Messages repository with messages
+	
 	@Bean
-	public CommandLineRunner run() throws Exception {
+	public void run() throws Exception {
 		setupNotifications();
-		return (String[] args) -> {
-			messagesRepo.truncate();
-
-			Message msg1 = new Message(1, "Happy birthday", "happy-birthday.obj");
-			Message msg2 = new Message(2, "Merry Christmas", "merry-christmas.obj");
-			Message msg3 = new Message(3, "Congratulations", "congratulations.obj");
-			Message msg4 = new Message(4, "Good luck", "good-luck.obj");
-			Message msg5 = new Message(5, "Hope you feel better soon!", "feel-better.obj");
-			Message msg6 = new Message(6, "Thank you", "thank-you.obj");
-			Message[] messages = {msg1, msg2, msg3, msg4, msg5, msg6};
-
-			for (Message msg : messages) {
-				messagesRepo.save(msg);
-			}
-		};
+		return;
 	}
 
 	public static void main(String[] args){

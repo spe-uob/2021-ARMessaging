@@ -750,8 +750,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                     }
 
                     // Calculate where to place anchor
-                    // e.g. for 17 banners, draw the banners out like in the comment below, from 1 to 17:
-                    /**
+                    /** e.g. for 17 banners, draw the banners out like in the comment below, from 1 to 17:
                      *         14
                      *     10      11
                      *         6
