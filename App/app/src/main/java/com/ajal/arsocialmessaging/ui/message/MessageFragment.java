@@ -29,6 +29,7 @@ import com.ajal.arsocialmessaging.util.database.ServiceGenerator;
 import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -166,10 +167,17 @@ public class MessageFragment extends Fragment implements DBObserver {
          */
 
         /** New ListView */
+
+        // Rounded buttons used as placeholders before images added
+        List<Integer> imageid = new ArrayList<>();
+        imageid.add(R.drawable.rounded_button);
+        imageid.add(R.drawable.rounded_button);
+        imageid.add(R.drawable.rounded_button);
+
         View root = binding.getRoot();
         messages = DBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
         listView = root.findViewById(R.id.list_messagesToSend);
-        CustomArrayAdapter adapter = new CustomArrayAdapter(getActivity(), messages, messages);
+        CustomArrayAdapter adapter = new CustomArrayAdapter(getActivity(), messages, imageid);
         listView.setAdapter(adapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {

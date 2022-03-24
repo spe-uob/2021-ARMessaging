@@ -12,16 +12,14 @@ import java.util.List;
 
 public class CustomArrayAdapter extends ArrayAdapter {
 
-        private List<String> countryNames;
-        private List<String> capitalNames;
-        private Integer[] imageid;
+        private List<String> messages;
         private Activity context;
+        private List<Integer> imageid;
 
-        public CustomArrayAdapter(Activity context, List<String> countryNames, List<String> capitalNames) {
-            super(context, R.layout.row_item, countryNames);
+        public CustomArrayAdapter(Activity context, List<String> messages, List<Integer> imageid) {
+            super(context, R.layout.row_item, messages);
             this.context = context;
-            this.countryNames = countryNames;
-            this.capitalNames = capitalNames;
+            this.messages = messages;
             this.imageid = imageid;
         }
 
@@ -32,12 +30,10 @@ public class CustomArrayAdapter extends ArrayAdapter {
             if(convertView==null)
                 row = inflater.inflate(R.layout.row_item, null, true);
             TextView textViewCountry = (TextView) row.findViewById(R.id.textViewCountry);
-            TextView textViewCapital = (TextView) row.findViewById(R.id.textViewCapital);
             ImageView imageFlag = (ImageView) row.findViewById(R.id.imageViewFlag);
 
-            textViewCountry.setText(countryNames.get(position));
-            textViewCapital.setText(capitalNames.get(position));
-            imageFlag.setImageResource(imageid[position]);
+            textViewCountry.setText(messages.get(position));
+            imageFlag.setImageResource(imageid.get(position));
             return  row;
         }
 }
