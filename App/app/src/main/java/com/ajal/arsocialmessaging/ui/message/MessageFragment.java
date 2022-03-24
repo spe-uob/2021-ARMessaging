@@ -173,6 +173,10 @@ public class MessageFragment extends Fragment implements DBObserver {
         imageid.add(R.drawable.rounded_button);
         imageid.add(R.drawable.rounded_button);
         imageid.add(R.drawable.rounded_button);
+        imageid.add(R.drawable.rounded_button);
+        imageid.add(R.drawable.rounded_button);
+        imageid.add(R.drawable.rounded_button);
+        imageid.add(R.drawable.rounded_button);
 
         View root = binding.getRoot();
         messages = DBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
