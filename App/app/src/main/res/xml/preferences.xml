@@ -51,8 +51,6 @@
             app:iconSpaceReserved="false"
             app:summary="Go to notification settings"
             android:id="@+id/manage_notification"/>
-<!--            <intent android:action="android.intent.action.VIEW"-->
-<!--                android:data="Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS" />-->
 
     </PreferenceCategory>
 
