@@ -71,7 +71,7 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
      */
     @Override
     public void onNewToken(String token) {
-        Log.d(TAG, "Refreshed token: " + token);
+        Log.d(TAG, "R/efreshed token: " + token);
         this.token = token;
         sendRegistrationToServer(token);
     }
