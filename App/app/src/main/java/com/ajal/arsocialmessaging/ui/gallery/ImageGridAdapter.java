@@ -1,16 +1,18 @@
 package com.ajal.arsocialmessaging.ui.gallery;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.ajal.arsocialmessaging.R;
+import com.ajal.arsocialmessaging.ViewPagerActivity;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -19,9 +21,8 @@ import java.util.List;
 public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.GridItemViewHolder> {
 
     private List<String> images;
-    private Context c;
+    private Context context;
     private RecyclerView rv;
-    private ViewPager viewPager;
     private int imagePos;
 
     public class GridItemViewHolder extends RecyclerView.ViewHolder {
@@ -33,11 +34,10 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
         }
     }
 
-    public ImageGridAdapter(Context c, List<String> images, RecyclerView rv, ViewPager viewPager) {
-        this.c = c;
+    public ImageGridAdapter(Context c, List<String> images, RecyclerView rv) {
+        this.context = c;
         this.images = images;
         this.rv = rv;
-        this.viewPager = viewPager;
     }
 
     @NonNull
@@ -62,15 +62,20 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
         holder.siv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                viewPager.setVisibility(View.VISIBLE);
-                rv.setVisibility(View.INVISIBLE);
-                // sets a new adapter every time so you won't see the viewPager scrolling to your current position
-                PagerAdapter viewPagerAdapter = new ViewPagerAdapter(c, images);
-                viewPager.setAdapter(viewPagerAdapter);
                 imagePos = pos;
-                viewPager.setCurrentItem(imagePos);
+                openViewPagerActivity(imagePos);
             }
         });
+    }
+
+    /**
+     * Loads up a new activity to display the images in full size
+     * @param imagePos
+     */
+    public void openViewPagerActivity(int imagePos) {
+        Intent intent = new Intent(context, ViewPagerActivity.class);
+        intent.putExtra("imagePos", imagePos);
+        context.startActivity(intent);
     }
 
     @Override
