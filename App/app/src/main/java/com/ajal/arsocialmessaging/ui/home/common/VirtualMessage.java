@@ -12,35 +12,10 @@ public class VirtualMessage {
     private String audioFile;
 
     public VirtualMessage(Message message) {
-        setFiles(message);
-    }
-
-    public void setFiles(Message message) {
-        this.albedoTexture = "models/"+message.getObjfilename()+".png";
-        this.objfilename = "models/"+message.getObjfilename()+".obj";
+        this.objfilename = "models/"+message.getObjfilename()+"/model.obj";
+        this.albedoTexture = "models/"+message.getObjfilename()+"/albedo-texture.png";
+        this.pbrTexture = "models/"+message.getObjfilename()+"/pbr-texture.png";
         this.audioFile = "audio/"+message.getObjfilename()+".mp3";
-
-        // TODO: remove rest of the switch statement
-        switch (message.getId()) {
-            case 1:
-                this.pbrTexture = "models/white-texture.png";
-                break;
-            case 2:
-                this.pbrTexture = "models/grey-texture.png";
-                break;
-            case 3:
-                this.pbrTexture = "models/white-texture.png";
-                break;
-            case 4:
-                this.pbrTexture = "models/grey-texture.png";
-                break;
-            case 5:
-                this.pbrTexture = "models/grey-texture.png";
-                break;
-            case 6:
-                this.pbrTexture = "models/white-texture.png";
-                break;
-        }
     }
 
     public String getAlbedoTexture() {
