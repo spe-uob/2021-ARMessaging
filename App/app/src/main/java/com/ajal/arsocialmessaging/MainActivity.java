@@ -122,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
         // Dark mode
         if (darkM.getString("darkMode", "On").equals("On")) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+//            setTheme(theme.getInt("themeID", R.style.FontSizeMedium));
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             setTheme(theme.getInt("themeID", R.style.FontSizeMedium));

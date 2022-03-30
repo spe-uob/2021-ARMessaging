@@ -728,6 +728,14 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     }
 
     /**
+     * Delete picture in a gallery.
+     *
+     */
+    private void galleryDeletePic(){
+
+    }
+
+    /**
      * Automatically place an anchor rather than by tap, unlike how hello_ar_java does it
      * @param frame
      * @param camera
