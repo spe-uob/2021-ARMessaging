@@ -12,9 +12,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
-
-import com.ajal.arsocialmessaging.ui.gallery.ViewPagerAdapter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,6 +22,7 @@ import java.util.List;
 public class ViewPagerActivity extends AppCompatActivity {
 
     private static final String TAG = "SkyWrite";
+    private AppCompatActivity activity = this;
     private List<File> images;
 
     @Override
@@ -54,8 +52,21 @@ public class ViewPagerActivity extends AppCompatActivity {
 
         // Set up View Pager
         ViewPager viewPager = findViewById(R.id.viewPagerMain);
-        PagerAdapter viewPagerAdapter = new ViewPagerAdapter(this, imageFilenames);
+        PagerAdapter viewPagerAdapter = new ViewPagerAdapter(this, this, imageFilenames);
         viewPager.setAdapter(viewPagerAdapter);
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+
+            @Override
+            public void onPageScrollStateChanged(int state) {}
+
+            @Override
+            public void onPageSelected(int position) {
+                // Update the action bar title
+                activity.getSupportActionBar().setTitle((position+1)+"/"+images.size());
+            }
+        });
 
         Bundle b = getIntent().getExtras();
         int imagePos = b.getInt("imagePos");
