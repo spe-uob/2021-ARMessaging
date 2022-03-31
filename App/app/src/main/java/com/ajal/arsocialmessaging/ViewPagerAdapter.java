@@ -1,12 +1,15 @@
-package com.ajal.arsocialmessaging.ui.gallery;
+package com.ajal.arsocialmessaging;
 
+import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.PagerAdapter;
 
 import com.ajal.arsocialmessaging.R;
@@ -19,6 +22,7 @@ import java.util.Objects;
 
 public class ViewPagerAdapter extends PagerAdapter {
 
+    private AppCompatActivity activity;
     private Context context;
     private List<String> images;
 
@@ -27,7 +31,8 @@ public class ViewPagerAdapter extends PagerAdapter {
 
 
     // Viewpager Constructor
-    public ViewPagerAdapter(Context context, List<String> images) {
+    public ViewPagerAdapter(AppCompatActivity activity, Context context, List<String> images) {
+        this.activity = activity;
         this.context = context;
         this.images = images;
         mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -61,6 +66,11 @@ public class ViewPagerAdapter extends PagerAdapter {
 
         // Adding the View
         Objects.requireNonNull(container).addView(itemView);
+
+        // Set up the action bar title
+        if (this.activity.getSupportActionBar().getTitle().equals("SkyWrite")) {
+            this.activity.getSupportActionBar().setTitle((pos+1)+"/"+images.size());
+        }
 
         return itemView;
     }

@@ -3,6 +3,7 @@ package com.ajal.arsocialmessaging.ui.home;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.media.Image;
@@ -637,7 +638,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
 
             // Play audio files
             if (hasTrackingPlane() && playAudio && !audioPlaying && audioNumber <= localBannersId.size() - 1) {
-                int audioFile = localVirtualMessages.get(audioNumber).getAudioFile();
+                String audioFile = localVirtualMessages.get(audioNumber).getAudioFile();
                 playAudioFile(this.getContext(), audioFile);
                 audioNumber++;
             }
@@ -876,18 +877,24 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         session.configure(config);
     }
 
-    /** Plays audio track */
-    private void playAudioFile(Context context, int audioFile) {
+    private void playAudioFile(Context context, String audioFile) {
         if (mediaPlayer != null) mediaPlayer.release();
-        mediaPlayer = MediaPlayer.create(context, audioFile);
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                audioPlaying = false;
-            }
-        });
-        mediaPlayer.start();
-        audioPlaying = true;
+        mediaPlayer = new MediaPlayer();
+        try {
+            AssetFileDescriptor descriptor = this.getContext().getAssets().openFd(audioFile);
+            mediaPlayer.setDataSource(descriptor.getFileDescriptor(), descriptor.getStartOffset(), descriptor.getLength());
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mediaPlayer) {
+                    audioPlaying = false;
+                }
+            });
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+            audioPlaying = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
