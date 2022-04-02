@@ -5,7 +5,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import android.app.ActionBar;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
