@@ -619,7 +619,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                 // Get the current pose of an Anchor in world space. The Anchor pose is updated
                 // during calls to session.update() as ARCore refines its estimate of the world.
 
-                anchor.getPose().makeTranslation(0, 30f + i*5f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
+                anchor.getPose().toMatrix(modelMatrix, 0);
 
                 // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
                 Matrix.scaleM(modelMatrix, 0, 2f, 2f, 2f);
@@ -733,21 +733,56 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
      * @param camera
      */
     private void handleAnchor(Frame frame, Camera camera) {
-
+        int d = 0; // d is the distance from the first message
+        int p = 1; // p is the position around the first message, there will be only 4 positions
         for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
             if (plane.getTrackingState() == TrackingState.TRACKING) {
                 while (anchors.size() < localBannersId.size()) {
+                    int i = anchors.size();
                     Pose pose = plane.getCenterPose();
 
                     // Change the rotation of the pose to face the camera
                     if (pose.qy() > 0) {
-                        pose = pose.compose(Pose.makeRotation(0, -pose.qy(), 0, 1));
+                        pose = pose.makeRotation(0, -pose.qy(), 0, 1).compose(pose);
                     }
                     else {
-                        pose = pose.compose(Pose.makeRotation(0, pose.qy(), 0, 1));
+                        pose.makeRotation(0, -pose.qy(), 0, 1).compose(pose);
                     }
-                    
-                    pose = pose.compose(Pose.makeTranslation(0, 0, 0));
+
+                    // Calculate where to place anchor
+                    /** e.g. for 17 banners, draw the banners out like in the comment below, from 1 to 17:
+                     *         14
+                     *     10      11
+                     *         6
+                     *       2   3
+                     * 17  9   1   7  15
+                     *       5   4
+                     *         8
+                     *     13      12
+                     *         16
+                     */
+                    pose = pose.makeTranslation(0, 30f, -30f);
+                    if (d > 0) {
+                        if (d % 2 == 0) { // diamond shape
+                            switch (p) {
+                                case 1 : pose = pose.makeTranslation(0f, d*5f, 0).compose(pose); p += 1; break; // up
+                                case 2 : pose = pose.makeTranslation(d*5f, 0, 0).compose(pose); p += 1; break; // right
+                                case 3 : pose = pose.makeTranslation(0, -d*5f, 0).compose(pose); p += 1; break; // down
+                                case 4 : pose = pose.makeTranslation(-d*5f, 0, 0).compose(pose); p = 1; d += 1; break; // right
+                            }
+                        }
+                        else { // square shape
+                            switch (p) {
+                                case 1 : pose = pose.makeTranslation(-d*5f, d*5f, 0).compose(pose); p += 1; break; // up-left
+                                case 2 : pose = pose.makeTranslation(d*5f, d*5f, 0).compose(pose); p += 1; break; // up-right
+                                case 3 : pose = pose.makeTranslation(d*5f, -d*5f, 0).compose(pose); p += 1; break; // down-right
+                                case 4 : pose = pose.makeTranslation(-d*5f, -d*5f, 0).compose(pose); p = 1; d += 1; break; // down-left
+                            }
+                        }
+                    }
+                    else { // just increase distance if d == 0
+                        d += 1;
+                    }
                     Anchor anchor = session.createAnchor(pose);
 
                     anchors.add(anchor);
@@ -927,6 +962,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             // then this.getContext() will be null. As a result, this if statement is required
             if (this.getContext() != null) {
                 localBannersId.clear();
+                localVirtualMessages.clear();
                 for (Banner b : globalBanners) {
                     if (b.getPostcode().equals(postcode)) {
                         int id = b.getMessage() - 1;

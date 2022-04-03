@@ -8,20 +8,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "messages")
-@SequenceGenerator(
-        name = "seqid-gen",
-        sequenceName = "messages_id_seq",
-        initialValue = 1,
-        allocationSize = 1
-)
 public class Message {
-
-    // REFERENCE: https://stackoverflow.com/questions/38316680/creating-sequence-id-in-hibernate 27/02/2022 23:05
-    // The sequence is required for truncate() to reset the autoincrement
-    // when all of the entities in the table are removed
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqid-gen")
-    @Column(name = "id") @Getter @Setter
+    @Id @GeneratedValue @Column(name = "id") @Getter @Setter
     Integer id;
 
     @Column(name = "message") @Getter @Setter
