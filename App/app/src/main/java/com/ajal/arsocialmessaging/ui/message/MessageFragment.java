@@ -117,6 +117,9 @@ public class MessageFragment extends Fragment implements DBObserver {
         }
     }
 
+    /**
+     * Manages database connection when user sends a message
+     */
     private void addBannerToDatabase(String postcode){
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
@@ -138,6 +141,9 @@ public class MessageFragment extends Fragment implements DBObserver {
         });
     }
 
+    /**
+     * Populates listView with images and messages once they are received from the database
+     */
     @Override
     public void onMessageSuccess(List<Message> result) {
         Log.d(TAG, "Messages have been received");
@@ -159,13 +165,13 @@ public class MessageFragment extends Fragment implements DBObserver {
         CustomArrayAdapter adapter = new CustomArrayAdapter(getActivity(), messages, imageid);
         listView.setAdapter(adapter);
 
-        // Sets a listener to figure out what item was clicked in list view
+        // Sets a listener to figure out which item was clicked in list view
         listView.setOnItemClickListener((parent, view, position, id) -> {
             messageSelected = parent.getItemAtPosition(position).toString();
             Log.d("MYTAG", "Position in list is: "+position);
             messageSelectedId = position+1;  // Offset by 1 since DB records start at 1 and positions start at 0
             String text = postCodeInput.getText().toString();
-            setSendBtnAvailability(text);
+            setSendBtnAvailability(text);   // Toggle send button depending on text input
         });
 
     }
