@@ -166,17 +166,17 @@ public class MessageFragment extends Fragment implements DBObserver {
         });
          */
 
+
         /** New ListView */
 
         // Rounded buttons used as placeholders before images added
         List<Integer> imageid = new ArrayList<>();
-        imageid.add(R.drawable.rounded_button);
-        imageid.add(R.drawable.rounded_button);
-        imageid.add(R.drawable.rounded_button);
-        imageid.add(R.drawable.rounded_button);
-        imageid.add(R.drawable.rounded_button);
-        imageid.add(R.drawable.rounded_button);
-        imageid.add(R.drawable.rounded_button);
+        imageid.add(R.drawable.happy_birthday);
+        imageid.add(R.drawable.merry_christmas);
+        imageid.add(R.drawable.congratulations);
+        imageid.add(R.drawable.good_luck);
+        imageid.add(R.drawable.get_well_soon);
+        imageid.add(R.drawable.thank_you);
 
         View root = binding.getRoot();
         messages = DBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
