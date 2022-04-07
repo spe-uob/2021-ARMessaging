@@ -7,9 +7,4 @@ import org.springframework.data.repository.CrudRepository;
 import javax.transaction.Transactional;
 
 public interface MessagesRepository extends CrudRepository<Message, Integer>{
-
-    @Query(value = "TRUNCATE TABLE messages RESTART IDENTITY", nativeQuery = true)
-    @Modifying
-    @Transactional
-    void truncate();
 }
