@@ -31,7 +31,6 @@ public class HashCreatorTest {
         String output1 = HashCreator.createSHAHash(inputA);
         String output2 = HashCreator.createSHAHash(inputB);
         assertNotEquals(output1, output2);
-        System.out.println(output2);
     }
 
 }
