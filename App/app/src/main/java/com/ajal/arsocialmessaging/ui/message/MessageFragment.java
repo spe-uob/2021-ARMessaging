@@ -145,31 +145,8 @@ public class MessageFragment extends Fragment implements DBObserver {
     public void onMessageSuccess(List<Message> result) {
         Log.d(TAG, "Messages have been received");
 
-        /** Old ListView
-        // Fills the ListView with messages
-        View root = binding.getRoot();
-        messages = DBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
-        listView = root.findViewById(R.id.list_messagesToSend);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, messages);
-        listView.setAdapter(adapter);
-
-        // Sets a listener to figure out what item was clicked in list view
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                messageSelected = parent.getItemAtPosition(position).toString();
-                Log.d("MYTAG", "Position in list is: "+position);
-                messageSelectedId = position+1;  // Offset by 1 since DB records start at 1 and positions start at 0
-                String text = postCodeInput.getText().toString();
-                setSendBtnAvailability(text);
-            }
-        });
-         */
-
-
-        /** New ListView */
-
-        // Rounded buttons used as placeholders before images added
+        /** ListView with images */
+        // Add images to ArrayList to be displayed in listView
         List<Integer> imageid = new ArrayList<>();
         imageid.add(R.drawable.happy_birthday);
         imageid.add(R.drawable.merry_christmas);
@@ -178,12 +155,14 @@ public class MessageFragment extends Fragment implements DBObserver {
         imageid.add(R.drawable.get_well_soon);
         imageid.add(R.drawable.thank_you);
 
+        // Populate listview with images and text
         View root = binding.getRoot();
         messages = DBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
         listView = root.findViewById(R.id.list_messagesToSend);
         CustomArrayAdapter adapter = new CustomArrayAdapter(getActivity(), messages, imageid);
         listView.setAdapter(adapter);
 
+        // Sets a listener to figure out what item was clicked in list view
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
