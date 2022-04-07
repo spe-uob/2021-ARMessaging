@@ -90,19 +90,16 @@ public class MessageFragment extends Fragment implements DBObserver {
             public void afterTextChanged(Editable editable) {}
         });
 
-        sendBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String input = postCodeInput.getText().toString();
-                String formattedInput = PostcodeHelper.formatPostcode(postCodeInput.getText().toString());
-                if (PostcodeHelper.checkPostcodeValid(formattedInput)) {
-                    postCode = formattedInput;
-                    Toast.makeText(getContext(), "Sent \""+messageSelected+"\" to: "+postCode, Toast.LENGTH_SHORT).show();
-                    addBannerToDatabase(postCode);
-                }
-                else {
-                    Toast.makeText(getContext(), "Invalid postcode: "+input, Toast.LENGTH_SHORT).show();
-                }
+        sendBtn.setOnClickListener(view -> {
+            String input = postCodeInput.getText().toString();
+            String formattedInput = PostcodeHelper.formatPostcode(postCodeInput.getText().toString());
+            if (PostcodeHelper.checkPostcodeValid(formattedInput)) {
+                postCode = formattedInput;
+                Toast.makeText(getContext(), "Sent \""+messageSelected+"\" to: "+postCode, Toast.LENGTH_SHORT).show();
+                addBannerToDatabase(postCode);
+            }
+            else {
+                Toast.makeText(getContext(), "Invalid postcode: "+input, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -163,15 +160,12 @@ public class MessageFragment extends Fragment implements DBObserver {
         listView.setAdapter(adapter);
 
         // Sets a listener to figure out what item was clicked in list view
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                messageSelected = parent.getItemAtPosition(position).toString();
-                Log.d("MYTAG", "Position in list is: "+position);
-                messageSelectedId = position+1;  // Offset by 1 since DB records start at 1 and positions start at 0
-                String text = postCodeInput.getText().toString();
-                setSendBtnAvailability(text);
-            }
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            messageSelected = parent.getItemAtPosition(position).toString();
+            Log.d("MYTAG", "Position in list is: "+position);
+            messageSelectedId = position+1;  // Offset by 1 since DB records start at 1 and positions start at 0
+            String text = postCodeInput.getText().toString();
+            setSendBtnAvailability(text);
         });
 
     }
