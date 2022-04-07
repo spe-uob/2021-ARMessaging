@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
+import com.ajal.arsocialmessaging.util.HashCreator;
 import com.ajal.arsocialmessaging.util.database.Banner;
 import com.ajal.arsocialmessaging.util.database.client.ClientDBHelper;
 import com.ajal.arsocialmessaging.util.database.server.MessageService;
@@ -102,10 +103,9 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
             }
             // if the user is in the postcode of the newly added message:
             // display a notification and store it in a database to be displayed in the Notification Fragment
-            Log.d(TAG, postcode+","+this.postcode);
-            if (postcode.equals(this.postcode)) {
-                sendNotification(remoteMessage.getData());
-                saveNotification(remoteMessage.getData());
+            if (postcode.equals(HashCreator.createSHAHash(this.postcode))) {
+                sendNotification(remoteMessage.getData()); // send notification to the notification channel
+                saveNotification(remoteMessage.getData()); // save notification to the SQLite database
             }
             postcodeMutex.release();
         }
@@ -163,7 +163,7 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
 
     // Displays the Notification - sends it down the FCM default notification channel
     private void sendNotification(Map<String, String> remoteMessageData) {
-        String title = "New message at: " + remoteMessageData.get("postcode");
+        String title = "New message at: " + this.postcode;
         String body = "Click here to open the app";
         // Note: FCM comes with a default notification channel
         String channelId = getString(R.string.default_notification_channel_id);
@@ -203,10 +203,9 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
 
     // Saves the notification to into the local SQLite Database on the Android device
     private void saveNotification(Map<String, String> remoteMessageData) {
-        String postcode = remoteMessageData.get("postcode");
         int messageId = Integer.parseInt(remoteMessageData.get("message"));
         String timestamp = remoteMessageData.get("timestamp");
-        Banner banner = new Banner(postcode, messageId, timestamp);
+        Banner banner = new Banner(this.postcode, messageId, timestamp);
 
         clientDBHelper.insertNewBanner(banner);
     }

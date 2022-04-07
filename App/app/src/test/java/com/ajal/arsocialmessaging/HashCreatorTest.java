@@ -1,12 +1,13 @@
-package ajal.arsocialmessaging.DBServer;
+package com.ajal.arsocialmessaging;
 
-import ajal.arsocialmessaging.DBServer.util.HashCreator;
 import org.junit.Test;
 
 import java.security.NoSuchAlgorithmException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+
+import com.ajal.arsocialmessaging.util.HashCreator;
 
 public class HashCreatorTest {
 
@@ -34,3 +35,4 @@ public class HashCreatorTest {
     }
 
 }
+

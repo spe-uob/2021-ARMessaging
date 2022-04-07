@@ -17,6 +17,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
+import com.ajal.arsocialmessaging.util.HashCreator;
 import com.ajal.arsocialmessaging.util.database.server.ServerDBObserver;
 import com.ajal.arsocialmessaging.util.database.server.MessageService;
 import com.ajal.arsocialmessaging.util.database.Banner;
@@ -27,6 +28,7 @@ import com.ajal.arsocialmessaging.util.database.server.ServiceGenerator;
 import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -94,8 +96,8 @@ public class MessageFragment extends Fragment implements ServerDBObserver {
                 String formattedInput = PostcodeHelper.formatPostcode(postCodeInput.getText().toString());
                 if (PostcodeHelper.checkPostcodeValid(formattedInput)) {
                     postCode = formattedInput;
-                    Toast.makeText(getContext(), "Sent \""+messageSelected+"\" to: "+postCode, Toast.LENGTH_SHORT).show();
                     addBannerToDatabase(postCode);
+                    Toast.makeText(getContext(), "Sent \""+messageSelected+"\" to: "+postCode, Toast.LENGTH_SHORT).show();
                 }
                 else {
                     Toast.makeText(getContext(), "Invalid postcode: "+input, Toast.LENGTH_SHORT).show();
@@ -120,27 +122,26 @@ public class MessageFragment extends Fragment implements ServerDBObserver {
     private void addBannerToDatabase(String postcode){
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
-        String bannerData = postcode + "," + messageSelectedId;
+        String hashedPostcode = HashCreator.createSHAHash(postcode);
+        String bannerData = hashedPostcode + "," + messageSelectedId; // hashes the postcode before sending to server
         Call<String> addBannerCall = service.addBanner(bannerData);
         addBannerCall.enqueue(new Callback<String>() {
             @Override
             public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
-                Log.d("MYTAG", "Got a response, error is "+response.errorBody()+" "+response.message());
                 String postResponse = response.body();
-                Log.d("MYTAG", "Response: "+postResponse);
             }
 
             @Override
             public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
-                //Toast.makeText(getContext(), "onFailure called ", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Unable to send message, please try again", Toast.LENGTH_SHORT);
                 call.cancel();
             }
         });
+
     }
 
     @Override
     public void onMessageSuccess(List<Message> result) {
-        Log.d(TAG, "Messages have been received");
 
         /** ListView code */
         // Fills the ListView with messages
@@ -171,7 +172,6 @@ public class MessageFragment extends Fragment implements ServerDBObserver {
 
     @Override
     public void onBannerSuccess(List<Banner> result) {
-        Log.d(TAG, "Banners have been received");
     }
 
     @Override

@@ -27,6 +27,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
+import com.ajal.arsocialmessaging.util.HashCreator;
 import com.ajal.arsocialmessaging.util.database.server.ServerDBObserver;
 import com.ajal.arsocialmessaging.util.database.Banner;
 import com.ajal.arsocialmessaging.util.database.server.ServerDBHelper;
@@ -904,7 +905,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
 
     @Override
     public void onMessageSuccess(List<Message> result) {
-        Log.d(TAG, "Messages have been received");
         if (result == null) {
             messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve messages. Please try restarting SkyWrite.");
         }
@@ -924,7 +924,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
 
     @Override
     public void onBannerSuccess(List<Banner> result) {
-        Log.d(TAG, "Banners have been received");
         if (result == null) {
             messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve banners. Please try restarting SkyWrite.");
         }
@@ -947,7 +946,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     @Override
     public void onLocationSuccess(Location location) {
         this.location = location;
-        Log.d(TAG, "Location has been received");
 
         if (location == null) {
             messageSnackbarHelper.showError(this.getActivity(), "Cannot find location. Please try restarting SkyWrite.");
@@ -971,7 +969,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                 localBannersId.clear();
                 localVirtualMessages.clear();
                 for (Banner b : globalBanners) {
-                    if (b.getPostcode().equals(postcode)) {
+                    // compares current hashed postcode with hashed postcodes from server
+                    if (b.getPostcode().equals(HashCreator.createSHAHash(postcode))) {
                         int id = b.getMessage() - 1;
                         localBannersId.add(id);
                         VirtualMessage virtualMessage = new VirtualMessage(messages.get(id));

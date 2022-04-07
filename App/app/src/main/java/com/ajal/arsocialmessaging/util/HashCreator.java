@@ -5,20 +5,26 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+// REFERENCE: https://reflectoring.io/creating-hashes-in-java/ 07/04/2022 12:53
+
 public class HashCreator {
 
-    public String createSHAHash(String input) throws NoSuchAlgorithmException {
+    public static String createSHAHash(String input) {
 
         String hashtext = null;
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        byte[] messageDigest =
-                md.digest(input.getBytes(StandardCharsets.UTF_8));
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] messageDigest =
+                    md.digest(input.getBytes(StandardCharsets.UTF_8));
 
-        hashtext = convertToHex(messageDigest);
+            hashtext = convertToHex(messageDigest);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
         return hashtext;
     }
 
-    private String convertToHex(final byte[] messageDigest) {
+    private static String convertToHex(final byte[] messageDigest) {
         BigInteger bigint = new BigInteger(1, messageDigest);
         String hexText = bigint.toString(16);
         while (hexText.length() < 32) {
