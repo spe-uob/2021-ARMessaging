@@ -83,7 +83,7 @@ public class DatabaseTest implements DBObserver {
 
         assertEquals(new Integer(1), this.messages.get(0).getId());
         assertEquals("Happy birthday", this.messages.get(0).getMessage());
-        assertEquals("happy-birthday.obj", this.messages.get(0).getObjfilename());
+        assertEquals("happy-birthday", this.messages.get(0).getObjfilename());
 
         // Note: not testing the other two values as the database will remove banners after a day
 
