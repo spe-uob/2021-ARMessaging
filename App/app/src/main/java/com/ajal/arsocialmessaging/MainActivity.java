@@ -56,28 +56,6 @@ public class MainActivity extends AppCompatActivity {
         return;
     }
 
-    /**
-     * If the viewPager is opened, pressing back will "close" it
-     * Otherwise, use super.onBackPressed()
-     */
-    @Override
-    public void onBackPressed() {
-        ViewPager viewPager = findViewById(R.id.viewPagerMain);
-        RecyclerView rv = findViewById(R.id.rv);
-        if (viewPager != null) { // it can be null when the Gallery fragment is not open
-            if (viewPager.getVisibility() == View.VISIBLE) {
-                rv.setVisibility(View.VISIBLE);
-                viewPager.setVisibility(View.INVISIBLE);
-            }
-            else {
-                super.onBackPressed();
-            }
-        }
-        else {
-            super.onBackPressed();
-        }
-    }
-
     @Override
     public void onDestroy() {
         ClientDBHelper clientDBHelper = new ClientDBHelper(this);
@@ -113,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
                 && ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        lm.requestLocationUpdates(LocationManager.FUSED_PROVIDER, 5000, 10, postcodeHelper);
+        lm.requestLocationUpdates(LocationManager.FUSED_PROVIDER, 0, 0, postcodeHelper);
 
         // Preferences
         SharedPreferences theme = getSharedPreferences(getString(R.string.theme_id), Context.MODE_PRIVATE);

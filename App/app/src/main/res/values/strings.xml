@@ -19,10 +19,9 @@
     <!-- Sync Preferences -->
     <string name="sync_title">Sync email periodically</string>
     <string name="attachment_title">Download incoming attachments</string>
-    <string name="attachment_summary_on">Automatically download attachments for incoming emails
-    </string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails</string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
-    
+
     <!-- Settings -->
     <string name="theme_id">themeID</string>
     <string name="dark_mode">darkMode</string>
@@ -30,6 +29,10 @@
     <string name="enter_uk_postcode">Enter UK postcode</string>
     <string name="send">Send</string>
     <string name="choose_a_message">Choose a message:</string>
+
+    <!-- View Pager Activity -->
+    <string name="action_share">Share</string>
+    <string name="action_delete">Delete</string>
 
     <!-- Firebase Cloud Messaging -->
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>

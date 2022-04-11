@@ -85,7 +85,7 @@ public class DatabaseTest implements ServerDBObserver {
         assertEquals("Happy birthday", this.messages.get(0).getMessage());
         assertEquals("happy-birthday", this.messages.get(0).getObjfilename());
 
-        // Note: not testing the other two values as the database will remove banners after a day
+        // Note: not testing banners as the database will remove banners after a day
 
         messageMutex.release();
         bannerMutex.release();
