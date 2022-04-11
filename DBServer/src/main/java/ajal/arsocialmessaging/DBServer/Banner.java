@@ -13,7 +13,7 @@ import java.util.Date;
 public class Banner {
 
     @Id
-    @Column(name = "postcode") @Getter @Setter
+    @Column(name = "postcode", length = 255) @Getter @Setter
     String postcode;
 
     @Column(name = "message_id") @Getter @Setter
