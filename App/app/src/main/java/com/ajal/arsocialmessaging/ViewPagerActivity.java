@@ -18,16 +18,21 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import okhttp3.internal.io.FileSystem;
 
 public class ViewPagerActivity extends AppCompatActivity {
 
     private static final String TAG = "SkyWrite";
     private AppCompatActivity activity = this;
     private List<File> images;
+    private int currentPosition;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +74,7 @@ public class ViewPagerActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 // Update the action bar title
+                currentPosition = position;
                 activity.getSupportActionBar().setTitle((position+1)+"/"+images.size());
             }
         });
@@ -113,12 +119,16 @@ public class ViewPagerActivity extends AppCompatActivity {
      * reference: https://stackoverflow.com/questions/10716642/android-deleting-an-image
      */
     public void deleteImage() {
-//        String file_dj_path = Environment.getExternalStorageDirectory() + "/ECP_Screenshots/abc.jpg";
-//        File fdelete = new File(file_dj_path);
-
-        File fdelete = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DCIM) + "/SkyWrite");
-
+        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/SkyWrite";
+        File fdelete = new File(path);
+        if (images != null) {
+            int i = 0;
+            for (File img:images){
+                if (i == currentPosition){
+                    fdelete = new File(path, img.getName());
+                }else i ++;
+            }
+        }
         if (fdelete.exists()) {
             if (fdelete.delete()) {
                 Log.e("-->", "file Deleted :" + fdelete.toString());
