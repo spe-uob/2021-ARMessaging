@@ -69,7 +69,9 @@ public class ViewPagerActivity extends AppCompatActivity {
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 
             @Override
-            public void onPageScrollStateChanged(int state) {}
+            public void onPageScrollStateChanged(int state) {
+
+            }
 
             @Override
             public void onPageSelected(int position) {
@@ -107,8 +109,6 @@ public class ViewPagerActivity extends AppCompatActivity {
                 deleteImage();
                 Toast toast = Toast.makeText(getApplicationContext(), "Image deleted", Toast.LENGTH_SHORT);
                 toast.show();
-//                startActivity(getIntent());
-
                 finish();
                 this.recreate();
 
@@ -166,9 +166,7 @@ public class ViewPagerActivity extends AppCompatActivity {
         }
     }
 
+    public void shareImage(){
 
-//    @Override
-//    public void recreate() {
-//        this.recreate();
-//    }
+    }
 }

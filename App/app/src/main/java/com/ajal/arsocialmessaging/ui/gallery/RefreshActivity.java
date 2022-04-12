@@ -26,6 +26,7 @@ public class RefreshActivity extends Activity {
                Log.i(TAG, "onRefresh called from SwipeRefreshLayout");
                Toast toast = Toast.makeText(getApplicationContext(), "refreshed", Toast.LENGTH_SHORT);
                toast.show();
+
                refreshLayout.setRefreshing(false);
            }
        });
