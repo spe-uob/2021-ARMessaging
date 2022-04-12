@@ -107,12 +107,17 @@ public class ViewPagerActivity extends AppCompatActivity {
                 deleteImage();
                 Toast toast = Toast.makeText(getApplicationContext(), "Image deleted", Toast.LENGTH_SHORT);
                 toast.show();
+//                startActivity(getIntent());
+
+                finish();
+                this.recreate();
 
                 Log.d(TAG, "Image deleted");
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+
     }
 
     /**
@@ -126,7 +131,8 @@ public class ViewPagerActivity extends AppCompatActivity {
             for (File img:images){
                 if (i == currentPosition){
                     fdelete = new File(path, img.getName());
-                }else i ++;
+                    break;
+                }else if (i<images.size()) i ++;
             }
         }
         if (fdelete.exists()) {
@@ -160,4 +166,9 @@ public class ViewPagerActivity extends AppCompatActivity {
         }
     }
 
+
+//    @Override
+//    public void recreate() {
+//        this.recreate();
+//    }
 }
