@@ -1,5 +1,8 @@
 package com.ajal.arsocialmessaging.ui.gallery;
 
+import static androidx.constraintlayout.motion.utils.Oscillator.TAG;
+
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -33,6 +36,8 @@ public class GalleryFragment extends Fragment {
     private static final String TAG = "SkyWrite";
     private List<File> images;
 
+    private SwipeRefreshLayout refreshLayout;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -63,6 +68,20 @@ public class GalleryFragment extends Fragment {
         // Set up Image Grid
         ImageGridAdapter iga = new ImageGridAdapter(this.getContext(), imageFilenames, rv);
         rv.setAdapter(iga);
+
+        // Refresh
+        refreshLayout = root.findViewById(R.id.refreshLayout);
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+
+                Log.i(TAG, "onRefresh called from SwipeRefreshLayout");
+                getActivity().recreate();
+                Toast.makeText(getContext(), "refreshed", Toast.LENGTH_SHORT).show();
+
+                refreshLayout.setRefreshing(false);
+            }
+        });
 
         return root;
     }

@@ -2,10 +2,12 @@ package com.ajal.arsocialmessaging;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import android.content.Intent;
+import android.graphics.Canvas;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -15,6 +17,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -33,6 +39,12 @@ public class ViewPagerActivity extends AppCompatActivity {
     private AppCompatActivity activity = this;
     private List<File> images;
     private int currentPosition;
+    private ViewPager viewPager;
+
+    private ScaleGestureDetector scaleGestureDetector;
+    private float mScaleFactor = 1.f;
+    private ImageView mImageView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +73,7 @@ public class ViewPagerActivity extends AppCompatActivity {
         }
 
         // Set up View Pager
-        ViewPager viewPager = findViewById(R.id.viewPagerMain);
+        viewPager = findViewById(R.id.viewPagerMain);
         PagerAdapter viewPagerAdapter = new ViewPagerAdapter(this, this, imageFilenames);
         viewPager.setAdapter(viewPagerAdapter);
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -84,6 +96,11 @@ public class ViewPagerActivity extends AppCompatActivity {
         Bundle b = getIntent().getExtras();
         int imagePos = b.getInt("imagePos");
         viewPager.setCurrentItem(imagePos);
+
+        mImageView = findViewById(R.id.imageViewMain);
+        scaleGestureDetector =
+                new ScaleGestureDetector(this,
+                        new ScaleListener());
     }
 
     @Override
@@ -166,7 +183,43 @@ public class ViewPagerActivity extends AppCompatActivity {
         }
     }
 
-    public void shareImage(){
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        // Let the ScaleGestureDetector inspect all events.
+        scaleGestureDetector.onTouchEvent(ev);
+        return true;
+    }
 
+    private class ScaleListener
+            extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            mScaleFactor *= detector.getScaleFactor();
+
+            // Don't let the object get too small or too large.
+            mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
+
+            mImageView.setScaleX(mScaleFactor);
+            mImageView.setScaleY(mScaleFactor);
+
+            if (mScaleFactor > 1) {
+                Toast.makeText(getApplicationContext(), "you zoomed out", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "you zoomed in", Toast.LENGTH_SHORT).show();
+            }
+
+//            invalidate();
+            return true;
+        }
+
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector) {
+            return true;
+        }
+
+        @Override
+        public void onScaleEnd(ScaleGestureDetector detector) {
+
+        }
     }
 }
