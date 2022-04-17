@@ -219,6 +219,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         View bottomNavigation = super.getActivity().findViewById(R.id.nav_view);
         this.messageSnackbarHelper.setBottomNavigationView(bottomNavigation);
 
+        // Set up renderer.
+        render = new SampleRender(surfaceView, this, this.getContext().getAssets());
+
         // Check if network and location are available
         if (!ConnectivityHelper.getInstance().isNetworkAvailable()
                 || !ConnectivityHelper.getInstance().isLocationAvailable()) {
@@ -241,9 +244,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             e.printStackTrace();
             return root;
         }
-
-        // Set up renderer.
-        render = new SampleRender(surfaceView, this, this.getContext().getAssets());
 
         installRequested = false;
 

@@ -1,5 +1,6 @@
 package com.ajal.arsocialmessaging.ui.notifications;
 
+import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -8,8 +9,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -38,17 +41,26 @@ public class NotificationsFragment extends Fragment {
     private Handler timerHandler = new Handler();
 
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentNotificationsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+        Context context = this.getContext();
         super.onCreate(savedInstanceState);
 
         clientDBHelper = new ClientDBHelper(this.getContext());
-        notificationBanners = clientDBHelper.getAllNewBanners();
         displayNewBanners();
+
+        Button removeBtn = root.findViewById(R.id.button_remove_notifications);
+        removeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                clientDBHelper.resetTable();
+                displayNewBanners();
+                Toast.makeText(context, "Notifications removed!", Toast.LENGTH_SHORT);
+            }
+        });
 
         startTimer();
 
@@ -65,18 +77,25 @@ public class NotificationsFragment extends Fragment {
     private void displayNewBanners() {
 
         View root = binding.getRoot();
+        notificationBanners = clientDBHelper.getAllNewBanners();
 
         // Hide the text view if there are new notifications to be displayed
         TextView textView = root.findViewById(R.id.text_notifications_none);
+        Button removeBtn = root.findViewById(R.id.button_remove_notifications);
+        ListView listView = root.findViewById(R.id.list_notifications);
         if (notificationBanners.size() == 0) {
+            textView.setVisibility(View.VISIBLE);
+            removeBtn.setVisibility(View.INVISIBLE);
+            listView.setVisibility(View.INVISIBLE);
             return;
         }
         else {
             textView.setVisibility(View.INVISIBLE);
+            removeBtn.setVisibility(View.VISIBLE);
+            listView.setVisibility(View.VISIBLE);
         }
 
         // Fills the ListView with messages
-        ListView listView = root.findViewById(R.id.list_notifications);
         NotificationListAdapter adapter = new NotificationListAdapter(this.getContext(), R.layout.notification_list_item, notificationBanners);
         listView.setAdapter(adapter);
 

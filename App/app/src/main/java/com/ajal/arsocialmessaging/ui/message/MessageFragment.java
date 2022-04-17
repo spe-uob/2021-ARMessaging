@@ -157,6 +157,10 @@ public class MessageFragment extends Fragment implements ServerDBObserver {
         imageid.add(R.drawable.good_luck);
         imageid.add(R.drawable.get_well_soon);
         imageid.add(R.drawable.thank_you);
+        imageid.add(R.drawable.ic_broken_image_black_120dp);
+        imageid.add(R.drawable.ic_broken_image_black_120dp);
+        imageid.add(R.drawable.ic_broken_image_black_120dp);
+        imageid.add(R.drawable.ic_broken_image_black_120dp);
 
         // Populate listview with images and text
         View root = binding.getRoot();
