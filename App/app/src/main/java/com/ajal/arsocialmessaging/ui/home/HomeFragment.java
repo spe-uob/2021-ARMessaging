@@ -34,14 +34,12 @@ import com.ajal.arsocialmessaging.util.database.server.ServerDBHelper;
 import com.ajal.arsocialmessaging.util.database.Message;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
-import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
 import com.ajal.arsocialmessaging.util.location.GPSObserver;
 import com.ajal.arsocialmessaging.util.PermissionHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DepthSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DisplayRotationHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.SnackbarHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.TrackingStateHelper;
-import com.ajal.arsocialmessaging.ui.home.common.helpers.VirtualObjectRenderHelper;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Framebuffer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.GLError;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Mesh;
@@ -84,6 +82,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
 
@@ -95,6 +94,7 @@ import java.util.List;
 public class HomeFragment extends Fragment implements SampleRender.Renderer, ServerDBObserver, GPSObserver {
 
     private FragmentHomeBinding binding;
+    private View root;
 
     private static final String TAG = "SkyWrite";
 
@@ -166,6 +166,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     private boolean bannersRetrieved = false;
     private boolean locationRetrieved = false;
     private boolean requiredDataRetrieved = false;
+    private Semaphore messagesMutex = new Semaphore(1); // to make sure messages are received before loading the textures
 
     // Environmental HDR
     private Texture dfgTexture;
@@ -208,7 +209,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                              ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        root = binding.getRoot();
 
         super.onCreate(savedInstanceState);
         surfaceView = root.findViewById(R.id.surfaceview);
@@ -217,6 +218,29 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         // SkyWrite: add bottom navigation view to snackbar helper
         View bottomNavigation = super.getActivity().findViewById(R.id.nav_view);
         this.messageSnackbarHelper.setBottomNavigationView(bottomNavigation);
+
+        // Check if network and location are available
+        if (!ConnectivityHelper.getInstance().isNetworkAvailable()
+                || !ConnectivityHelper.getInstance().isLocationAvailable()) {
+            return root;
+        }
+
+        // Request the server to load the results from the database
+        ServerDBHelper serverDbHelper = ServerDBHelper.getInstance();
+        // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
+        serverDbHelper.clearObservers();
+        serverDbHelper.registerObserver(this);
+        serverDbHelper.retrieveDBResults();
+
+        PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
+        postcodeHelper.clearObservers();
+        postcodeHelper.registerObserver(this);
+        try {
+            messagesMutex.acquire(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return root;
+        }
 
         // Set up renderer.
         render = new SampleRender(surfaceView, this, this.getContext().getAssets());
@@ -240,23 +264,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         else {
             playAudio = false;
         }
-
-        // Check if network and location are available
-        if (!ConnectivityHelper.getInstance().isNetworkAvailable()
-                || !ConnectivityHelper.getInstance().isLocationAvailable()) {
-            return root;
-        }
-
-        // Request the server to load the results from the database
-        ServerDBHelper serverDbHelper = ServerDBHelper.getInstance();
-        // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
-        serverDbHelper.clearObservers();
-        serverDbHelper.registerObserver(this);
-        serverDbHelper.retrieveDBResults();
-
-        PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
-        postcodeHelper.clearObservers();
-        postcodeHelper.registerObserver(this);
 
         return root;
     }
@@ -314,7 +321,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                 }
 
                 // Create the session.
-                session = new Session(/* context= */ this.getContext());
+                session = new Session(this.getContext());
             } catch (UnavailableArcoreNotInstalledException
                     | UnavailableUserDeclinedInstallationException e) {
                 message = "Please install ARCore";
@@ -438,14 +445,18 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             // Store the meshes and the shaders of every message into the respective lists
             virtualObjectMeshesList = new ArrayList<>();
             virtualObjectShadersList = new ArrayList<>();
+            messagesMutex.acquire(1); // Need to make sure that the messages has been received before the virtual messages are loaded
             for (int i = 0; i < messages.size(); i++) {
                 VirtualMessage virtualMessage = new VirtualMessage(messages.get(i));
                 virtualObjectMeshesList.add(VirtualObjectRenderHelper.renderVirtualObjectMesh(render, virtualMessage));
                 virtualObjectShadersList.add(VirtualObjectRenderHelper.renderVirtualObjectShader(render, virtualMessage, cubemapFilter, dfgTexture));
             }
-
+            messagesMutex.release();
         } catch (IOException e) {
             Log.e(TAG, "Failed to read a required asset file", e);
+            messageSnackbarHelper.showError(this.getActivity(), "Failed to read a required asset file: " + e);
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Failed to acquire lock", e);
             messageSnackbarHelper.showError(this.getActivity(), "Failed to read a required asset file: " + e);
         }
 
@@ -911,6 +922,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         else {
             messagesRetrieved = true;
             messages = result; // used to generate virtualObject lists
+            Log.d(TAG, "messages size = "+messages.size());
             generateLocalVirtualMessages();
         }
     }
@@ -978,6 +990,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                     }
                 }
                 requiredDataRetrieved = true;
+                messagesMutex.release();
             }
         }
     }

@@ -1,6 +1,5 @@
-package com.ajal.arsocialmessaging.ui.home.common.helpers;
+package com.ajal.arsocialmessaging.ui.home;
 
-import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Mesh;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.SampleRender;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Shader;
