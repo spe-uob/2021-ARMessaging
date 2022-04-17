@@ -73,8 +73,6 @@ public class ClientDBHelper extends SQLiteOpenHelper {
         }
         db.close();
 
-        Log.d("SkyWrite", "Size of result:"+result.size());
-
         return result;
     }
 

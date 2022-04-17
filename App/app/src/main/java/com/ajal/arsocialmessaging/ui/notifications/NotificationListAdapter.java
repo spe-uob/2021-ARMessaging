@@ -38,14 +38,17 @@ public class NotificationListAdapter extends ArrayAdapter<Banner> {
 
         Banner banner = getItem(position);
         int img = 0;
-        // TODO: add the new banners on
         switch (banner.getMessage()) {
-            case 1 : img = R.drawable.happy_birthday; break;
-            case 2: img = R.drawable.merry_christmas; break;
-            case 3: img = R.drawable.congratulations; break;
-            case 4: img = R.drawable.good_luck; break;
-            case 5: img = R.drawable.get_well_soon; break;
-            case 6: img = R.drawable.thank_you; break;
+            case 1 : img = R.drawable.happy_birthday;    break;
+            case 2 : img = R.drawable.merry_christmas;   break;
+            case 3 : img = R.drawable.congratulations;   break;
+            case 4 : img = R.drawable.good_luck;         break;
+            case 5 : img = R.drawable.get_well_soon;     break;
+            case 6 : img = R.drawable.thank_you;         break;
+            case 7 : img = R.drawable.happy_new_year;    break;
+            case 8 : img = R.drawable.happy_mothers_day; break;
+            case 9 : img = R.drawable.ramadan_kareem;    break;
+            case 10: img = R.drawable.happy_diwali;      break;
             default: img = R.drawable.ic_broken_image_black_120dp;
         }
 
