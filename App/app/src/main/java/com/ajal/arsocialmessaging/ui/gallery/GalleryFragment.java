@@ -6,6 +6,7 @@ import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -27,7 +28,7 @@ public class GalleryFragment extends Fragment {
 
     private FragmentGalleryBinding binding;
     private static final String TAG = "SkyWrite";
-    private List<File> images;
+    private List<File> images = new ArrayList<>();
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -51,8 +52,19 @@ public class GalleryFragment extends Fragment {
             }
         }
 
-        // Set up Recycler View
+        // If there are no photos, display message saying there are no messages, else display recycler view
+        TextView text = root.findViewById(R.id.text_gallery_none);
         RecyclerView rv = root.findViewById(R.id.rv);
+        if (images.size() == 0) {
+            text.setVisibility(View.VISIBLE);
+            rv.setVisibility(View.INVISIBLE);
+            return root;
+        } else {
+            rv.setVisibility(View.VISIBLE);
+            text.setVisibility(View.INVISIBLE);
+        }
+
+        // Set up Recycler View
         StaggeredGridLayoutManager sglm = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         rv.setLayoutManager(sglm);
 
