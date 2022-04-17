@@ -98,15 +98,6 @@ public class NotificationsFragment extends Fragment {
         // Fills the ListView with messages
         NotificationListAdapter adapter = new NotificationListAdapter(this.getContext(), R.layout.notification_list_item, notificationBanners);
         listView.setAdapter(adapter);
-
-        // Sets a listener to figure out what item was clicked in list view
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.d(TAG, "Position of notification in list: "+position);
-                // TODO
-            }
-        });
     }
 
     private void stopTimer() {

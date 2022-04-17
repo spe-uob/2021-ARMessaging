@@ -1,5 +1,6 @@
 package com.ajal.arsocialmessaging.ui.home;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -14,6 +15,7 @@ import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
+import android.os.ConditionVariable;
 import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -452,6 +454,13 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                 virtualObjectShadersList.add(VirtualObjectRenderHelper.renderVirtualObjectShader(render, virtualMessage, cubemapFilter, dfgTexture));
             }
             messagesMutex.release();
+            // Hide the loading circle once it has finished loading the textures
+            this.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    root.findViewById(R.id.loading_circle).setVisibility(View.GONE);
+                }
+            });
         } catch (IOException e) {
             Log.e(TAG, "Failed to read a required asset file", e);
             messageSnackbarHelper.showError(this.getActivity(), "Failed to read a required asset file: " + e);
@@ -922,7 +931,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         else {
             messagesRetrieved = true;
             messages = result; // used to generate virtualObject lists
-            Log.d(TAG, "messages size = "+messages.size());
             generateLocalVirtualMessages();
         }
     }
