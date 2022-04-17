@@ -16,6 +16,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+
+import com.ajal.arsocialmessaging.CustomArrayAdapter;
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
 import com.ajal.arsocialmessaging.util.HashCreator;
 import com.ajal.arsocialmessaging.util.database.server.ServerDBObserver;
@@ -28,7 +30,7 @@ import com.ajal.arsocialmessaging.util.database.server.ServiceGenerator;
 import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 
-import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -89,19 +91,16 @@ public class MessageFragment extends Fragment implements ServerDBObserver {
             public void afterTextChanged(Editable editable) {}
         });
 
-        sendBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String input = postCodeInput.getText().toString();
-                String formattedInput = PostcodeHelper.formatPostcode(postCodeInput.getText().toString());
-                if (PostcodeHelper.checkPostcodeValid(formattedInput)) {
-                    postCode = formattedInput;
-                    addBannerToDatabase(postCode);
-                    Toast.makeText(getContext(), "Sent \""+messageSelected+"\" to: "+postCode, Toast.LENGTH_SHORT).show();
-                }
-                else {
-                    Toast.makeText(getContext(), "Invalid postcode: "+input, Toast.LENGTH_SHORT).show();
-                }
+        sendBtn.setOnClickListener(view -> {
+            String input = postCodeInput.getText().toString();
+            String formattedInput = PostcodeHelper.formatPostcode(postCodeInput.getText().toString());
+            if (PostcodeHelper.checkPostcodeValid(formattedInput)) {
+                postCode = formattedInput;
+                Toast.makeText(getContext(), "Sent \""+messageSelected+"\" to: "+postCode, Toast.LENGTH_SHORT).show();
+                addBannerToDatabase(postCode);
+            }
+            else {
+                Toast.makeText(getContext(), "Invalid postcode: "+input, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -119,6 +118,9 @@ public class MessageFragment extends Fragment implements ServerDBObserver {
         }
     }
 
+    /**
+     * Manages database connection when user sends a message
+     */
     private void addBannerToDatabase(String postcode){
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
@@ -140,28 +142,38 @@ public class MessageFragment extends Fragment implements ServerDBObserver {
 
     }
 
+    /**
+     * Populates listView with images and messages once they are received from the database
+     */
     @Override
     public void onMessageSuccess(List<Message> result) {
 
-        /** ListView code */
-        // Fills the ListView with messages
+        /** ListView with images */
+        // Add images to ArrayList to be displayed in listView
+        List<Integer> imageid = new ArrayList<>();
+        imageid.add(R.drawable.happy_birthday);
+        imageid.add(R.drawable.merry_christmas);
+        imageid.add(R.drawable.congratulations);
+        imageid.add(R.drawable.good_luck);
+        imageid.add(R.drawable.get_well_soon);
+        imageid.add(R.drawable.thank_you);
+
+        // Populate listview with images and text
         View root = binding.getRoot();
         messages = ServerDBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
         listView = root.findViewById(R.id.list_messagesToSend);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, messages);
+        CustomArrayAdapter adapter = new CustomArrayAdapter(getActivity(), messages, imageid);
         listView.setAdapter(adapter);
 
-        // Sets a listener to figure out what item was clicked in list view
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                messageSelected = parent.getItemAtPosition(position).toString();
-                Log.d("MYTAG", "Position in list is: "+position);
-                messageSelectedId = position+1;  // Offset by 1 since DB records start at 1 and positions start at 0
-                String text = postCodeInput.getText().toString();
-                setSendBtnAvailability(text);
-            }
+        // Sets a listener to figure out which item was clicked in list view
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            messageSelected = parent.getItemAtPosition(position).toString();
+            Log.d("MYTAG", "Position in list is: "+position);
+            messageSelectedId = position+1;  // Offset by 1 since DB records start at 1 and positions start at 0
+            String text = postCodeInput.getText().toString();
+            setSendBtnAvailability(text);   // Toggle send button depending on text input
         });
+
     }
 
     @Override
