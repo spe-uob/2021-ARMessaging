@@ -60,7 +60,7 @@ public class HolidayAPITest {
     }
 
     @Test
-    public void test_ReturnsBeginningOfDiwali() {
+    public void test_ReturnsDiwali() {
         Map<String,String> parameters = Map.of(
                 "country", "MU",
                 "year", "2022",
@@ -73,6 +73,26 @@ public class HolidayAPITest {
             assertNotEquals(0, holidays.length);
             assertEquals("Divali", holidays[0].name);
             assertEquals("10/24/2022", holidays[0].date);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test_ReturnsMothersDay() {
+        // Also checks that holidays can indeed return multiple events
+        Map<String,String> parameters = Map.of(
+                "country", "GB",
+                "year", "2022",
+                "month", "3",
+                "day", "27");
+        try {
+            HttpResponse<Supplier<Holiday[]>> response = ServiceGenerator.getInstance().getHttpResponse(parameters);
+            Holiday[] holidays = response.body().get();
+            assertNotNull(holidays);
+            assertNotEquals(0, holidays.length);
+            assertEquals("Mothering Sunday", holidays[1].name);
+            assertEquals("03/27/2022", holidays[1].date);
         } catch (Exception e) {
             e.printStackTrace();
         }

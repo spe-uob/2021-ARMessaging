@@ -1,5 +1,7 @@
 package ajal.arsocialmessaging.DBServer;
 
+import ajal.arsocialmessaging.DBServer.holidayapi.Holiday;
+import ajal.arsocialmessaging.DBServer.holidayapi.ServiceGenerator;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.json.simple.JSONObject;
 
 import java.io.*;
+import java.net.http.HttpResponse;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 @SpringBootApplication
 @EnableScheduling
@@ -112,26 +116,65 @@ public class DbServerApplication {
 
 	@Scheduled(fixedRate = 86400000)
 	public void sendEventNotification() throws FirebaseMessagingException {
-		LocalDate today = LocalDate.now();
-		// TODO: check every day to see if it is a day with an event
 		List<String> registrationTokens = getRegistrationTokens();
 		if (registrationTokens.size() == 0) {
 			return;
 		}
 
-		String title = "";
-		String body = "";
+		LocalDate today = LocalDate.now();
+		String title = null;
+		String body = "Send a message to your friends and family!";
 
-		MulticastMessage message = MulticastMessage.builder()
-				.setNotification(Notification.builder()
-						.setTitle(title)
-						.setBody(body)
-						.build())
-				.build();
+		// GB used to check for New Year's Day, Christmas Day, Mothering Sunday
+		// SA used to check for start of Ramadan
+		// MU used to check for Diwali
+		String[] countryCodes = {"GB", "SA", "MU"};
+		for (String country : countryCodes) {
+			if (title != null) {
+				break;
+			}
+			Map<String,String> parameters = Map.of(
+					"country", country,
+					"year", Integer.toString(today.getYear()),
+					"month", Integer.toString(today.getMonthValue()),
+					"day", Integer.toString(today.getDayOfMonth()));
+			try {
+				HttpResponse<Supplier<Holiday[]>> response = ServiceGenerator.getInstance().getHttpResponse(parameters);
+				Holiday[] holidays = response.body().get();
+				for (Holiday h : holidays) {
+					if (h.name.equals("New Year's Day")) {
+						title = "Happy New Year!";
+						break;
+					} else if (h.name.equals("Christmas Day")) {
+						title = "Merry Christmas!";
+						break;
+					} else if (h.name.equals("Ramadan begins")) {
+						title = "Ramadan kareem!";
+						break;
+					} else if (h.name.equals("Divali")) {
+						title = "Happy Diwali!";
+						break;
+					}
+				}
+				// This is needed as the free plan for Abstract API only allows 1 request per second
+				Thread.sleep(1000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
-		BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
-		System.out.println(response.getSuccessCount() + "/" + registrationTokens.size() + " messages were sent successfully");
-
+		if (title != null) {
+			System.out.println("Event going on today: "+title);
+			MulticastMessage message = MulticastMessage.builder()
+					.setNotification(Notification.builder()
+							.setTitle(title)
+							.setBody(body)
+							.build())
+					.addAllTokens(registrationTokens)
+					.build();
+			BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
+			System.out.println(response.getSuccessCount() + "/" + registrationTokens.size() + " messages were sent successfully");
+		}
 	}
 
 	@RequestMapping("/addToken")
