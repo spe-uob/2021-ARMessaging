@@ -3,10 +3,7 @@ package ajal.arsocialmessaging.DBServer;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.messaging.BatchResponse;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.MulticastMessage;
+import com.google.firebase.messaging.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -19,6 +16,7 @@ import org.json.simple.JSONObject;
 
 import java.io.*;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -112,6 +110,30 @@ public class DbServerApplication {
 		}
 	}
 
+	@Scheduled(fixedRate = 86400000)
+	public void sendEventNotification() throws FirebaseMessagingException {
+		LocalDate today = LocalDate.now();
+		// TODO: check every day to see if it is a day with an event
+		List<String> registrationTokens = getRegistrationTokens();
+		if (registrationTokens.size() == 0) {
+			return;
+		}
+
+		String title = "";
+		String body = "";
+
+		MulticastMessage message = MulticastMessage.builder()
+				.setNotification(Notification.builder()
+						.setTitle(title)
+						.setBody(body)
+						.build())
+				.build();
+
+		BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
+		System.out.println(response.getSuccessCount() + "/" + registrationTokens.size() + " messages were sent successfully");
+
+	}
+
 	@RequestMapping("/addToken")
 	public String addToken(@RequestParam("tokenData") String tokenData) {
 		System.out.println("tokenData is "+tokenData);
@@ -149,14 +171,7 @@ public class DbServerApplication {
 		obj.put("token_uri", "https://oauth2.googleapis.com/token");
 		obj.put("auth_provider_x509_cert_url", "https://www.googleapis.com/oauth2/v1/certs");
 		obj.put("client_x509_cert_url", "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-vvuex%40skywrite-a1fb5.iam.gserviceaccount.com");
-
 		InputStream stream = new ByteArrayInputStream(obj.toString().getBytes());
-
-//		String dir = new File(".").getAbsolutePath();
-//		String path = dir.substring(0, dir.length() - 1)+"service-account-file.json";
-//		FileInputStream GOOGLE_APPLICATION_CREDENTIALS =
-//				new FileInputStream(path);
-//		assert GOOGLE_APPLICATION_CREDENTIALS != null;
 
 		FirebaseOptions options = FirebaseOptions.builder()
 				.setCredentials(GoogleCredentials.fromStream(stream))
@@ -176,9 +191,6 @@ public class DbServerApplication {
 		int messageId = banner.getMessage();
 		Timestamp timestamp = banner.getTimestamp();
 
-		// NOTE: Server does not send a notification payload, because when app is in background state
-		// onMessageReceived will never be called, and so the notification payload is sent straight to the system tray
-		// rather than going through onMessageReceived()
 		MulticastMessage message = MulticastMessage.builder()
 				.putData("postcode", postcode)
 				.putData("message", String.valueOf(messageId))

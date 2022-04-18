@@ -89,25 +89,27 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
         }
 
         // Check if message contains a data payload.
-        // NOTE: Server does not send a notification payload, because when app is in background state
-        // onMessageReceived will never be called, and so the notification payload is sent straight to the system tray
-        // rather than going through onMessageReceived()
         if (remoteMessage.getData().size() > 0) {
             Log.d(TAG, "Message data payload: " + remoteMessage.getData());
             String postcode = remoteMessage.getData().get("postcode");
-
-            try {
-                postcodeMutex.acquire();
-            } catch (InterruptedException exception) {
-                exception.printStackTrace();
+            // If there is a postcode value,
+            if (postcode != null) {
+                try {
+                    postcodeMutex.acquire();
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
+                }
+                // if the user is in the postcode of the newly added message:
+                // display a notification and store it in a database to be displayed in the Notification Fragment
+                if (postcode.equals(HashCreator.createSHAHash(this.postcode))) {
+                    sendNotification(); // send notification to the notification channel
+                    saveNotification(remoteMessage.getData()); // save notification to the SQLite database
+                }
+                postcodeMutex.release();
             }
-            // if the user is in the postcode of the newly added message:
-            // display a notification and store it in a database to be displayed in the Notification Fragment
-            if (postcode.equals(HashCreator.createSHAHash(this.postcode))) {
-                sendNotification(remoteMessage.getData()); // send notification to the notification channel
-                saveNotification(remoteMessage.getData()); // save notification to the SQLite database
+            else {
+                sendNotification(remoteMessage);
             }
-            postcodeMutex.release();
         }
 
         PostcodeHelper.getInstance().removeObserver(this);
@@ -161,10 +163,50 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
         });
     }
 
-    // Displays the Notification - sends it down the FCM default notification channel
-    private void sendNotification(Map<String, String> remoteMessageData) {
+    // Displays the new banner Notification - sends it down the FCM default notification channel
+    private void sendNotification() {
         String title = "New message at: " + this.postcode;
         String body = "Click here to open the app";
+        // Note: FCM comes with a default notification channel
+        String channelId = getString(R.string.default_notification_channel_id);
+
+        // Set up notification channel
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        // Since android Oreo notification channel is needed.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(channelId,
+                    "SkyWrite Notification Title",
+                    NotificationManager.IMPORTANCE_HIGH);
+            channel.setShowBadge(true);
+            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        // Set up notification
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
+                PendingIntent.FLAG_ONE_SHOT);
+
+        NotificationCompat.Builder notificationBuilder =
+                new NotificationCompat.Builder(this, channelId)
+                        .setSmallIcon(R.drawable.ic_skywrite_logo_vector)
+                        .setContentTitle(title)
+                        .setContentText(body)
+                        .setDefaults(Notification.DEFAULT_ALL)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setContentIntent(pendingIntent)
+                        .setAutoCancel(true);
+
+        // Send notification down channel
+        notificationManager.notify(0 , notificationBuilder.build());
+    }
+
+    // Displays a general Notification - sends it down the FCM default notification channel
+    private void sendNotification(RemoteMessage remoteMessage) {
+        String title = remoteMessage.getNotification().getTitle();
+        String body = remoteMessage.getNotification().getBody();
         // Note: FCM comes with a default notification channel
         String channelId = getString(R.string.default_notification_channel_id);
 
