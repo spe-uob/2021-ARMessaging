@@ -128,7 +128,7 @@ public class DbServerApplication {
 		// GB used to check for New Year's Day, Christmas Day, Mothering Sunday
 		// SA used to check for start of Ramadan
 		// MU used to check for Diwali
-		String[] countryCodes = {"GB", "SA", "MU"};
+		String[] countryCodes = {"AU", "SA", "MU"};
 		for (String country : countryCodes) {
 			if (title != null) {
 				break;
@@ -166,10 +166,8 @@ public class DbServerApplication {
 		if (title != null) {
 			System.out.println("Event going on today: "+title);
 			MulticastMessage message = MulticastMessage.builder()
-					.setNotification(Notification.builder()
-							.setTitle(title)
-							.setBody(body)
-							.build())
+					.putData("title", title)
+					.putData("body", body)
 					.addAllTokens(registrationTokens)
 					.build();
 			BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
