@@ -34,8 +34,9 @@ jobs:
     docker:
       - image: cimg/openjdk:17.0.1
     steps:
-      - checkout
-      - run: mvn test
+      - checkout:
+        path: ~/repo
+      - run: mvn clean test
 
   build:
     working_directory: ~/repo/App
