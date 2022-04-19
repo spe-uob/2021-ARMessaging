@@ -36,7 +36,7 @@ jobs:
       - image: cimg/openjdk:17.0.1
     steps:
       - checkout
-      - run: apt-get install maven
+      - run: sudo apt-get install maven
       - run: ./mvnw clean test
 
   build:
