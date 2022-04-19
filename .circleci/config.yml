@@ -32,6 +32,8 @@ jobs:
 
   maven-test:
     working_directory: ~/repo/DBServer
+    docker:
+      - image: cimg/openjdk:17.0.1
     steps:
       - checkout
       - run: ./mvnw clean test
