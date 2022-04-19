@@ -30,15 +30,6 @@ jobs:
   #     - store_artifacts:
   #         path: ~/test-results/junit
 
-  maven-test:
-    working_directory: ~/repo/DBServer
-    docker:
-      - image: cimg/openjdk:17.0.1
-    steps:
-      - checkout
-      - run: sudo apt-get install maven
-      - run: ./mvnw clean test
-
   build:
     working_directory: ~/repo/App
     docker:
@@ -86,8 +77,11 @@ jobs:
           path: app/build/outputs/apk/release/SkyWrite_Build.apk
 
 workflows:  
+  maven_test:
+    jobs:
+      - maven/test:
+        working_directory: ~/repo/DBServer
   build_and_save:
     jobs:
-      - maven-test
       - build
       - release-build
