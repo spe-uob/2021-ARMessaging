@@ -188,7 +188,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     // For taking pictures
     private int mWidth;
     private int mHeight;
-    private  boolean capturePicture = false;
+    private CameraState capturePicture = CameraState.READY;
     private String outFile;
 
     // Boolean to only show tracked points and planes once when it has been found
@@ -242,6 +242,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         postcodeHelper.registerObserver(this);
         try {
             messagesMutex.acquire(1);
+            root.findViewById(R.id.loading_circle).setVisibility(View.VISIBLE);
+            root.findViewById(R.id.postcode_text_view).setVisibility(View.INVISIBLE);
+            root.findViewById(R.id.snap_button).setVisibility(View.INVISIBLE);
+
         } catch (InterruptedException e) {
             e.printStackTrace();
             return root;
@@ -254,7 +258,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         snapBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                capturePicture = true;
+                capturePicture = CameraState.CAPTURED;
             }
         });
 
@@ -459,6 +463,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                 @Override
                 public void run() {
                     root.findViewById(R.id.loading_circle).setVisibility(View.GONE);
+                    root.findViewById(R.id.postcode_text_view).setVisibility(View.VISIBLE);
+                    root.findViewById(R.id.snap_button).setVisibility(View.VISIBLE);
                 }
             });
         } catch (IOException e) {
@@ -553,7 +559,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
          * - there are no messages in the area
          */
         String message;
-        if (capturePicture) {
+        if (capturePicture != CameraState.READY) {
             // SkyWrite: display message when image is saved
             // needs to be at the top of the if statements as it takes priority
             message = IMG_SAVED_MESSAGE;
@@ -669,8 +675,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         backgroundRenderer.drawVirtualScene(render, virtualSceneFramebuffer, Z_NEAR, Z_FAR);
 
         // SkyWrite: Save the picture if the button is pressed
-        if (capturePicture) {
-            capturePicture = false;
+        if (capturePicture == CameraState.CAPTURED) {
+            capturePicture = CameraState.PROCESSING;
             try {
                 SavePicture();
             } catch (IOException e) {
@@ -693,21 +699,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         GLES20.glReadPixels(0, 0, mWidth, mHeight,
                 GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buf);
 
-        // Get time of photo taken to use to store file
-        String date = new SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(new Date());
-
-        // Create a file in Internal Storage/DCIM/SkyWrite
-        final File out = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DCIM) + "/SkyWrite", "IMG_" +
-                date+ ".png");
-
-        outFile = out.getName();
-
-        // Make sure the directory exists, if not make it
-        if (!out.getParentFile().exists()) {
-            out.getParentFile().mkdirs();
-        }
-
         // Convert the pixel data from RGBA to what Android wants, ARGB.
         int bitmapData[] = new int[pixelData.length];
         for (int i = 0; i < mHeight; i++) {
@@ -724,14 +715,36 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         Bitmap bmp = Bitmap.createBitmap(bitmapData,
                 mWidth, mHeight, Bitmap.Config.ARGB_8888);
 
-        // Write it to disk.
-        FileOutputStream fos = new FileOutputStream(out);
-        bmp.compress(Bitmap.CompressFormat.PNG, 100, fos);
-        fos.flush();
-        fos.close();
+        // Create directory and filename
+        String date = new SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(new Date());
+        // Create a file in Internal Storage/DCIM/SkyWrite
+        final File out = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM) + "/SkyWrite", "IMG_" +
+                date+ ".png");
+        outFile = out.getName();
 
-        // Save to gallery
-        galleryAddPic();
+        if (!out.getParentFile().exists()) {
+            out.getParentFile().mkdirs();
+        }
+
+        // Write image to disk
+        Activity activity = this.getActivity();
+        Context context = this.getContext();
+        Thread t = new Thread(() -> {
+            try {
+                FileOutputStream fos = new FileOutputStream(out);
+                bmp.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                fos.flush();
+                fos.close();
+
+                // Save to gallery
+                galleryAddPic();
+                capturePicture = CameraState.READY;
+            } catch (IOException e) {
+                messageSnackbarHelper.showError(activity, "Unable to save picture: "+e);
+            }
+        });
+        t.start();
 
         Log.d(TAG, "Image "+outFile+" saved");
     }
