@@ -30,6 +30,12 @@ jobs:
   #     - store_artifacts:
   #         path: ~/test-results/junit
 
+  maven-test:
+    working_directory: ~/repo/DBServer
+    steps:
+      - checkout
+      - run: ./mvnw clean test
+
   build:
     working_directory: ~/repo/App
     docker:
