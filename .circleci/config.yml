@@ -80,7 +80,7 @@ workflows:
   maven_test:
     jobs:
       - maven/test:
-        working_directory: ~/repo/DBServer
+          working_directory: ~/repo/DBServer
   build_and_save:
     jobs:
       - build
