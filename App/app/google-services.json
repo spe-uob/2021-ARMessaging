@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "593208430062",
+    "project_id": "skywrite-a1fb5",
+    "storage_bucket": "skywrite-a1fb5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:593208430062:android:1438dc0c37b0e20ae7d2ff",
+        "android_client_info": {
+          "package_name": "com.ajal.arsocialmessaging"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "593208430062-j4k6f2o0dmluj47a28ok88ujisbn908t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCC7S1IG9XqXkA5kSThrXm_jZP3XHEUkUo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "593208430062-j4k6f2o0dmluj47a28ok88ujisbn908t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

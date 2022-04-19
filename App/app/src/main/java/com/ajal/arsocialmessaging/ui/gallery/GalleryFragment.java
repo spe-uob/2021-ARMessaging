@@ -56,11 +56,8 @@ public class GalleryFragment extends Fragment {
         StaggeredGridLayoutManager sglm = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         rv.setLayoutManager(sglm);
 
-        // Set up View Pager
-        ViewPager viewPager = root.findViewById(R.id.viewPagerMain);
-
         // Set up Image Grid
-        ImageGridAdapter iga = new ImageGridAdapter(this.getContext(), imageFilenames, rv, viewPager);
+        ImageGridAdapter iga = new ImageGridAdapter(this.getContext(), imageFilenames, rv);
         rv.setAdapter(iga);
 
         return root;

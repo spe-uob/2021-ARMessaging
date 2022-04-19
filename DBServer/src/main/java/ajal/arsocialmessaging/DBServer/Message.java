@@ -20,5 +20,17 @@ public class Message {
 
     @OneToMany(mappedBy="message") @Getter @Setter
     List<Banner> bannersList;
+
+    public Message() {
+        this.id = 1;
+        this.message = "";
+        this.objfilename = "";
+    }
+
+    public Message(Integer id, String message, String objfilename) {
+        this.id = id;
+        this.message = message;
+        this.objfilename = objfilename;
+    }
 }
 

@@ -5,8 +5,7 @@
     <PreferenceCategory
         app:key="general_setting"
         app:title="General"
-        app:iconSpaceReserved="false"
-        >
+        app:iconSpaceReserved="false" >
 
         <SeekBarPreference
             app:key="text_size"
@@ -18,8 +17,7 @@
             android:key="text_size"
             android:title="Text Size"
             android:max="2"
-            android:defaultValue="0"
-            />
+            android:defaultValue="0" />
 
         <SwitchPreferenceCompat
             app:key="dark_mode"
@@ -27,8 +25,17 @@
             app:iconSpaceReserved="false"
             app:summaryOn="On"
             app:summaryOff="Off"
-            android:id="@+id/dark_mode"
-            />
+            android:id="@+id/dark_mode" />
+
+        <SwitchPreferenceCompat
+            app:key="toggle_audio"
+            app:title="Toggle audio"
+            app:iconSpaceReserved="false"
+            app:summaryOn="On"
+            app:summaryOff="Off"
+            android:id="@+id/toggle_audio"
+            android:defaultValue="Off" />
+
     </PreferenceCategory>
 
 
@@ -36,8 +43,7 @@
         android:baselineAligned="false"
         app:key="notification"
         app:title="Notification"
-        app:iconSpaceReserved="false"
-        >
+        app:iconSpaceReserved="false" >
 
         <Preference
             app:key="manage_notification"
@@ -54,22 +60,21 @@
             app:title="Show preview"
             app:iconSpaceReserved="false"
             app:summaryOn="Message preview on"
-            app:summaryOff="Click to turn on message preview"
-            />
+            app:summaryOff="Click to turn on message preview" />
+
         <SwitchPreferenceCompat
             app:key="vibrate_notification"
             app:title="Vibrate"
             app:iconSpaceReserved="false"
             app:summaryOn="Vibrate Mode On"
-            app:summaryOff="Vibrate Mode Off"
-            />
+            app:summaryOff="Vibrate Mode Off" />
     </PreferenceCategory>
+
 
     <PreferenceCategory
         app:key="about"
         app:title="About"
-        app:iconSpaceReserved="false"
-        >
+        app:iconSpaceReserved="false" >
 
         <Preference
             app:key="about_sky_write"
@@ -79,13 +84,6 @@
             <intent android:action="android.intent.action.VIEW"
                     android:data="https://sky-write.github.io/" />
         </Preference>
-
-        <Preference
-            app:key="send_feedback"
-            app:title="Send feedback"
-            app:iconSpaceReserved="false"
-            android:id="@+id/send_feedback"
-            />
 
     </PreferenceCategory>
 

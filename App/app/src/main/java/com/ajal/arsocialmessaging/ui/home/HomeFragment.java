@@ -2,9 +2,12 @@ package com.ajal.arsocialmessaging.ui.home;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.media.Image;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
@@ -24,9 +27,10 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
-import com.ajal.arsocialmessaging.util.database.DBObserver;
+import com.ajal.arsocialmessaging.util.HashCreator;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBObserver;
 import com.ajal.arsocialmessaging.util.database.Banner;
-import com.ajal.arsocialmessaging.util.database.DBHelper;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBHelper;
 import com.ajal.arsocialmessaging.util.database.Message;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
@@ -80,8 +84,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.Semaphore;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
 
@@ -90,7 +92,7 @@ import java.util.concurrent.Semaphore;
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
  * plane to place a 3D model.
  */
-public class HomeFragment extends Fragment implements SampleRender.Renderer, DBObserver, GPSObserver {
+public class HomeFragment extends Fragment implements SampleRender.Renderer, ServerDBObserver, GPSObserver {
 
     private FragmentHomeBinding binding;
 
@@ -155,14 +157,15 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     private List<Shader> virtualObjectShadersList = new ArrayList<>();
     private final ArrayList<Anchor> anchors = new ArrayList<>();
     private List<VirtualMessage> localVirtualMessages = new ArrayList<>();
+    private List<Integer> localBannersId = new ArrayList<>(); // stores Id of the banners
     private List<Banner> globalBanners = new ArrayList<>();
 
     // Messages, Banners and Location loading
+    private List<Message> messages = new ArrayList<>();
     private boolean messagesRetrieved = false;
     private boolean bannersRetrieved = false;
     private boolean locationRetrieved = false;
     private boolean requiredDataRetrieved = false;
-    private Semaphore requiredDataMutex = new Semaphore(1);
 
     // Environmental HDR
     private Texture dfgTexture;
@@ -190,6 +193,16 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
 
     // Location related attributes
     private Location location;
+    private String postcode;
+
+    // MediaPlayer to play audio files
+    private boolean audioPlaying;
+    private int audioNumber;
+    private MediaPlayer mediaPlayer;
+
+    // Preferences
+    private SharedPreferences sharedPref;
+    private boolean playAudio;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -219,6 +232,15 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             }
         });
 
+        // Retrieve Shared Preferences
+        sharedPref = getActivity().getSharedPreferences(getString(R.string.toggle_audio), Context.MODE_PRIVATE);
+        if (sharedPref.getString(getString(R.string.toggle_audio), "Off").equals("On")) {
+            playAudio = true;
+        }
+        else {
+            playAudio = false;
+        }
+
         // Check if network and location are available
         if (!ConnectivityHelper.getInstance().isNetworkAvailable()
                 || !ConnectivityHelper.getInstance().isLocationAvailable()) {
@@ -226,30 +248,26 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         }
 
         // Request the server to load the results from the database
-        DBHelper dbHelper = DBHelper.getInstance();
-        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
-        dbHelper.clearObservers();
-        dbHelper.registerObserver(this);
-        dbHelper.retrieveDBResults();
+        ServerDBHelper serverDbHelper = ServerDBHelper.getInstance();
+        // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
+        serverDbHelper.clearObservers();
+        serverDbHelper.registerObserver(this);
+        serverDbHelper.retrieveDBResults();
 
         PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
         postcodeHelper.clearObservers();
         postcodeHelper.registerObserver(this);
-
-        try {
-            requiredDataMutex.acquire(1);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         return root;
     }
 
     @Override
     public void onDestroyView() {
-        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
-        DBHelper.getInstance().clearObservers();
+        // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
+        ServerDBHelper.getInstance().clearObservers();
         PostcodeHelper.getInstance().clearObservers();
+
+        if (mediaPlayer != null) mediaPlayer.release();
         if (session != null) {
             // Explicitly close ARCore Session to release native resources.
             // Review the API reference for important considerations before calling close() in apps with
@@ -361,11 +379,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
     public void onSurfaceCreated(SampleRender render) {
         // Prepare the rendering objects. This involves reading shaders and 3D model files, so may throw
         // an IOException.
-        try {
-            requiredDataMutex.acquire(1);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         try {
             planeRenderer = new PlaneRenderer(render);
@@ -422,11 +435,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                     new Mesh(
                             render, Mesh.PrimitiveMode.POINTS, /*indexBuffer=*/ null, pointCloudVertexBuffers);
 
-            // Store the meshes and the shaders of every banner into the respective lists
+            // Store the meshes and the shaders of every message into the respective lists
             virtualObjectMeshesList = new ArrayList<>();
             virtualObjectShadersList = new ArrayList<>();
-            for (int i = 0; i < localVirtualMessages.size(); i++) {
-                VirtualMessage virtualMessage = localVirtualMessages.get(i);
+            for (int i = 0; i < messages.size(); i++) {
+                VirtualMessage virtualMessage = new VirtualMessage(messages.get(i));
                 virtualObjectMeshesList.add(VirtualObjectRenderHelper.renderVirtualObjectMesh(render, virtualMessage));
                 virtualObjectShadersList.add(VirtualObjectRenderHelper.renderVirtualObjectShader(render, virtualMessage, cubemapFilter, dfgTexture));
             }
@@ -436,7 +449,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             messageSnackbarHelper.showError(this.getActivity(), "Failed to read a required asset file: " + e);
         }
 
-        requiredDataMutex.release();
     }
 
     @Override
@@ -531,7 +543,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         } else if (!ConnectivityHelper.getInstance().isLocationAvailable()) {
             message = LOCATION_ERROR_MESSAGE;
             drawTracked = false;
-        } else if (localVirtualMessages.size() == 0) {
+        } else if (localBannersId.size() == 0) {
             message = NO_VIRTUAL_MESSAGES_MESSAGE;
             drawTracked = false;
         } else if (camera.getTrackingState() == TrackingState.PAUSED) {
@@ -542,7 +554,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             } else {
                 message = TrackingStateHelper.getTrackingFailureReasonString(camera);
             }
-        } else if (hasTrackingPlane()) {
+        } else if (hasTrackingPlane() && requiredDataRetrieved) {
             message = FOUND_PLANE_MESSAGE;
             drawTracked = false;
         } else {
@@ -596,9 +608,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                     camera.getDisplayOrientedPose(),
                     projectionMatrix);
         }
-
-        // Visualize models
-        if (virtualObjectShadersList.size() > 0) {
+        if (localBannersId.size() > 0) {
+            // Visualize models
             // Update lighting parameters in the shader
             updateLightEstimation(frame.getLightEstimate(), viewMatrix);
             render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
@@ -610,7 +621,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                 // Get the current pose of an Anchor in world space. The Anchor pose is updated
                 // during calls to session.update() as ARCore refines its estimate of the world.
 
-                anchor.getPose().makeTranslation(0, 30f + i*5f, -30f).compose(anchor.getPose()).toMatrix(modelMatrix, 0);
+                anchor.getPose().toMatrix(modelMatrix, 0);
 
                 // Scale Matrix - not really too sure how to do this as scaling it makes it look closer to you
                 Matrix.scaleM(modelMatrix, 0, 2f, 2f, 2f);
@@ -620,9 +631,17 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
                 Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
 
                 // Update shader properties and draw
-                virtualObjectShadersList.get(i).setMat4("u_ModelView", modelViewMatrix);
-                virtualObjectShadersList.get(i).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
-                render.draw(virtualObjectMeshesList.get(i), virtualObjectShadersList.get(i), virtualSceneFramebuffer);
+                int objectId = localBannersId.get(i);
+                virtualObjectShadersList.get(objectId).setMat4("u_ModelView", modelViewMatrix);
+                virtualObjectShadersList.get(objectId).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
+                render.draw(virtualObjectMeshesList.get(objectId), virtualObjectShadersList.get(objectId), virtualSceneFramebuffer);
+            }
+
+            // Play audio files
+            if (hasTrackingPlane() && playAudio && !audioPlaying && audioNumber <= localBannersId.size() - 1) {
+                String audioFile = localVirtualMessages.get(audioNumber).getAudioFile();
+                playAudioFile(this.getContext(), audioFile);
+                audioNumber++;
             }
         }
 
@@ -716,21 +735,56 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
      * @param camera
      */
     private void handleAnchor(Frame frame, Camera camera) {
-
+        int d = 0; // d is the distance from the first message
+        int p = 1; // p is the position around the first message, there will be only 4 positions
         for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
             if (plane.getTrackingState() == TrackingState.TRACKING) {
-                while (anchors.size() < localVirtualMessages.size()) {
+                while (anchors.size() < localBannersId.size()) {
+                    int i = anchors.size();
                     Pose pose = plane.getCenterPose();
 
                     // Change the rotation of the pose to face the camera
                     if (pose.qy() > 0) {
-                        pose = pose.compose(Pose.makeRotation(0, -pose.qy(), 0, 1));
+                        pose = pose.makeRotation(0, -pose.qy(), 0, 1).compose(pose);
                     }
                     else {
-                        pose = pose.compose(Pose.makeRotation(0, pose.qy(), 0, 1));
+                        pose.makeRotation(0, -pose.qy(), 0, 1).compose(pose);
                     }
-                    
-                    pose = pose.compose(Pose.makeTranslation(0, 0, 0));
+
+                    // Calculate where to place anchor
+                    /** e.g. for 17 banners, draw the banners out like in the comment below, from 1 to 17:
+                     *         14
+                     *     10      11
+                     *         6
+                     *       2   3
+                     * 17  9   1   7  15
+                     *       5   4
+                     *         8
+                     *     13      12
+                     *         16
+                     */
+                    pose = pose.makeTranslation(0, 30f, -30f);
+                    if (d > 0) {
+                        if (d % 2 == 0) { // diamond shape
+                            switch (p) {
+                                case 1 : pose = pose.makeTranslation(0f, d*5f, 0).compose(pose); p += 1; break; // up
+                                case 2 : pose = pose.makeTranslation(d*5f, 0, 0).compose(pose); p += 1; break; // right
+                                case 3 : pose = pose.makeTranslation(0, -d*5f, 0).compose(pose); p += 1; break; // down
+                                case 4 : pose = pose.makeTranslation(-d*5f, 0, 0).compose(pose); p = 1; d += 1; break; // right
+                            }
+                        }
+                        else { // square shape
+                            switch (p) {
+                                case 1 : pose = pose.makeTranslation(-d*5f, d*5f, 0).compose(pose); p += 1; break; // up-left
+                                case 2 : pose = pose.makeTranslation(d*5f, d*5f, 0).compose(pose); p += 1; break; // up-right
+                                case 3 : pose = pose.makeTranslation(d*5f, -d*5f, 0).compose(pose); p += 1; break; // down-right
+                                case 4 : pose = pose.makeTranslation(-d*5f, -d*5f, 0).compose(pose); p = 1; d += 1; break; // down-left
+                            }
+                        }
+                    }
+                    else { // just increase distance if d == 0
+                        d += 1;
+                    }
                     Anchor anchor = session.createAnchor(pose);
 
                     anchors.add(anchor);
@@ -758,10 +812,11 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
             }
             return;
         }
-        for (int i = 0; i < localVirtualMessages.size(); i++) {
-            virtualObjectShadersList.get(i).setBool("u_LightEstimateIsValid", true);
+        for (int i = 0; i < localBannersId.size(); i++) {
+            int objectId = localBannersId.get(i);
+            virtualObjectShadersList.get(objectId).setBool("u_LightEstimateIsValid", true);
             Matrix.invertM(viewInverseMatrix, 0, viewMatrix, 0);
-            virtualObjectShadersList.get(i).setMat4("u_ViewInverse", viewInverseMatrix);
+            virtualObjectShadersList.get(objectId).setMat4("u_ViewInverse", viewInverseMatrix);
         }
         updateMainLight(
                 lightEstimate.getEnvironmentalHdrMainLightDirection(),
@@ -823,6 +878,26 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         session.configure(config);
     }
 
+    private void playAudioFile(Context context, String audioFile) {
+        if (mediaPlayer != null) mediaPlayer.release();
+        mediaPlayer = new MediaPlayer();
+        try {
+            AssetFileDescriptor descriptor = this.getContext().getAssets().openFd(audioFile);
+            mediaPlayer.setDataSource(descriptor.getFileDescriptor(), descriptor.getStartOffset(), descriptor.getLength());
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mediaPlayer) {
+                    audioPlaying = false;
+                }
+            });
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+            audioPlaying = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -830,12 +905,12 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
 
     @Override
     public void onMessageSuccess(List<Message> result) {
-        Log.d(TAG, "Messages have been received");
         if (result == null) {
             messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve messages. Please try restarting SkyWrite.");
         }
         else {
             messagesRetrieved = true;
+            messages = result; // used to generate virtualObject lists
             generateLocalVirtualMessages();
         }
     }
@@ -845,12 +920,10 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         Log.e(TAG, "Error receiving messages");
         messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve messages. Please try restarting SkyWrite.");
         messagesRetrieved = true;
-        generateLocalVirtualMessages();
     }
 
     @Override
     public void onBannerSuccess(List<Banner> result) {
-        Log.d(TAG, "Banners have been received");
         if (result == null) {
             messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve banners. Please try restarting SkyWrite.");
         }
@@ -867,41 +940,45 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, DBO
         messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve banners. Please try restarting SkyWrite.");
         globalBanners = new ArrayList<>();
         bannersRetrieved = true;
-        generateLocalVirtualMessages();
+        localBannersId.clear();
     }
 
     @Override
     public void onLocationSuccess(Location location) {
         this.location = location;
-        Log.d(TAG, "Location has been received");
 
         if (location == null) {
             messageSnackbarHelper.showError(this.getActivity(), "Cannot find location. Please try restarting SkyWrite.");
         }
         else {
+            postcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
             locationRetrieved = true;
             generateLocalVirtualMessages();
         }
 
         View root = binding.getRoot();
         TextView postcodeTextView = root.findViewById(R.id.postcode_text_view);
-        String postcode = PostcodeHelper.getPostCode(this.getContext(), location.getLatitude(), location.getLongitude());
         postcodeTextView.setText("Postcode: "+postcode);
     }
 
     private void generateLocalVirtualMessages() {
-        if (messagesRetrieved && bannersRetrieved) {
+        if (messagesRetrieved && bannersRetrieved && locationRetrieved) {
             // If the user switched fragments faster than the request is received (e.g. running Android tests),
             // then this.getContext() will be null. As a result, this if statement is required
-            if (this.getContext() != null && locationRetrieved) {
-                // moved locationRetrieved here because if it was at the top, requiredDataMutex wouldn't be released
-                // if locationRetrieved == false
-                double latitude = location.getLatitude();
-                double longitude = location.getLongitude();
-                localVirtualMessages = PostcodeHelper.getLocalVirtualMessages(this.getContext(), globalBanners, latitude, longitude);
+            if (this.getContext() != null) {
+                localBannersId.clear();
+                localVirtualMessages.clear();
+                for (Banner b : globalBanners) {
+                    // compares current hashed postcode with hashed postcodes from server
+                    if (b.getPostcode().equals(HashCreator.createSHAHash(postcode))) {
+                        int id = b.getMessage() - 1;
+                        localBannersId.add(id);
+                        VirtualMessage virtualMessage = new VirtualMessage(messages.get(id));
+                        localVirtualMessages.add(virtualMessage);
+                    }
+                }
                 requiredDataRetrieved = true;
             }
-            requiredDataMutex.release();
         }
     }
 }

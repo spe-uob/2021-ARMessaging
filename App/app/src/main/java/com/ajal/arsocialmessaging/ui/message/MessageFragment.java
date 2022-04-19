@@ -22,17 +22,19 @@ import androidx.fragment.app.Fragment;
 
 import com.ajal.arsocialmessaging.CustomArrayAdapter;
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
-import com.ajal.arsocialmessaging.util.database.DBObserver;
-import com.ajal.arsocialmessaging.util.database.MessageService;
+import com.ajal.arsocialmessaging.util.HashCreator;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBObserver;
+import com.ajal.arsocialmessaging.util.database.server.MessageService;
 import com.ajal.arsocialmessaging.util.database.Banner;
-import com.ajal.arsocialmessaging.util.database.DBHelper;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBHelper;
 import com.ajal.arsocialmessaging.util.database.Message;
 import com.ajal.arsocialmessaging.R;
-import com.ajal.arsocialmessaging.util.database.ServiceGenerator;
+import com.ajal.arsocialmessaging.util.database.server.ServiceGenerator;
 import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 
 import java.util.ArrayList;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,7 +42,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MessageFragment extends Fragment implements DBObserver {
+public class MessageFragment extends Fragment implements ServerDBObserver {
 
     private FragmentMessageBinding binding;
 
@@ -67,11 +69,11 @@ public class MessageFragment extends Fragment implements DBObserver {
         }
 
         // Request the server to load the results from the database
-        DBHelper dbHelper = DBHelper.getInstance();
-        // Need to clear callbacks or else DBHelper can try to send a context which no longer exists
-        DBHelper.getInstance().clearObservers();
-        dbHelper.registerObserver(this);
-        dbHelper.retrieveDBResults();
+        ServerDBHelper serverDbHelper = ServerDBHelper.getInstance();
+        // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
+        ServerDBHelper.getInstance().clearObservers();
+        serverDbHelper.registerObserver(this);
+        serverDbHelper.retrieveDBResults();
 
         /** Postcode button code */
         postCodeInput = root.findViewById(R.id.text_input_postcode);
@@ -93,16 +95,19 @@ public class MessageFragment extends Fragment implements DBObserver {
             public void afterTextChanged(Editable editable) {}
         });
 
-        sendBtn.setOnClickListener(view -> {
-            String input = postCodeInput.getText().toString();
-            String formattedInput = PostcodeHelper.formatPostcode(postCodeInput.getText().toString());
-            if (PostcodeHelper.checkPostcodeValid(formattedInput)) {
-                postCode = formattedInput;
-                Toast.makeText(getContext(), "Sent \""+messageSelected+"\" to: "+postCode, Toast.LENGTH_SHORT).show();
-                addBannerToDatabase(postCode);
-            }
-            else {
-                Toast.makeText(getContext(), "Invalid postcode: "+input, Toast.LENGTH_SHORT).show();
+        sendBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String input = postCodeInput.getText().toString();
+                String formattedInput = PostcodeHelper.formatPostcode(postCodeInput.getText().toString());
+                if (PostcodeHelper.checkPostcodeValid(formattedInput)) {
+                    postCode = formattedInput;
+                    addBannerToDatabase(postCode);
+                    Toast.makeText(getContext(), "Sent \""+messageSelected+"\" to: "+postCode, Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Toast.makeText(getContext(), "Invalid postcode: "+input, Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -126,22 +131,22 @@ public class MessageFragment extends Fragment implements DBObserver {
     private void addBannerToDatabase(String postcode){
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
-        String bannerData = postcode + "," + messageSelectedId;
+        String hashedPostcode = HashCreator.createSHAHash(postcode);
+        String bannerData = hashedPostcode + "," + messageSelectedId; // hashes the postcode before sending to server
         Call<String> addBannerCall = service.addBanner(bannerData);
         addBannerCall.enqueue(new Callback<String>() {
             @Override
             public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
-                Log.d("MYTAG", "Got a response, error is "+response.errorBody()+" "+response.message());
                 String postResponse = response.body();
-                Log.d("MYTAG", "Response: "+postResponse);
             }
 
             @Override
             public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
-                //Toast.makeText(getContext(), "onFailure called ", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Unable to send message, please try again", Toast.LENGTH_SHORT);
                 call.cancel();
             }
         });
+
     }
 
     /**
@@ -149,7 +154,6 @@ public class MessageFragment extends Fragment implements DBObserver {
      */
     @Override
     public void onMessageSuccess(List<Message> result) {
-        Log.d(TAG, "Messages have been received");
 
         /** ListView with images */
         // Add images to ArrayList to be displayed in listView
@@ -167,7 +171,7 @@ public class MessageFragment extends Fragment implements DBObserver {
 
         // Populate listview with images and text
         View root = binding.getRoot();
-        messages = DBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
+        messages = ServerDBHelper.getInstance().getMessages().stream().map(Message::getMessage).collect(Collectors.toList());
         listView = root.findViewById(R.id.list_messagesToSend);
         CustomArrayAdapter adapter = new CustomArrayAdapter(getActivity(), messages, imageid);
         listView.setAdapter(adapter);
@@ -191,7 +195,6 @@ public class MessageFragment extends Fragment implements DBObserver {
 
     @Override
     public void onBannerSuccess(List<Banner> result) {
-        Log.d(TAG, "Banners have been received");
     }
 
     @Override
