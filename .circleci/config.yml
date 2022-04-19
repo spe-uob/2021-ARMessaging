@@ -87,6 +87,6 @@ jobs:
 workflows:  
   build_and_save:
     jobs:
-      - maven/test
+      - maven-test
       - build
       - release-build
