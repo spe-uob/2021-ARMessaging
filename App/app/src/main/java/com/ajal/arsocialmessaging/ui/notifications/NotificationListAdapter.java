@@ -54,8 +54,8 @@ public class NotificationListAdapter extends ArrayAdapter<Banner> {
 
         if (banner != null) {
             ImageView iv = (ImageView) v.findViewById(R.id.image_view);
-            TextView tt1 = (TextView) v.findViewById(R.id.postcode_line);
-            TextView tt2 = (TextView) v.findViewById(R.id.message_line);
+            TextView tt1 = (TextView) v.findViewById(R.id.message_line);
+            TextView tt2 = (TextView) v.findViewById(R.id.postcode_line);
             TextView tt3 = (TextView) v.findViewById(R.id.timestamp_line);
 
             if (iv != null) {
@@ -64,11 +64,11 @@ public class NotificationListAdapter extends ArrayAdapter<Banner> {
 
             // Do not try and use ttx.getText() because it will end up merging items in the list together
             if (tt1 != null) {
-                tt1.setText("Message: " + banner.getPostcode());
+                tt1.setText("Message: " + banner.getMessageAsString());
             }
 
             if (tt2 != null) {
-                tt2.setText("Postcode: " + banner.getMessageAsString());
+                tt2.setText("Postcode: " + banner.getPostcode());
             }
 
             if (tt3 != null) {
