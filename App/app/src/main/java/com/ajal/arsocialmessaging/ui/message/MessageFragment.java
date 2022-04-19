@@ -157,6 +157,10 @@ public class MessageFragment extends Fragment implements DBObserver {
         imageid.add(R.drawable.good_luck);
         imageid.add(R.drawable.get_well_soon);
         imageid.add(R.drawable.thank_you);
+        imageid.add(R.drawable.happy_new_year);
+        imageid.add(R.drawable.happy_mothers_day);
+        imageid.add(R.drawable.ramadan_kareem);
+        imageid.add(R.drawable.happy_diwali);
 
         // Populate listview with images and text
         View root = binding.getRoot();
