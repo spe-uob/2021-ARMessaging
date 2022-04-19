@@ -19,7 +19,7 @@
         android:layout_marginStart="10dp"
         android:layout_marginTop="20dp"
         android:textSize="20dp"
-        android:textColor="#000000"
+        android:textColor="#606060"
         android:id="@+id/textViewMessage"
         android:layout_row="0"
         android:layout_column="1" />

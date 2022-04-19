@@ -1,5 +1,7 @@
 package com.ajal.arsocialmessaging.ui.message;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -15,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 
 import com.ajal.arsocialmessaging.CustomArrayAdapter;
@@ -31,6 +34,7 @@ import com.ajal.arsocialmessaging.databinding.FragmentMessageBinding;
 import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 
 import java.util.ArrayList;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -91,16 +95,19 @@ public class MessageFragment extends Fragment implements ServerDBObserver {
             public void afterTextChanged(Editable editable) {}
         });
 
-        sendBtn.setOnClickListener(view -> {
-            String input = postCodeInput.getText().toString();
-            String formattedInput = PostcodeHelper.formatPostcode(postCodeInput.getText().toString());
-            if (PostcodeHelper.checkPostcodeValid(formattedInput)) {
-                postCode = formattedInput;
-                Toast.makeText(getContext(), "Sent \""+messageSelected+"\" to: "+postCode, Toast.LENGTH_SHORT).show();
-                addBannerToDatabase(postCode);
-            }
-            else {
-                Toast.makeText(getContext(), "Invalid postcode: "+input, Toast.LENGTH_SHORT).show();
+        sendBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String input = postCodeInput.getText().toString();
+                String formattedInput = PostcodeHelper.formatPostcode(postCodeInput.getText().toString());
+                if (PostcodeHelper.checkPostcodeValid(formattedInput)) {
+                    postCode = formattedInput;
+                    addBannerToDatabase(postCode);
+                    Toast.makeText(getContext(), "Sent \""+messageSelected+"\" to: "+postCode, Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Toast.makeText(getContext(), "Invalid postcode: "+input, Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -157,10 +164,10 @@ public class MessageFragment extends Fragment implements ServerDBObserver {
         imageid.add(R.drawable.good_luck);
         imageid.add(R.drawable.get_well_soon);
         imageid.add(R.drawable.thank_you);
-        imageid.add(R.drawable.ic_broken_image_black_120dp);
-        imageid.add(R.drawable.ic_broken_image_black_120dp);
-        imageid.add(R.drawable.ic_broken_image_black_120dp);
-        imageid.add(R.drawable.ic_broken_image_black_120dp);
+        imageid.add(R.drawable.happy_new_year);
+        imageid.add(R.drawable.happy_mothers_day);
+        imageid.add(R.drawable.ramadan_kareem);
+        imageid.add(R.drawable.happy_diwali);
 
         // Populate listview with images and text
         View root = binding.getRoot();
