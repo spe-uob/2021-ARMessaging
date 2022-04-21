@@ -141,16 +141,8 @@ public class ViewPagerActivity extends AppCompatActivity {
      */
     public void deleteImage() {
         String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/SkyWrite";
-        File fdelete = new File(path);
-        if (images != null) {
-            int i = 0;
-            for (File img:images){
-                if (i == currentPosition){
-                    fdelete = new File(path, img.getName());
-                    break;
-                }else if (i<images.size()) i ++;
-            }
-        }
+        String imageName = getCurrentImage();
+        File fdelete = new File(path, imageName);
         if (fdelete.exists()) {
             if (fdelete.delete()) {
                 Log.e("-->", "file Deleted :" + fdelete.toString());
@@ -189,16 +181,7 @@ public class ViewPagerActivity extends AppCompatActivity {
     public void shareImage(){
         final Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("image/jpg");
-        String name = new String();
-        if (images != null) {
-            int i = 0;
-            for (File img:images){
-                if (i == currentPosition){
-                    name = img.getName();
-                    break;
-                }else if (i<images.size()) i ++;
-            }
-        }
+        String name = getCurrentImage();
         final File photoFile = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DCIM) + "/SkyWrite", name);
         shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(photoFile));
@@ -244,5 +227,20 @@ public class ViewPagerActivity extends AppCompatActivity {
         public void onScaleEnd(ScaleGestureDetector detector) {
 
         }
+    }
+
+    // Helper function
+    private String getCurrentImage(){
+        String name = new String();
+        if (images != null) {
+            int i = 0;
+            for (File img:images){
+                if (i == currentPosition){
+                    name = img.getName();
+                    break;
+                }else if (i<images.size()) i ++;
+            }
+        }
+        return name;
     }
 }
