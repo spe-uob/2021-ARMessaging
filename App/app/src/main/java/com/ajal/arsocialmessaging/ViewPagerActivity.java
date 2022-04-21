@@ -122,7 +122,7 @@ public class ViewPagerActivity extends AppCompatActivity {
                 finish();
                 return true;
             case R.id.action_share:
-                // TODO: share image
+                shareImage();
                 Log.d(TAG, "Image shared");
                 return true;
             case R.id.action_delete:
@@ -180,6 +180,29 @@ public class ViewPagerActivity extends AppCompatActivity {
             sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED,
                     Uri.parse("file://" + Environment.getExternalStorageDirectory())));
         }
+    }
+
+    // Share image.
+    /**
+     * Reference: https://guides.codepath.com/android/Sharing-Content-with-Intents
+     */
+    public void shareImage(){
+        final Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("image/jpg");
+        String name = new String();
+        if (images != null) {
+            int i = 0;
+            for (File img:images){
+                if (i == currentPosition){
+                    name = img.getName();
+                    break;
+                }else if (i<images.size()) i ++;
+            }
+        }
+        final File photoFile = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM) + "/SkyWrite", name);
+        shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(photoFile));
+        startActivity(Intent.createChooser(shareIntent, "Share image using"));
     }
 
     // Pinch gesture to zoom in/out.
