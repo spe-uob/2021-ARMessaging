@@ -13,6 +13,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.FileObserver;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,6 +24,8 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.ajal.arsocialmessaging.util.database.server.ServerDBObserver;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -122,13 +126,8 @@ public class ViewPagerActivity extends AppCompatActivity {
                 Log.d(TAG, "Image shared");
                 return true;
             case R.id.action_delete:
-                // TODO: delete image
                 deleteImage();
-                Toast toast = Toast.makeText(getApplicationContext(), "Image deleted", Toast.LENGTH_SHORT);
-                toast.show();
                 finish();
-                this.recreate();
-
                 Log.d(TAG, "Image deleted");
                 return true;
             default:
@@ -183,6 +182,7 @@ public class ViewPagerActivity extends AppCompatActivity {
         }
     }
 
+    // Pinch gesture to zoom in/out.
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         // Let the ScaleGestureDetector inspect all events.

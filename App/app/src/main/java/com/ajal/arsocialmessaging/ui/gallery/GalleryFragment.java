@@ -1,16 +1,14 @@
 package com.ajal.arsocialmessaging.ui.gallery;
 
-import static androidx.constraintlayout.motion.utils.Oscillator.TAG;
-
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.FileObserver;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,7 +16,6 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.viewpager.widget.ViewPager;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -74,14 +71,36 @@ public class GalleryFragment extends Fragment {
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-
                 Log.i(TAG, "onRefresh called from SwipeRefreshLayout");
                 getActivity().recreate();
-                Toast.makeText(getContext(), "refreshed", Toast.LENGTH_SHORT).show();
-
+                Toast.makeText(getContext(), "Refreshed", Toast.LENGTH_SHORT).show();
                 refreshLayout.setRefreshing(false);
             }
         });
+
+        // Observer
+        /**
+         * Reference: https://www.demo2s.com/android/android-fileobserver-tutorial-with-examples.html
+         */
+        final Handler handler = new Handler();
+        FileObserver observer = new FileObserver(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM) + "/SkyWrite") { //MAY NOT BE SO DEPENDABLE
+            @Override
+            public void onEvent(int event, final String path) {
+                if (event == DELETE) {
+                    Log.i("PATH", path);
+                    Log.i("EVENT", String.valueOf(event));
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getContext(), "Image Deleted", Toast.LENGTH_SHORT).show();
+                            getActivity().recreate();
+                        }
+                    });
+                }
+            }
+        };
+        observer.startWatching();
 
         return root;
     }
@@ -91,5 +110,4 @@ public class GalleryFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
-
 }
