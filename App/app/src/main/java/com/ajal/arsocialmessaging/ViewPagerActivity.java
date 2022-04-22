@@ -6,8 +6,10 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -16,6 +18,7 @@ import android.os.Environment;
 import android.os.FileObserver;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -91,6 +94,7 @@ public class ViewPagerActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
+                mImageView = findViewById(R.id.imageViewMain);
                 // Update the action bar title
                 currentPosition = position;
                 activity.getSupportActionBar().setTitle((position+1)+"/"+images.size());
@@ -101,7 +105,7 @@ public class ViewPagerActivity extends AppCompatActivity {
         int imagePos = b.getInt("imagePos");
         viewPager.setCurrentItem(imagePos);
 
-        mImageView = findViewById(R.id.imageViewMain);
+//        mImageView = findViewById(R.id.imageViewMain);
         scaleGestureDetector =
                 new ScaleGestureDetector(this,
                         new ScaleListener());
@@ -200,13 +204,16 @@ public class ViewPagerActivity extends AppCompatActivity {
             extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            mScaleFactor *= detector.getScaleFactor();
+            Matrix matrix = new Matrix();
+            mScaleFactor = detector.getScaleFactor();
 
             // Don't let the object get too small or too large.
             mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
+            matrix.setScale(mScaleFactor,mScaleFactor);
+            mImageView.setImageMatrix(matrix);
 
-            mImageView.setScaleX(mScaleFactor);
-            mImageView.setScaleY(mScaleFactor);
+//            mImageView.setScaleX(mScaleFactor);
+//            mImageView.setScaleY(mScaleFactor);
 
             if (mScaleFactor > 1) {
                 Toast.makeText(getApplicationContext(), "you zoomed out", Toast.LENGTH_SHORT).show();

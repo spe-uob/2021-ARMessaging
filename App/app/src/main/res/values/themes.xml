@@ -18,8 +18,8 @@
     <!-- Splash screen -->
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         // Set the splash screen background, animated icon, and animation duration.
-        <item name="windowSplashScreenBackground">@color/teal_700</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="windowSplashScreenBackground">#59cd8b</item>
+        <item name="android:windowBackground"> @mipmap/ic_launcher1</item>
         <item name="windowSplashScreenAnimationDuration">200</item>  # Required for animated icons
 
         // Set the theme of the Activity that directly follows your splash screen.
