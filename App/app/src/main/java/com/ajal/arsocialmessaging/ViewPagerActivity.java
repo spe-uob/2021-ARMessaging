@@ -2,6 +2,7 @@ package com.ajal.arsocialmessaging;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
@@ -188,7 +189,8 @@ public class ViewPagerActivity extends AppCompatActivity {
         String name = getCurrentImage();
         final File photoFile = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DCIM) + "/SkyWrite", name);
-        shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(photoFile));
+        shareIntent.putExtra(Intent.EXTRA_STREAM,
+                FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".provider", photoFile));
         startActivity(Intent.createChooser(shareIntent, "Share image using"));
     }
 
