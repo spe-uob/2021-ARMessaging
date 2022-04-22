@@ -37,6 +37,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import okhttp3.internal.io.FileSystem;
@@ -70,6 +71,15 @@ public class ViewPagerActivity extends AppCompatActivity {
         List<String> imageFilenames = new ArrayList<>();
         if (dir.exists()) {
             images = Arrays.asList(dir.listFiles().clone());
+            Collections.sort(images, new Comparator<File>() {
+                @Override
+                public int compare(File file1, File file2) {
+                    long k = file1.lastModified() - file2.lastModified();
+                    if (k > 0) return 1;
+                    else if (k == 0) return 0;
+                    else return -1;
+                }
+            });
             Collections.reverse(images); // reverse images so that the newest images are first
 
             if (images != null) {

@@ -21,6 +21,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.ajal.arsocialmessaging.R;
@@ -45,8 +46,18 @@ public class GalleryFragment extends Fragment {
         File dir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DCIM) + "/SkyWrite");
         List<String> imageFilenames = new ArrayList<>();
+
         if (dir.exists()) {
             images = Arrays.asList(dir.listFiles().clone());
+            Collections.sort(images, new Comparator<File>() {
+                @Override
+                public int compare(File file1, File file2) {
+                    long k = file1.lastModified() - file2.lastModified();
+                    if (k > 0) return 1;
+                    else if (k == 0) return 0;
+                    else return -1;
+                }
+            });
             Collections.reverse(images); // reverse images so that the newest images are first
 
             if (images != null) {
@@ -88,8 +99,8 @@ public class GalleryFragment extends Fragment {
             @Override
             public void onEvent(int event, final String path) {
                 if (event == DELETE) {
-                    Log.i("PATH", path);
-                    Log.i("EVENT", String.valueOf(event));
+                    Log.i(TAG, "Path: "+path);
+                    Log.i(TAG, "Event: "+event);
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
