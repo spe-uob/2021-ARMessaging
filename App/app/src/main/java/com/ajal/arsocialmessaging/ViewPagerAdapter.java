@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.PagerAdapter;
 
 import com.ajal.arsocialmessaging.R;
+import com.ajal.arsocialmessaging.util.TouchViewPagerImageView;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -55,7 +56,7 @@ public class ViewPagerAdapter extends PagerAdapter {
         View itemView = mLayoutInflater.inflate(R.layout.viewpager_image, container, false);
 
         // referencing the image view from the item.xml file
-        ImageView imageView = (ImageView) itemView.findViewById(R.id.imageViewMain);
+        TouchViewPagerImageView imageView = (TouchViewPagerImageView) itemView.findViewById(R.id.imageViewMain);
 
         // setting the image in the imageView
         Picasso.get()

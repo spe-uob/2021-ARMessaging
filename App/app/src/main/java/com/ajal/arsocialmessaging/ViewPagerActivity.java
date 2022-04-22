@@ -24,7 +24,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -49,8 +48,7 @@ public class ViewPagerActivity extends AppCompatActivity {
     private List<File> images;
     private int currentPosition;
     private ViewPager viewPager;
-
-    private ScaleGestureDetector scaleGestureDetector;
+    
     private float mScaleFactor = 1.f;
     private ImageView mImageView;
 
@@ -116,10 +114,6 @@ public class ViewPagerActivity extends AppCompatActivity {
         int imagePos = b.getInt("imagePos");
         viewPager.setCurrentItem(imagePos);
 
-//        mImageView = findViewById(R.id.imageViewMain);
-        scaleGestureDetector =
-                new ScaleGestureDetector(this,
-                        new ScaleListener());
     }
 
     @Override
@@ -202,50 +196,6 @@ public class ViewPagerActivity extends AppCompatActivity {
         shareIntent.putExtra(Intent.EXTRA_STREAM,
                 FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".provider", photoFile));
         startActivity(Intent.createChooser(shareIntent, "Share image using"));
-    }
-
-    // Pinch gesture to zoom in/out.
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-        // Let the ScaleGestureDetector inspect all events.
-        scaleGestureDetector.onTouchEvent(ev);
-        return true;
-    }
-
-    private class ScaleListener
-            extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-        @Override
-        public boolean onScale(ScaleGestureDetector detector) {
-            Matrix matrix = new Matrix();
-            mScaleFactor = detector.getScaleFactor();
-
-            // Don't let the object get too small or too large.
-            mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
-            matrix.setScale(mScaleFactor,mScaleFactor);
-            mImageView.setImageMatrix(matrix);
-
-//            mImageView.setScaleX(mScaleFactor);
-//            mImageView.setScaleY(mScaleFactor);
-
-            if (mScaleFactor > 1) {
-                Toast.makeText(getApplicationContext(), "you zoomed out", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getApplicationContext(), "you zoomed in", Toast.LENGTH_SHORT).show();
-            }
-
-//            invalidate();
-            return true;
-        }
-
-        @Override
-        public boolean onScaleBegin(ScaleGestureDetector detector) {
-            return true;
-        }
-
-        @Override
-        public void onScaleEnd(ScaleGestureDetector detector) {
-
-        }
     }
 
     // Helper function
