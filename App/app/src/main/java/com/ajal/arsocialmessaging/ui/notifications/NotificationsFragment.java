@@ -17,9 +17,14 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentNotificationsBinding;
+import com.ajal.arsocialmessaging.ui.home.HomeFragment;
 import com.ajal.arsocialmessaging.util.database.Banner;
 import com.ajal.arsocialmessaging.util.database.client.ClientDBHelper;
 
@@ -98,6 +103,12 @@ public class NotificationsFragment extends Fragment {
         // Fills the ListView with messages
         NotificationListAdapter adapter = new NotificationListAdapter(this.getContext(), R.layout.notification_list_item, notificationBanners);
         listView.setAdapter(adapter);
+
+        // Sets a listener to figure out which item was clicked in list view
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            NavController navController = Navigation.findNavController(this.getActivity(), R.id.nav_host_fragment_activity_main);
+            navController.navigate(R.id.navigation_home);
+        });
     }
 
     private void stopTimer() {
