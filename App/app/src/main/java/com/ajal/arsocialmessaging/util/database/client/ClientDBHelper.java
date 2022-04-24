@@ -11,6 +11,7 @@ import com.ajal.arsocialmessaging.util.database.Banner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 // REFERENCE: https://www.androidhive.info/2011/11/android-sqlite-database-tutorial/ 28/02/2002 14:06
 public class ClientDBHelper extends SQLiteOpenHelper {
@@ -27,6 +28,7 @@ public class ClientDBHelper extends SQLiteOpenHelper {
                     + COLUMN_MESSAGE_ID + " INTEGER NOT NULL,"
                     + COLUMN_CREATED_AT + " TIMESTAMP"
                     + ")";
+    private Semaphore dbMutex = new Semaphore(1);
 
     public ClientDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -43,15 +45,32 @@ public class ClientDBHelper extends SQLiteOpenHelper {
     }
 
     public long insertNewBanner(Banner banner) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_POSTCODE, banner.getPostcode());
-        values.put(COLUMN_MESSAGE_ID, banner.getMessage());
-        values.put(COLUMN_CREATED_AT, banner.getTimestamp());
+        try {
+            dbMutex.acquire();
+            List<Banner> banners = getAllNewBanners();
+            for (Banner b : banners) {
+                if (banner.getPostcode().equals(b.getPostcode()) &&
+                    banner.getMessage().equals(b.getMessage()) &&
+                    banner.getTimestamp().equals(b.getTimestamp())) {
+                    return -1; // Temporary solution: Do not add duplicate banners to notifications_db
+                }
+            }
 
-        long id = db.insert(TABLE_NAME, null, values);
-        db.close();
-        return id;
+            // Add banner to notifications_db
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_POSTCODE, banner.getPostcode());
+            values.put(COLUMN_MESSAGE_ID, banner.getMessage());
+            values.put(COLUMN_CREATED_AT, banner.getTimestamp());
+
+            long id = db.insert(TABLE_NAME, null, values);
+            db.close();
+            dbMutex.release();
+            return id;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     public List<Banner> getAllNewBanners() {
