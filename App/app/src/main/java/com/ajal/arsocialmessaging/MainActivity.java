@@ -57,8 +57,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy() {
-        ClientDBHelper clientDBHelper = new ClientDBHelper(this);
-        clientDBHelper.resetTable(); // reset the table after the user has left the app
         super.onDestroy();
     }
 

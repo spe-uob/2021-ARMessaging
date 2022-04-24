@@ -26,12 +26,16 @@ public class Banner {
     public String getMessageAsString() {
         String msg = "";
         switch (this.message) {
-            case 1: msg = "Happy birthday"; break;
-            case 2: msg = "Merry Christmas"; break;
-            case 3: msg = "Congratulations"; break;
-            case 4: msg = "Good luck"; break;
-            case 5: msg = "Hope you feel better soon!"; break;
-            case 6: msg = "Thank you"; break;
+            case 1 : msg = "Happy birthday"; break;
+            case 2 : msg = "Merry Christmas"; break;
+            case 3 : msg = "Congratulations"; break;
+            case 4 : msg = "Good luck"; break;
+            case 5 : msg = "Get well soon"; break;
+            case 6 : msg = "Thank you"; break;
+            case 7 : msg = "Happy New Year"; break;
+            case 8 : msg = "Happy Mother's Day"; break;
+            case 9 : msg = "Ramadan Kareem"; break;
+            case 10: msg = "Happy Diwali"; break;
         }
         return msg;
     }
