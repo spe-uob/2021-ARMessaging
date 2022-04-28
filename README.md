@@ -4,8 +4,6 @@ SkyWrite is an Android app that will allow a sender to select an appropriate mes
 Merry Christmas etc) to a postcode. The message will appear in augmented reality 100ft above the ground.
 Those with the app/service will be notified that a message exists in a nearby postcode.
 
-You can read more about the development in our [blog](https://sky-write.github.io/)
-
 ## Table of Contents ##
 - [2021-ARMessaging - SkyWrite](#2021-armessaging---skywrite)
   - [Summary](#summary)
@@ -28,6 +26,7 @@ You can read more about the development in our [blog](https://sky-write.github.i
     - [Client-side Set Up](#client-side-set-up)
     - [Server-side Set Up](#server-side-set-up)
   - [Blog](#blog)
+    - [Documentation](#documentation)
 
 ## User Guide ##
 ### How to run ###
@@ -174,4 +173,7 @@ The follow the steps to retrieve your configuration file with your service accou
 Once you have acquired the service account key file, update the current `service-account-file.json` to the new json file that you have acquired.
 
 ## Blog ##
-Our [blog](https://sky-write.github.io/) contains all the documentation as well as updates on the development process.
+Our [blog](https://sky-write.github.io/) is regularly updated on the development process.
+
+### Documentation ###
+You can find the documentation here: https://sky-write.github.io/docs
