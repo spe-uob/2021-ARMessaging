@@ -1,4 +1,4 @@
-package com.ajal.arsocialmessaging.ui.home.common;
+package com.ajal.arsocialmessaging.ui.home;
 
 // Note: this is only temporary and will be removed when the database is fully implemented
 

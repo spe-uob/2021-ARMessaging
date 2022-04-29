@@ -1,12 +1,11 @@
 package ajal.arsocialmessaging.DBServer;
 
+import ajal.arsocialmessaging.DBServer.holidayapi.Holiday;
+import ajal.arsocialmessaging.DBServer.holidayapi.ServiceGenerator;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.messaging.BatchResponse;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.MulticastMessage;
+import com.google.firebase.messaging.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -18,12 +17,15 @@ import org.springframework.web.bind.annotation.*;
 import org.json.simple.JSONObject;
 
 import java.io.*;
+import java.net.http.HttpResponse;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 @SpringBootApplication
 @EnableScheduling
@@ -112,6 +114,67 @@ public class DbServerApplication {
 		}
 	}
 
+	@Scheduled(fixedRate = 86400000)
+	public void sendEventNotification() throws FirebaseMessagingException {
+		List<String> registrationTokens = getRegistrationTokens();
+		if (registrationTokens.size() == 0) {
+			return;
+		}
+
+		LocalDate today = LocalDate.now();
+		String title = null;
+		String body = "Send a message to your friends and family!";
+
+		// GB used to check for New Year's Day, Christmas Day, Mothering Sunday
+		// SA used to check for start of Ramadan
+		// MU used to check for Diwali
+		String[] countryCodes = {"AU", "SA", "MU"};
+		for (String country : countryCodes) {
+			if (title != null) {
+				break;
+			}
+			Map<String,String> parameters = Map.of(
+					"country", country,
+					"year", Integer.toString(today.getYear()),
+					"month", Integer.toString(today.getMonthValue()),
+					"day", Integer.toString(today.getDayOfMonth()));
+			try {
+				HttpResponse<Supplier<Holiday[]>> response = ServiceGenerator.getInstance().getHttpResponse(parameters);
+				Holiday[] holidays = response.body().get();
+				for (Holiday h : holidays) {
+					if (h.name.equals("New Year's Day")) {
+						title = "Happy New Year!";
+						break;
+					} else if (h.name.equals("Christmas Day")) {
+						title = "Merry Christmas!";
+						break;
+					} else if (h.name.equals("Ramadan begins")) {
+						title = "Ramadan kareem!";
+						break;
+					} else if (h.name.equals("Divali")) {
+						title = "Happy Diwali!";
+						break;
+					}
+				}
+				// This is needed as the free plan for Abstract API only allows 1 request per second
+				Thread.sleep(1000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		if (title != null) {
+			System.out.println("Event going on today: "+title);
+			MulticastMessage message = MulticastMessage.builder()
+					.putData("title", title)
+					.putData("body", body)
+					.addAllTokens(registrationTokens)
+					.build();
+			BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
+			System.out.println(response.getSuccessCount() + "/" + registrationTokens.size() + " messages were sent successfully");
+		}
+	}
+
 	@RequestMapping("/addToken")
 	public String addToken(@RequestParam("tokenData") String tokenData) {
 		System.out.println("tokenData is "+tokenData);
@@ -149,14 +212,7 @@ public class DbServerApplication {
 		obj.put("token_uri", "https://oauth2.googleapis.com/token");
 		obj.put("auth_provider_x509_cert_url", "https://www.googleapis.com/oauth2/v1/certs");
 		obj.put("client_x509_cert_url", "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-vvuex%40skywrite-a1fb5.iam.gserviceaccount.com");
-
 		InputStream stream = new ByteArrayInputStream(obj.toString().getBytes());
-
-//		String dir = new File(".").getAbsolutePath();
-//		String path = dir.substring(0, dir.length() - 1)+"service-account-file.json";
-//		FileInputStream GOOGLE_APPLICATION_CREDENTIALS =
-//				new FileInputStream(path);
-//		assert GOOGLE_APPLICATION_CREDENTIALS != null;
 
 		FirebaseOptions options = FirebaseOptions.builder()
 				.setCredentials(GoogleCredentials.fromStream(stream))
@@ -176,9 +232,6 @@ public class DbServerApplication {
 		int messageId = banner.getMessage();
 		Timestamp timestamp = banner.getTimestamp();
 
-		// NOTE: Server does not send a notification payload, because when app is in background state
-		// onMessageReceived will never be called, and so the notification payload is sent straight to the system tray
-		// rather than going through onMessageReceived()
 		MulticastMessage message = MulticastMessage.builder()
 				.putData("postcode", postcode)
 				.putData("message", String.valueOf(messageId))

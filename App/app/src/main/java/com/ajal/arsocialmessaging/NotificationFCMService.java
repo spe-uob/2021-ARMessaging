@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
+import com.ajal.arsocialmessaging.util.HashCreator;
 import com.ajal.arsocialmessaging.util.database.Banner;
 import com.ajal.arsocialmessaging.util.database.client.ClientDBHelper;
 import com.ajal.arsocialmessaging.util.database.server.MessageService;
@@ -88,31 +89,37 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
         }
 
         // Check if message contains a data payload.
-        // NOTE: Server does not send a notification payload, because when app is in background state
-        // onMessageReceived will never be called, and so the notification payload is sent straight to the system tray
-        // rather than going through onMessageReceived()
         if (remoteMessage.getData().size() > 0) {
             Log.d(TAG, "Message data payload: " + remoteMessage.getData());
             String postcode = remoteMessage.getData().get("postcode");
-
-            try {
-                postcodeMutex.acquire();
-            } catch (InterruptedException exception) {
-                exception.printStackTrace();
+            // If there is a postcode value,
+            if (postcode != null) {
+                try {
+                    postcodeMutex.acquire();
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
+                }
+                // if the user is in the postcode of the newly added message:
+                // display a notification and store it in a database to be displayed in the Notification Fragment
+                if (postcode.equals(HashCreator.createSHAHash(this.postcode))) {
+                    String title = "New message at: " + this.postcode;
+                    String body = "Click here to open the app";
+                    sendNotification(title, body); // send notification to the notification channel
+                    saveNotification(remoteMessage.getData()); // save notification to the SQLite database
+                }
+                postcodeMutex.release();
             }
-            // if the user is in the postcode of the newly added message:
-            // display a notification and store it in a database to be displayed in the Notification Fragment
-            Log.d(TAG, postcode+","+this.postcode);
-            if (postcode.equals(this.postcode)) {
-                sendNotification(remoteMessage.getData());
-                saveNotification(remoteMessage.getData());
+            else {
+                String title = remoteMessage.getData().get("title");
+                String body = remoteMessage.getData().get("body");
+                sendNotification(title, body);
             }
-            postcodeMutex.release();
         }
 
         PostcodeHelper.getInstance().removeObserver(this);
     }
 
+    // Retrieve token from FCM
     public void retrieveToken(boolean sendToServer) {
         final String[] result = new String[1];
         FirebaseMessaging.getInstance().getToken()
@@ -137,6 +144,7 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
             });
     }
 
+    // Send token to Spring boot server
     public static void sendRegistrationToServer(String token) {
         // Send registration token to server
         MessageService service = ServiceGenerator.createService(MessageService.class);
@@ -161,10 +169,8 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
         });
     }
 
-    // Displays the Notification - sends it down the FCM default notification channel
-    private void sendNotification(Map<String, String> remoteMessageData) {
-        String title = "New message at: " + remoteMessageData.get("postcode");
-        String body = "Click here to open the app";
+    // Displays the notification - sends it down the FCM default notification channel
+    private void sendNotification(String title, String body) {
         // Note: FCM comes with a default notification channel
         String channelId = getString(R.string.default_notification_channel_id);
 
@@ -185,7 +191,7 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
-                PendingIntent.FLAG_ONE_SHOT);
+                PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(this, channelId)
@@ -203,10 +209,9 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
 
     // Saves the notification to into the local SQLite Database on the Android device
     private void saveNotification(Map<String, String> remoteMessageData) {
-        String postcode = remoteMessageData.get("postcode");
         int messageId = Integer.parseInt(remoteMessageData.get("message"));
         String timestamp = remoteMessageData.get("timestamp");
-        Banner banner = new Banner(postcode, messageId, timestamp);
+        Banner banner = new Banner(this.postcode, messageId, timestamp);
 
         clientDBHelper.insertNewBanner(banner);
     }
