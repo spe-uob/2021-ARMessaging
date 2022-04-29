@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+//import android.window.SplashScreen;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
 import com.ajal.arsocialmessaging.util.PermissionHelper;
@@ -97,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
         // Dark mode
         if (darkM.getString("darkMode", "On").equals("On")) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+//            setTheme(theme.getInt("themeID", R.style.FontSizeMedium));
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             setTheme(theme.getInt("themeID", R.style.FontSizeMedium));

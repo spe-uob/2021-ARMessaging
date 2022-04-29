@@ -6,7 +6,7 @@
     android:layout_height="match_parent">
 
     <!-- image viewer to view the images -->
-    <ImageView
+    <com.ajal.arsocialmessaging.util.TouchViewPagerImageView
         android:id="@+id/imageViewMain"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
