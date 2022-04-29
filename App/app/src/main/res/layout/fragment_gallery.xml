@@ -1,36 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-REFERENCE https://acomputerengineer.com/2018/04/15/display-image-grid-in-recyclerview-in-android/ 29/11/2021 12:42
-REFERENCE: https://www.geeksforgeeks.org/image-slider-in-android-using-viewpager/ 03/02/2022 01:33
--->
+<!-- REFERENCE https://acomputerengineer.com/2018/04/15/display-image-grid-in-recyclerview-in-android/ 29/11/2021 12:42 -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/gallery"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.gallery.GalleryFragment">
 
-    <!-- recycler view to see a grid of the images -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbars="vertical"
+    <!-- if there are no images for gallery to display -->
+    <TextView
+        android:id="@+id/text_gallery_none"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="You have no photos taken"
+        android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- viewpager to show images in a slider-->
-    <androidx.viewpager.widget.ViewPager
-        android:id="@+id/viewPagerMain"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refreshLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:translationZ="50dp"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_height="match_parent">
+
+        <!-- recycler view to see a grid of the images -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

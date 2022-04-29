@@ -1,8 +1,10 @@
 package com.ajal.arsocialmessaging.ui.home;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.media.Image;
@@ -13,6 +15,7 @@ import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
+import android.os.ConditionVariable;
 import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,20 +29,19 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
+import com.ajal.arsocialmessaging.util.HashCreator;
 import com.ajal.arsocialmessaging.util.database.server.ServerDBObserver;
 import com.ajal.arsocialmessaging.util.database.Banner;
 import com.ajal.arsocialmessaging.util.database.server.ServerDBHelper;
 import com.ajal.arsocialmessaging.util.database.Message;
 import com.ajal.arsocialmessaging.R;
 import com.ajal.arsocialmessaging.databinding.FragmentHomeBinding;
-import com.ajal.arsocialmessaging.ui.home.common.VirtualMessage;
 import com.ajal.arsocialmessaging.util.location.GPSObserver;
 import com.ajal.arsocialmessaging.util.PermissionHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DepthSettings;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.DisplayRotationHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.SnackbarHelper;
 import com.ajal.arsocialmessaging.ui.home.common.helpers.TrackingStateHelper;
-import com.ajal.arsocialmessaging.ui.home.common.helpers.VirtualObjectRenderHelper;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Framebuffer;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.GLError;
 import com.ajal.arsocialmessaging.ui.home.common.samplerender.Mesh;
@@ -82,6 +84,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 // REFERENCE: https://github.com/google-ar/arcore-android-sdk/tree/master/samples/hello_ar_java 12/11/2021 @ 3:23pm
 
@@ -93,6 +96,7 @@ import java.util.List;
 public class HomeFragment extends Fragment implements SampleRender.Renderer, ServerDBObserver, GPSObserver {
 
     private FragmentHomeBinding binding;
+    private View root;
 
     private static final String TAG = "SkyWrite";
 
@@ -164,6 +168,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     private boolean bannersRetrieved = false;
     private boolean locationRetrieved = false;
     private boolean requiredDataRetrieved = false;
+    private Semaphore messagesMutex = new Semaphore(1); // to make sure messages are received before loading the textures
 
     // Environmental HDR
     private Texture dfgTexture;
@@ -183,7 +188,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     // For taking pictures
     private int mWidth;
     private int mHeight;
-    private  boolean capturePicture = false;
+    private CameraState capturePicture = CameraState.READY;
     private String outFile;
 
     // Boolean to only show tracked points and planes once when it has been found
@@ -206,7 +211,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                              ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        root = binding.getRoot();
 
         super.onCreate(savedInstanceState);
         surfaceView = root.findViewById(R.id.surfaceview);
@@ -218,26 +223,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
 
         // Set up renderer.
         render = new SampleRender(surfaceView, this, this.getContext().getAssets());
-
-        installRequested = false;
-
-        // SkyWrite: Set up button listener to take photo
-        Button snapBtn = (Button) root.findViewById(R.id.snap_button);
-        snapBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                capturePicture = true;
-            }
-        });
-
-        // Retrieve Shared Preferences
-        sharedPref = getActivity().getSharedPreferences(getString(R.string.toggle_audio), Context.MODE_PRIVATE);
-        if (sharedPref.getString(getString(R.string.toggle_audio), "Off").equals("On")) {
-            playAudio = true;
-        }
-        else {
-            playAudio = false;
-        }
 
         // Check if network and location are available
         if (!ConnectivityHelper.getInstance().isNetworkAvailable()
@@ -255,6 +240,36 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
         postcodeHelper.clearObservers();
         postcodeHelper.registerObserver(this);
+        try {
+            messagesMutex.acquire(1);
+            root.findViewById(R.id.loading_circle).setVisibility(View.VISIBLE);
+            root.findViewById(R.id.postcode_text_view).setVisibility(View.INVISIBLE);
+            root.findViewById(R.id.snap_button).setVisibility(View.INVISIBLE);
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return root;
+        }
+
+        installRequested = false;
+
+        // SkyWrite: Set up button listener to take photo
+        Button snapBtn = (Button) root.findViewById(R.id.snap_button);
+        snapBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                capturePicture = CameraState.CAPTURED;
+            }
+        });
+
+        // Retrieve Shared Preferences
+        sharedPref = getActivity().getSharedPreferences(getString(R.string.toggle_audio), Context.MODE_PRIVATE);
+        if (sharedPref.getString(getString(R.string.toggle_audio), "Off").equals("On")) {
+            playAudio = true;
+        }
+        else {
+            playAudio = false;
+        }
 
         return root;
     }
@@ -312,7 +327,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                 }
 
                 // Create the session.
-                session = new Session(/* context= */ this.getContext());
+                session = new Session(this.getContext());
             } catch (UnavailableArcoreNotInstalledException
                     | UnavailableUserDeclinedInstallationException e) {
                 message = "Please install ARCore";
@@ -436,14 +451,27 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             // Store the meshes and the shaders of every message into the respective lists
             virtualObjectMeshesList = new ArrayList<>();
             virtualObjectShadersList = new ArrayList<>();
+            messagesMutex.acquire(1); // Need to make sure that the messages has been received before the virtual messages are loaded
             for (int i = 0; i < messages.size(); i++) {
                 VirtualMessage virtualMessage = new VirtualMessage(messages.get(i));
                 virtualObjectMeshesList.add(VirtualObjectRenderHelper.renderVirtualObjectMesh(render, virtualMessage));
                 virtualObjectShadersList.add(VirtualObjectRenderHelper.renderVirtualObjectShader(render, virtualMessage, cubemapFilter, dfgTexture));
             }
-
+            messagesMutex.release();
+            // Hide the loading circle once it has finished loading the textures
+            this.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    root.findViewById(R.id.loading_circle).setVisibility(View.GONE);
+                    root.findViewById(R.id.postcode_text_view).setVisibility(View.VISIBLE);
+                    root.findViewById(R.id.snap_button).setVisibility(View.VISIBLE);
+                }
+            });
         } catch (IOException e) {
             Log.e(TAG, "Failed to read a required asset file", e);
+            messageSnackbarHelper.showError(this.getActivity(), "Failed to read a required asset file: " + e);
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Failed to acquire lock", e);
             messageSnackbarHelper.showError(this.getActivity(), "Failed to read a required asset file: " + e);
         }
 
@@ -531,7 +559,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
          * - there are no messages in the area
          */
         String message;
-        if (capturePicture) {
+        if (capturePicture != CameraState.READY) {
             // SkyWrite: display message when image is saved
             // needs to be at the top of the if statements as it takes priority
             message = IMG_SAVED_MESSAGE;
@@ -637,7 +665,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
 
             // Play audio files
             if (hasTrackingPlane() && playAudio && !audioPlaying && audioNumber <= localBannersId.size() - 1) {
-                int audioFile = localVirtualMessages.get(audioNumber).getAudioFile();
+                String audioFile = localVirtualMessages.get(audioNumber).getAudioFile();
                 playAudioFile(this.getContext(), audioFile);
                 audioNumber++;
             }
@@ -647,8 +675,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         backgroundRenderer.drawVirtualScene(render, virtualSceneFramebuffer, Z_NEAR, Z_FAR);
 
         // SkyWrite: Save the picture if the button is pressed
-        if (capturePicture) {
-            capturePicture = false;
+        if (capturePicture == CameraState.CAPTURED) {
+            capturePicture = CameraState.PROCESSING;
             try {
                 SavePicture();
             } catch (IOException e) {
@@ -671,21 +699,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         GLES20.glReadPixels(0, 0, mWidth, mHeight,
                 GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buf);
 
-        // Get time of photo taken to use to store file
-        String date = new SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(new Date());
-
-        // Create a file in Internal Storage/DCIM/SkyWrite
-        final File out = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DCIM) + "/SkyWrite", "IMG_" +
-                date+ ".png");
-
-        outFile = out.getName();
-
-        // Make sure the directory exists, if not make it
-        if (!out.getParentFile().exists()) {
-            out.getParentFile().mkdirs();
-        }
-
         // Convert the pixel data from RGBA to what Android wants, ARGB.
         int bitmapData[] = new int[pixelData.length];
         for (int i = 0; i < mHeight; i++) {
@@ -702,14 +715,36 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         Bitmap bmp = Bitmap.createBitmap(bitmapData,
                 mWidth, mHeight, Bitmap.Config.ARGB_8888);
 
-        // Write it to disk.
-        FileOutputStream fos = new FileOutputStream(out);
-        bmp.compress(Bitmap.CompressFormat.PNG, 100, fos);
-        fos.flush();
-        fos.close();
+        // Create directory and filename
+        String date = new SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(new Date());
+        // Create a file in Internal Storage/DCIM/SkyWrite
+        final File out = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM) + "/SkyWrite", "IMG_" +
+                date+ ".png");
+        outFile = out.getName();
 
-        // Save to gallery
-        galleryAddPic();
+        if (!out.getParentFile().exists()) {
+            out.getParentFile().mkdirs();
+        }
+
+        // Write image to disk
+        Activity activity = this.getActivity();
+        Context context = this.getContext();
+        Thread t = new Thread(() -> {
+            try {
+                FileOutputStream fos = new FileOutputStream(out);
+                bmp.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                fos.flush();
+                fos.close();
+
+                // Save to gallery
+                galleryAddPic();
+                capturePicture = CameraState.READY;
+            } catch (IOException e) {
+                messageSnackbarHelper.showError(activity, "Unable to save picture: "+e);
+            }
+        });
+        t.start();
 
         Log.d(TAG, "Image "+outFile+" saved");
     }
@@ -876,18 +911,24 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         session.configure(config);
     }
 
-    /** Plays audio track */
-    private void playAudioFile(Context context, int audioFile) {
+    private void playAudioFile(Context context, String audioFile) {
         if (mediaPlayer != null) mediaPlayer.release();
-        mediaPlayer = MediaPlayer.create(context, audioFile);
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                audioPlaying = false;
-            }
-        });
-        mediaPlayer.start();
-        audioPlaying = true;
+        mediaPlayer = new MediaPlayer();
+        try {
+            AssetFileDescriptor descriptor = this.getContext().getAssets().openFd(audioFile);
+            mediaPlayer.setDataSource(descriptor.getFileDescriptor(), descriptor.getStartOffset(), descriptor.getLength());
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mediaPlayer) {
+                    audioPlaying = false;
+                }
+            });
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+            audioPlaying = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -897,7 +938,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
 
     @Override
     public void onMessageSuccess(List<Message> result) {
-        Log.d(TAG, "Messages have been received");
         if (result == null) {
             messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve messages. Please try restarting SkyWrite.");
         }
@@ -917,7 +957,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
 
     @Override
     public void onBannerSuccess(List<Banner> result) {
-        Log.d(TAG, "Banners have been received");
         if (result == null) {
             messageSnackbarHelper.showError(this.getActivity(), "Cannot retrieve banners. Please try restarting SkyWrite.");
         }
@@ -940,7 +979,6 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     @Override
     public void onLocationSuccess(Location location) {
         this.location = location;
-        Log.d(TAG, "Location has been received");
 
         if (location == null) {
             messageSnackbarHelper.showError(this.getActivity(), "Cannot find location. Please try restarting SkyWrite.");
@@ -964,7 +1002,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                 localBannersId.clear();
                 localVirtualMessages.clear();
                 for (Banner b : globalBanners) {
-                    if (b.getPostcode().equals(postcode)) {
+                    // compares current hashed postcode with hashed postcodes from server
+                    if (b.getPostcode().equals(HashCreator.createSHAHash(postcode))) {
                         int id = b.getMessage() - 1;
                         localBannersId.add(id);
                         VirtualMessage virtualMessage = new VirtualMessage(messages.get(id));
@@ -972,6 +1011,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                     }
                 }
                 requiredDataRetrieved = true;
+                messagesMutex.release();
             }
         }
     }

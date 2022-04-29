@@ -51,23 +51,7 @@
             app:iconSpaceReserved="false"
             app:summary="Go to notification settings"
             android:id="@+id/manage_notification"/>
-<!--            <intent android:action="android.intent.action.VIEW"-->
-<!--                android:data="Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS" />-->
 
-
-        <SwitchPreferenceCompat
-            app:key="show_preview"
-            app:title="Show preview"
-            app:iconSpaceReserved="false"
-            app:summaryOn="Message preview on"
-            app:summaryOff="Click to turn on message preview" />
-
-        <SwitchPreferenceCompat
-            app:key="vibrate_notification"
-            app:title="Vibrate"
-            app:iconSpaceReserved="false"
-            app:summaryOn="Vibrate Mode On"
-            app:summaryOff="Vibrate Mode Off" />
     </PreferenceCategory>
 
 

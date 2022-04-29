@@ -3,20 +3,26 @@ package com.ajal.arsocialmessaging.ui.gallery;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.FileObserver;
+import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
-import androidx.viewpager.widget.ViewPager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.ajal.arsocialmessaging.R;
@@ -27,7 +33,9 @@ public class GalleryFragment extends Fragment {
 
     private FragmentGalleryBinding binding;
     private static final String TAG = "SkyWrite";
-    private List<File> images;
+    private List<File> images = new ArrayList<>();
+
+    private SwipeRefreshLayout refreshLayout;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -39,8 +47,18 @@ public class GalleryFragment extends Fragment {
         File dir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DCIM) + "/SkyWrite");
         List<String> imageFilenames = new ArrayList<>();
+
         if (dir.exists()) {
             images = Arrays.asList(dir.listFiles().clone());
+            Collections.sort(images, new Comparator<File>() {
+                @Override
+                public int compare(File file1, File file2) {
+                    long k = file1.lastModified() - file2.lastModified();
+                    if (k > 0) return 1;
+                    else if (k == 0) return 0;
+                    else return -1;
+                }
+            });
             Collections.reverse(images); // reverse images so that the newest images are first
 
             if (images != null) {
@@ -51,17 +69,61 @@ public class GalleryFragment extends Fragment {
             }
         }
 
-        // Set up Recycler View
+        // If there are no photos, display message saying there are no messages, else display recycler view
+        TextView text = root.findViewById(R.id.text_gallery_none);
         RecyclerView rv = root.findViewById(R.id.rv);
+        if (images.size() == 0) {
+            text.setVisibility(View.VISIBLE);
+            rv.setVisibility(View.INVISIBLE);
+            return root;
+        } else {
+            rv.setVisibility(View.VISIBLE);
+            text.setVisibility(View.INVISIBLE);
+        }
+
+        // Set up Recycler View
         StaggeredGridLayoutManager sglm = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         rv.setLayoutManager(sglm);
 
-        // Set up View Pager
-        ViewPager viewPager = root.findViewById(R.id.viewPagerMain);
-
         // Set up Image Grid
-        ImageGridAdapter iga = new ImageGridAdapter(this.getContext(), imageFilenames, rv, viewPager);
+        ImageGridAdapter iga = new ImageGridAdapter(this.getContext(), imageFilenames, rv);
         rv.setAdapter(iga);
+
+        // Refresh
+        refreshLayout = root.findViewById(R.id.refreshLayout);
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Log.i(TAG, "onRefresh called from SwipeRefreshLayout");
+                getActivity().recreate();
+                Toast.makeText(getContext(), "Refreshed", Toast.LENGTH_SHORT).show();
+                refreshLayout.setRefreshing(false);
+            }
+        });
+
+        // Observer
+        /**
+         * Reference: https://www.demo2s.com/android/android-fileobserver-tutorial-with-examples.html
+         */
+        final Handler handler = new Handler();
+        FileObserver observer = new FileObserver(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM) + "/SkyWrite") { //MAY NOT BE SO DEPENDABLE
+            @Override
+            public void onEvent(int event, final String path) {
+                if (event == DELETE) {
+                    Log.i(TAG, "Path: "+path);
+                    Log.i(TAG, "Event: "+event);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getContext(), "Image Deleted", Toast.LENGTH_SHORT).show();
+                            getActivity().recreate();
+                        }
+                    });
+                }
+            }
+        };
+        observer.startWatching();
 
         return root;
     }
@@ -71,5 +133,4 @@ public class GalleryFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
-
 }

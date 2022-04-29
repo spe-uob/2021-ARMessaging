@@ -102,16 +102,5 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             return true;
         });
 
-        //TODO: Notification Preview
-        showPreviewSwitch.setOnPreferenceChangeListener((preference, newValue) -> {
-            if (showPreviewSwitch.isChecked()){
-                Toast.makeText(getContext(), "Message preview off.", Toast.LENGTH_SHORT).show();
-            }else{
-                Toast.makeText(getContext(), "Message will be displayed on lock screen.", Toast.LENGTH_SHORT).show();
-            }
-            return true;
-        });
-        //TODO: Vibrate mode.
-
     }
 }
