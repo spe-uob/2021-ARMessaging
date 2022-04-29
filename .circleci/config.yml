@@ -4,30 +4,30 @@ orbs:
   android: circleci/android@1.0.3
 
 jobs:
-  # android-test:
-  #   working_directory: ~/repo/App
-  #   parameters:
-  #     system-image:
-  #       type: string
-  #       default: system-images;android-30;google_apis;x86
-  #   executor:
-  #     name: android/android-machine
-  #     resource-class: medium
-  #   steps:
-  #     - checkout
-  #     - android/start-emulator-and-run-tests:
-  #         test-command: ./gradlew connectedDebugAndroidTest
-  #         system-image: << parameters.system-image >>
-  #     - run:
-  #         name: Save test results
-  #         command: |
-  #           mkdir -p ~/test-results/junit/
-  #           find . -type f -regex ".*/build/outputs/androidTest-results/.*xml" -exec cp {} ~/test-results/junit/ \;
-  #         when: always
-  #     - store_test_results:
-  #         path: ~/test-results
-  #     - store_artifacts:
-  #         path: ~/test-results/junit
+  android-test:
+    working_directory: ~/repo/App
+    parameters:
+      system-image:
+        type: string
+        default: system-images;android-30;google_apis;x86
+    executor:
+      name: android/android-machine
+      resource-class: medium
+    steps:
+      - checkout
+      - android/start-emulator-and-run-tests:
+          test-command: ./gradlew connectedDebugAndroidTest
+          system-image: << parameters.system-image >>
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/build/outputs/androidTest-results/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit
 
   maven-test:
     working_directory: ~/repo/DBServer
