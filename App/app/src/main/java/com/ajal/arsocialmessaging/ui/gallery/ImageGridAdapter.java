@@ -64,6 +64,7 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
             public void onClick(View v) {
                 imagePos = pos;
                 openViewPagerActivity(imagePos);
+                notifyDataSetChanged ();
             }
         });
     }
@@ -82,5 +83,22 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
     public int getItemCount() {
         return images.size();
     }
+
+
+//    /**
+//     * reference: https://guides.codepath.com/android/implementing-pull-to-refresh-guide
+//     */
+    // For refresh
+    // Clean all elements of the recycler
+//    public void clear() {
+//        images.clear();
+//        notifyDataSetChanged();
+//    }
+//
+//    // Add a list of items -- change to type used
+//    public void addAll(List<String> list) {
+//        images.addAll(list);
+//        notifyDataSetChanged();
+//    }
 
 }

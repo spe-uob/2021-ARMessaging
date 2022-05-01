@@ -9,6 +9,7 @@
         android:name="android.hardware.camera.ar"
         android:required="true" />
 
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" android:required="true"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:required="true" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:required="true" />
     <uses-permission android:name="android.permission.INTERNET" android:required="true" />
@@ -59,6 +60,16 @@
             android:name=".ViewPagerActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.NoActionBar"/>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepath" />
+        </provider>
 
     </application>
 
