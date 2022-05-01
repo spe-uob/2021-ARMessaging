@@ -31,7 +31,6 @@ public class ServerDBHelper {
     }
 
     public void retrieveDBResults() {
-        Log.d(TAG, "Retrieving results from server");
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
 
@@ -46,7 +45,6 @@ public class ServerDBHelper {
             }
             @Override
             public void onFailure(@NonNull Call<List<Message>> call, @NonNull Throwable throwable) {
-                Log.e(TAG, "Messages retrieving error:" + throwable.getMessage());
                 // Sends an empty list of messages to observers
                 ServerDBHelper.getInstance().setMessages(false, new ArrayList<>());
             }
@@ -64,7 +62,6 @@ public class ServerDBHelper {
 
             @Override
             public void onFailure(@NonNull Call<List<Banner>> call, @NonNull Throwable throwable) {
-                Log.e(TAG, "Banners retrieving error:" + throwable.getMessage());
                 // Sends an empty array list of banners to observers
                 ServerDBHelper.getInstance().setBanners(false, new ArrayList<>());
             }
