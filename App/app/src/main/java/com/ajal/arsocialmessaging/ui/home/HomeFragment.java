@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
 import com.ajal.arsocialmessaging.util.HashCreator;
@@ -232,10 +233,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
 
         // Request the server to load the results from the database
         ServerDBHelper serverDbHelper = ServerDBHelper.getInstance();
-        // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
-        serverDbHelper.clearObservers();
         serverDbHelper.registerObserver(this);
-        serverDbHelper.retrieveDBResults();
 
         PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
         postcodeHelper.clearObservers();
@@ -245,13 +243,28 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             root.findViewById(R.id.loading_circle).setVisibility(View.VISIBLE);
             root.findViewById(R.id.postcode_text_view).setVisibility(View.INVISIBLE);
             root.findViewById(R.id.snap_button).setVisibility(View.INVISIBLE);
-
         } catch (InterruptedException e) {
             e.printStackTrace();
             return root;
         }
 
         installRequested = false;
+
+        // Refresh
+        SwipeRefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if (ConnectivityHelper.getInstance().isNetworkAvailable()) {
+                    Log.i(TAG, "Requesting banners fromm server again");
+                    ServerDBHelper.getInstance().retrieveDBResults();
+                }
+                else {
+                    messageSnackbarHelper.showError(getActivity(), NETWORK_ERROR_MESSAGE);
+                }
+                refreshLayout.setRefreshing(false);
+            }
+        });
 
         // SkyWrite: Set up button listener to take photo
         Button snapBtn = (Button) root.findViewById(R.id.snap_button);

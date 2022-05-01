@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -22,6 +23,7 @@ import com.ajal.arsocialmessaging.util.HashCreator;
 import com.ajal.arsocialmessaging.util.database.Banner;
 import com.ajal.arsocialmessaging.util.database.client.ClientDBHelper;
 import com.ajal.arsocialmessaging.util.database.server.MessageService;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBHelper;
 import com.ajal.arsocialmessaging.util.database.server.ServiceGenerator;
 import com.ajal.arsocialmessaging.util.location.GPSObserver;
 import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
@@ -52,7 +54,12 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
     public void onCreate() {
         this.clientDBHelper = new ClientDBHelper(this);
         boolean sendToServer = true;
-        retrieveToken(sendToServer);
+        if (ConnectivityHelper.getInstance().isNetworkAvailable()) {
+            retrieveToken(sendToServer);
+        }
+        else {
+            Toast.makeText(this.getApplicationContext(), "Network error. Please try again.", Toast.LENGTH_SHORT);
+        }
     }
 
     @Override
@@ -102,6 +109,10 @@ public class NotificationFCMService extends FirebaseMessagingService implements 
                 // if the user is in the postcode of the newly added message:
                 // display a notification and store it in a database to be displayed in the Notification Fragment
                 if (postcode.equals(HashCreator.createSHAHash(this.postcode))) {
+                    // Notifies the relevant observers to request for the banners from server again
+                    ServerDBHelper.getInstance().retrieveDBResults();
+
+                    // Send notification
                     String title = "New message at: " + this.postcode;
                     String body = "Click here to open the app";
                     sendNotification(title, body); // send notification to the notification channel
