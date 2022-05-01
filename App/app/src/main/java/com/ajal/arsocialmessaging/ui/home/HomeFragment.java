@@ -101,6 +101,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
 
     private static final String TAG = "SkyWrite";
 
+    private static final String RETRIEVING_FROM_SERVER = "Retrieving messages from server...";
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
     private static final String FOUND_PLANE_MESSAGE = "Look up to view message!";
     private static final String NO_VIRTUAL_MESSAGES_MESSAGE = "This postcode has no messages";
@@ -581,6 +582,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             drawTracked = false;
         } else if (!ConnectivityHelper.getInstance().isLocationAvailable()) {
             message = LOCATION_ERROR_MESSAGE;
+            drawTracked = false;
+        } else if (!requiredDataRetrieved) {
+            message = RETRIEVING_FROM_SERVER;
             drawTracked = false;
         } else if (localBannersId.size() == 0) {
             message = NO_VIRTUAL_MESSAGES_MESSAGE;
