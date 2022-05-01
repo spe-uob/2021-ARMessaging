@@ -17,7 +17,7 @@
             android:key="text_size"
             android:title="Text Size"
             android:max="2"
-            android:defaultValue="0" />
+            android:defaultValue="1"/>
 
         <SwitchPreferenceCompat
             app:key="dark_mode"

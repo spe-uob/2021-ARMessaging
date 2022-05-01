@@ -96,9 +96,8 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences darkM = getSharedPreferences(getString(R.string.dark_mode), Context.MODE_PRIVATE);
 
         // Dark mode
-        if (darkM.getString("darkMode", "On").equals("On")) {
+        if (darkM.getString("darkMode", "Off").equals("On")) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-//            setTheme(theme.getInt("themeID", R.style.FontSizeMedium));
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             setTheme(theme.getInt("themeID", R.style.FontSizeMedium));
@@ -108,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
                 setTheme(sharedPreferences.getInt(key, R.style.FontSizeMedium));
+                recreate();
             }
         });
 
