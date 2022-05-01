@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
             PermissionHelper.requestPermissionsIfDenied(this);
             return;
         }
-        loadApp();
+        this.recreate();
     }
 
     public void loadApp() {
