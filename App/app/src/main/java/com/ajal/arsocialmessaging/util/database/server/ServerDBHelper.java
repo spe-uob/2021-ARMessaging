@@ -1,6 +1,7 @@
 package com.ajal.arsocialmessaging.util.database.server;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -19,7 +20,6 @@ public class ServerDBHelper {
     private List<Message> messages;
     private List<Banner> banners;
     private List<ServerDBObserver> observers = new ArrayList<>();
-    private ServerDBObserver notificationObserver;
     private static ServerDBHelper instance = new ServerDBHelper();
 
     public static ServerDBHelper getInstance() {
@@ -31,7 +31,6 @@ public class ServerDBHelper {
     }
 
     public void retrieveDBResults() {
-
         // Set up connection for app to talk to database via rest controller
         MessageService service = ServiceGenerator.createService(MessageService.class);
 
@@ -41,13 +40,11 @@ public class ServerDBHelper {
             @Override
             public void onResponse(@NonNull Call<List<Message>> call, @NonNull Response<List<Message>> response) {
                 List<Message> allMessages = response.body();
-                // NOTE: use allMessages.get([INDEX]).[ATTRIBUTE] to extract message data, as below
                 assert allMessages != null;
                 ServerDBHelper.getInstance().setMessages(true, allMessages);
             }
             @Override
             public void onFailure(@NonNull Call<List<Message>> call, @NonNull Throwable throwable) {
-                Log.e(TAG, "Messages retrieving error:" + throwable.getMessage());
                 // Sends an empty list of messages to observers
                 ServerDBHelper.getInstance().setMessages(false, new ArrayList<>());
             }
@@ -65,7 +62,6 @@ public class ServerDBHelper {
 
             @Override
             public void onFailure(@NonNull Call<List<Banner>> call, @NonNull Throwable throwable) {
-                Log.e(TAG, "Banners retrieving error:" + throwable.getMessage());
                 // Sends an empty array list of banners to observers
                 ServerDBHelper.getInstance().setBanners(false, new ArrayList<>());
             }
@@ -82,23 +78,25 @@ public class ServerDBHelper {
         }
     }
 
-    public void setNotificationObserver(ServerDBObserver observer) {
-        this.notificationObserver = observer;
-        if (observer != null) {
-            this.observers.add(notificationObserver);
-        }
-    }
-
     public void setMessages(boolean success, List<Message> messages) {
         this.messages = messages;
         if (success) {
             for (ServerDBObserver o : observers) {
-                o.onMessageSuccess(messages);
+                try {
+                    o.onMessageSuccess(messages);
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
+                    observers.remove(o);
+                }
             }
         }
         else {
             for (ServerDBObserver o : observers) {
-                o.onMessageFailure();
+                try {
+                    o.onMessageFailure();
+                } catch (Exception e) {
+                    observers.remove(o);
+                }
             }
         }
     }
@@ -107,12 +105,21 @@ public class ServerDBHelper {
         this.banners = banners;
         if (success) {
             for (ServerDBObserver o : observers) {
-                o.onBannerSuccess(banners);
+                try {
+                    o.onBannerSuccess(banners);
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
+                    observers.remove(o);
+                }
             }
         }
         else {
             for (ServerDBObserver o : observers) {
-                o.onBannerFailure();
+                try {
+                    o.onBannerFailure();
+                } catch (Exception e) {
+                    observers.remove(o);
+                }
             }
         }
     }
@@ -129,9 +136,6 @@ public class ServerDBHelper {
     // you switch between fragments that implement ServerDBObserver
     public void clearObservers() {
         this.observers.clear();
-        if (notificationObserver != null) {
-            this.observers.add(notificationObserver); // will always need the notification observer
-        }
     }
 
     public void removeObserver(ServerDBObserver observer) {
