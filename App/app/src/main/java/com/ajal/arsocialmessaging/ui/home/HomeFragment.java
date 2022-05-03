@@ -651,7 +651,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                     camera.getDisplayOrientedPose(),
                     projectionMatrix);
         }
-        if (localBannersId.size() > 0) {
+        if (localBannersId.size() > 0 && requiredDataRetrieved) {
             // Visualize models
             // Update lighting parameters in the shader
             updateLightEstimation(frame.getLightEstimate(), viewMatrix);
