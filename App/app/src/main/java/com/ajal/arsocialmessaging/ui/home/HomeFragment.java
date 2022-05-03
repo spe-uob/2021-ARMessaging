@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
 import com.ajal.arsocialmessaging.util.HashCreator;
@@ -100,6 +101,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
 
     private static final String TAG = "SkyWrite";
 
+    private static final String RETRIEVING_FROM_SERVER = "Retrieving messages from server...";
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
     private static final String FOUND_PLANE_MESSAGE = "Look up to view message!";
     private static final String NO_VIRTUAL_MESSAGES_MESSAGE = "This postcode has no messages";
@@ -232,10 +234,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
 
         // Request the server to load the results from the database
         ServerDBHelper serverDbHelper = ServerDBHelper.getInstance();
-        // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
-        serverDbHelper.clearObservers();
         serverDbHelper.registerObserver(this);
-        serverDbHelper.retrieveDBResults();
 
         PostcodeHelper postcodeHelper = PostcodeHelper.getInstance();
         postcodeHelper.clearObservers();
@@ -245,13 +244,28 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             root.findViewById(R.id.loading_circle).setVisibility(View.VISIBLE);
             root.findViewById(R.id.postcode_text_view).setVisibility(View.INVISIBLE);
             root.findViewById(R.id.snap_button).setVisibility(View.INVISIBLE);
-
         } catch (InterruptedException e) {
             e.printStackTrace();
             return root;
         }
 
         installRequested = false;
+
+        // Refresh
+        SwipeRefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if (ConnectivityHelper.getInstance().isNetworkAvailable()) {
+                    Log.i(TAG, "Requesting banners fromm server again");
+                    ServerDBHelper.getInstance().retrieveDBResults();
+                }
+                else {
+                    messageSnackbarHelper.showError(getActivity(), NETWORK_ERROR_MESSAGE);
+                }
+                refreshLayout.setRefreshing(false);
+            }
+        });
 
         // SkyWrite: Set up button listener to take photo
         Button snapBtn = (Button) root.findViewById(R.id.snap_button);
@@ -569,6 +583,9 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
         } else if (!ConnectivityHelper.getInstance().isLocationAvailable()) {
             message = LOCATION_ERROR_MESSAGE;
             drawTracked = false;
+        } else if (!requiredDataRetrieved) {
+            message = RETRIEVING_FROM_SERVER;
+            drawTracked = false;
         } else if (localBannersId.size() == 0) {
             message = NO_VIRTUAL_MESSAGES_MESSAGE;
             drawTracked = false;
@@ -634,7 +651,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                     camera.getDisplayOrientedPose(),
                     projectionMatrix);
         }
-        if (localBannersId.size() > 0) {
+        if (localBannersId.size() > 0 && requiredDataRetrieved) {
             // Visualize models
             // Update lighting parameters in the shader
             updateLightEstimation(frame.getLightEstimate(), viewMatrix);

@@ -1,21 +1,16 @@
 package com.ajal.arsocialmessaging;
 
 import android.Manifest;
-import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-//import android.window.SplashScreen;
 
 import com.ajal.arsocialmessaging.util.ConnectivityHelper;
 import com.ajal.arsocialmessaging.util.PermissionHelper;
-import com.ajal.arsocialmessaging.util.database.client.ClientDBHelper;
+import com.ajal.arsocialmessaging.util.database.server.ServerDBHelper;
 import com.ajal.arsocialmessaging.util.location.PostcodeHelper;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -27,8 +22,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
 
 import com.ajal.arsocialmessaging.databinding.ActivityMainBinding;
 
@@ -36,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "SkyWrite";
     private ActivityMainBinding binding;
+    ServerDBHelper serverDBHelper = ServerDBHelper.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,13 +37,22 @@ public class MainActivity extends AppCompatActivity {
         // Handle the splash screen transition.
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
 
+        ConnectivityHelper.getInstance().setMainActivity(this);
+
         super.onCreate(savedInstanceState);
+
+        // Start the FCM notification service
+        Intent intent = new Intent(this, NotificationFCMService.class);
+        startService(intent);
 
         // Check that SkyWrite has the correct permissions and if not, request them
         if (!PermissionHelper.hasPermissions(this)) {
             PermissionHelper.requestPermissions(this);
         }
         else {
+            if (ConnectivityHelper.getInstance().isNetworkAvailable()) {
+                serverDBHelper.retrieveDBResults();
+            }
             loadApp();
         }
 
@@ -71,15 +74,10 @@ public class MainActivity extends AppCompatActivity {
             PermissionHelper.requestPermissionsIfDenied(this);
             return;
         }
-        loadApp();
+        this.recreate();
     }
 
     public void loadApp() {
-        // Start the FCM notification service
-        Intent intent = new Intent(this, NotificationFCMService.class);
-        startService(intent);
-
-        ConnectivityHelper.getInstance().setMainActivity(this);
         // Initiate the location updates request if location is available
         Context ctx = this.getApplicationContext();
         LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);

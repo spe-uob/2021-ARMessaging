@@ -70,10 +70,7 @@ public class MessageFragment extends Fragment implements ServerDBObserver {
 
         // Request the server to load the results from the database
         ServerDBHelper serverDbHelper = ServerDBHelper.getInstance();
-        // Need to clear callbacks or else ServerDBHelper can try to send a context which no longer exists
-        ServerDBHelper.getInstance().clearObservers();
         serverDbHelper.registerObserver(this);
-        serverDbHelper.retrieveDBResults();
 
         /** Postcode button code */
         postCodeInput = root.findViewById(R.id.text_input_postcode);
