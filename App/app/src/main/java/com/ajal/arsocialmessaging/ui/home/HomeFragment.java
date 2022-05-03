@@ -257,6 +257,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
             @Override
             public void onRefresh() {
                 if (ConnectivityHelper.getInstance().isNetworkAvailable()) {
+                    requiredDataRetrieved = false;
                     Log.i(TAG, "Requesting banners fromm server again");
                     ServerDBHelper.getInstance().retrieveDBResults();
                 }
@@ -674,6 +675,7 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
                 Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
 
                 // Update shader properties and draw
+                if (i >= localBannersId.size()) break;
                 int objectId = localBannersId.get(i);
                 virtualObjectShadersList.get(objectId).setMat4("u_ModelView", modelViewMatrix);
                 virtualObjectShadersList.get(objectId).setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
@@ -1012,7 +1014,8 @@ public class HomeFragment extends Fragment implements SampleRender.Renderer, Ser
     }
 
     private void generateLocalVirtualMessages() {
-        if (messagesRetrieved && bannersRetrieved && locationRetrieved) {
+        if (messagesRetrieved && bannersRetrieved && locationRetrieved && !requiredDataRetrieved) {
+            Log.d(TAG, "Generating local virtual messages");
             // If the user switched fragments faster than the request is received (e.g. running Android tests),
             // then this.getContext() will be null. As a result, this if statement is required
             if (this.getContext() != null) {
