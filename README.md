@@ -123,16 +123,16 @@ CREATE TABLE banners (
    postcode VARCHAR(255),
 	create_at TIMESTAMP,
 	message_id INT
-)
+);
 ```
 
 ```sql
 DROP TABLE messages;
 CREATE TABLE messages (
-   id SERIAL PRIMARY KEY,
-	create_at TIMESTAMP,
-	message_id INT,
-)
+    id SERIAL PRIMARY KEY,
+    message VARCHAR(255),
+    objfilename VARCHAR(255)
+);
 ```
 
 ```sql
