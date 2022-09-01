@@ -4,6 +4,9 @@ SkyWrite is an Android app that will allow a sender to select an appropriate mes
 Merry Christmas etc) to a postcode. The message will appear in augmented reality 100ft above the ground.
 Those with the app/service will be notified that a message exists in a nearby postcode.
 
+> **_WARNING:_**  This project is no longer maintained and so it may no longer work as expected.
+> **_WARNING:_**  The Firebase Cloud Messaging Service has an updated key and so Notifications will no longer function correctly.
+
 ## Table of Contents ##
 - [2021-ARMessaging - SkyWrite](#2021-armessaging---skywrite)
   - [Summary](#summary)
